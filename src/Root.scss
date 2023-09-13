@@ -1,0 +1,25 @@
+@use "style/Essential.scss";
+
+#root {
+  overflow: hidden;
+
+  --bg-body-color: #ffffff;
+  --bg-default-color: #ffffff;
+  --bg-paper-color: #f3f3f3;
+  --text-primary-color: rgba(0, 0, 0, 0.87);
+  --text-disabled-color: rgba(0, 0, 0, 0.6);
+  --link-color: rgba(0, 0, 0, 0.87);
+  --hover-color: rgba(0, 0, 0, 0.08);
+  --focused-color: rgba(0, 0, 0, 0.12);
+  background-color: var(--bg-body-color);
+
+  > #root-container {
+    display: flex;
+    width: 100vw;
+    width: 100svw;
+    height: 100vh;
+    height: 100svh;
+    box-sizing: border-box;
+
+  }
+}
