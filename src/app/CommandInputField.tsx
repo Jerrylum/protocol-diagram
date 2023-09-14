@@ -1,18 +1,25 @@
-import { Box, TextField } from "@mui/material";
+import { Box, Button, TextField } from "@mui/material";
 import { observer } from "mobx-react-lite";
 
 export const CommandInputField = observer(() => {
   return (
-    <Box
-      sx={{
-        position: "fixed",
-        bottom: "32px",
-        maxWidth: "90vw",
-        width: "600px",
-        left: "50%",
-        transform: "translate(-50%, 0)"
-      }}>
-      <TextField fullWidth size="small" />
+    <Box sx={{ position: "relative" }}>
+      <TextField fullWidth size="small" spellCheck={false} />
+      <Box
+        sx={{
+          position: "absolute",
+          top: "0",
+          bottom: "0",
+          left: "calc(100% + 4px)",
+          width: "300px",
+          display: "flex",
+          alignItems: "center",
+          gap: "4px"
+        }}>
+        <Button>Export As Text</Button>
+        {/* <Button>Share URL</Button> */}
+      </Box>
     </Box>
   );
 });
+
