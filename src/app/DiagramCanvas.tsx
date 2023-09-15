@@ -7,8 +7,6 @@ import { getWindowSize } from "../core/Util";
 import { useBetterMemo } from "../core/Hook";
 import React from "react";
 import Konva from "konva";
-// import TestMarkdown from "./TestMarkdown.mdx";
-// import { MarkdownOverwrittenComponents } from "./MarkdownComponents";
 
 export class DiagramCanvasController {
   canvasSize: Vector = getWindowSize();
@@ -38,7 +36,6 @@ export const DiagramCanvas = observer(() => {
         onContextMenu={e => e.evt.preventDefault()}>
         <Layer></Layer>
       </Stage>
-      {/* <TestMarkdown components={MarkdownOverwrittenComponents} /> */}
     </Box>
   );
 });
