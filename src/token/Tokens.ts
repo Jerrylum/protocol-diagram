@@ -1,5 +1,7 @@
 // ALGO: Tokens implementation is adopted from https://github.com/Jerrylum/ProtocolDiagram under the GPLv3 license.
 
+import isEqual from "lodash.isequal";
+
 /**
  * A utility function that checks whether the character is delimiter (null | ' ')
  *
@@ -278,6 +280,10 @@ export class CodePointBuffer {
 export abstract class Token {
   public static parse(buffer: CodePointBuffer): Token | null {
     return null;
+  }
+
+  public equals(obj: unknown): boolean {
+    return isEqual(this, obj);
   }
 }
 
@@ -562,12 +568,13 @@ export class Zero extends Token {
   }
 }
 
-export class Parameter {
+export class Parameter extends Token {
   private bool: BooleanT | null = null;
   private number: NumberT | null = null;
   private string: StringT | null = null;
 
   constructor(bool: BooleanT | null = null, number: NumberT | null = null, string: StringT | null = null) {
+    super();
     this.bool = bool;
     this.number = number;
     this.string = string;
@@ -635,8 +642,8 @@ export class Parameter {
     else return this.getString();
   }
 
-  equals(obj: any): boolean {
-    if (obj == null) {
+  equals(obj: unknown): boolean {
+    if (obj === null) {
       return false;
     }
 
@@ -646,7 +653,7 @@ export class Parameter {
 
     let other = obj as Parameter;
 
-    return other.string == this.string && other.number == this.number && other.bool == this.bool;
+    return isEqual(other.string, this.string) && isEqual(other.number, this.number) && isEqual(other.bool, this.bool);
   }
 }
 

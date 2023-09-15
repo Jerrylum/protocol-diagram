@@ -15,7 +15,8 @@ import {
   NumberT,
   PositiveInt,
   SingleQuoteString,
-  StringT
+  StringT,
+  Parameter
 } from "./Tokens";
 
 function cpb(s: string): CodePointBuffer {
@@ -341,4 +342,88 @@ test("Zero invalid case", () => {
   expect(Zero.parse(cpb(""))).toBeNull();
   expect(Zero.parse(cpb("-"))).toBeNull();
   expect(Zero.parse(cpb(" 0"))).toBeNull();
+});
+
+test("Parameter Valid", () => {
+  expect(Parameter.parse(cpb("True"))?.getBoolean()).toBe(true);
+  expect(Parameter.parse(cpb("False"))?.getBoolean()).toBe(false);
+  expect(Parameter.parse(cpb("123"))?.getInt()).toBe(123);
+  expect(Parameter.parse(cpb("123.456"))?.getDouble()).toBe(123.456);
+  expect(Parameter.parse(cpb("0"))?.getInt()).toBe(0);
+  expect(Parameter.parse(cpb("0.0"))?.getDouble()).toBe(0.0);
+  expect(Parameter.parse(cpb("-14"))?.getInt()).toBe(-14);
+  expect(Parameter.parse(cpb("-14.0"))?.getDouble()).toBe(-14.0);
+  expect(Parameter.parse(cpb('"14"'))?.getString()).toBe("14");
+  expect(Parameter.parse(cpb('"14.0"'))?.getString()).toBe("14.0");
+  expect(Parameter.parse(cpb('"-14"'))?.getString()).toBe("-14");
+  expect(Parameter.parse(cpb('"-14.0"'))?.getString()).toBe("-14.0");
+  expect(Parameter.parse(cpb("'14'"))?.getString()).toBe("14");
+  expect(Parameter.parse(cpb("'14.0'"))?.getString()).toBe("14.0");
+  expect(Parameter.parse(cpb("'-14'"))?.getString()).toBe("-14");
+  expect(Parameter.parse(cpb("'-14.0'"))?.getString()).toBe("-14.0");
+  expect(Parameter.parse(cpb("3.14h"))?.toString()).toBe("3.14h");
+});
+
+test("Parameter Null", () => {
+  expect(Parameter.parse(cpb(""))).toBeNull();
+});
+
+test("Parameter Equals", () => {
+  const p1 = Parameter.parse(cpb("True"));
+  const p2 = Parameter.parse(cpb("True"));
+  expect(p1?.equals(p2)).toBe(true);
+  expect(p2?.equals(p1)).toBe(true); // symmetric
+  expect(p1?.equals(p1)).toBe(true); // reflexive
+  expect(p2?.equals(p2)).toBe(true); // reflexive
+  expect(p1?.equals(null)).toBe(false);
+  expect(p1?.equals(new Object())).toBe(false);
+  expect(p1?.equals(123)).toBe(false);
+  expect(p1?.equals(true)).toBe(false);
+  expect(p1?.equals(Parameter.parse(cpb("False")))).toBe(false);
+  expect(p1?.equals(Parameter.parse(cpb("123")))).toBe(false);
+  expect(p1?.equals(Parameter.parse(cpb("Hello")))).toBe(false);
+
+  const p3 = Parameter.parse(cpb("123"));
+  expect(p3?.equals(Parameter.parse(cpb("False")))).toBe(false);
+  expect(p3?.equals(Parameter.parse(cpb("123")))).toBe(true);
+  expect(p3?.equals(Parameter.parse(cpb("Hello")))).toBe(false);
+
+  const p4 = Parameter.parse(cpb("Hello"));
+  expect(p4?.equals(Parameter.parse(cpb("False")))).toBe(false);
+  expect(p4?.equals(Parameter.parse(cpb("123")))).toBe(false);
+  expect(p4?.equals(Parameter.parse(cpb("Hello")))).toBe(true);
+});
+
+test("Parameter Methods", () => {
+  const p1 = Parameter.parse(cpb("True"));
+  if (!p1) throw new Error("p1 is null");
+  expect(p1.isBoolean()).toBe(true);
+  expect(p1.isNumber()).toBe(false);
+  expect(p1.isDouble()).toBe(false);
+  expect(p1.isString()).toBe(false);
+  expect(p1.toString()).toBe("true");
+
+  const p2 = Parameter.parse(cpb("123"));
+  if (!p2) throw new Error("p2 is null");
+  expect(p2.isBoolean()).toBe(false);
+  expect(p2.isNumber()).toBe(true);
+  expect(p2.isDouble()).toBe(false);
+  expect(p2.isString()).toBe(false);
+  expect(p2.toString()).toBe("123");
+
+  const p3 = Parameter.parse(cpb("123.456"));
+  if (!p3) throw new Error("p3 is null");
+  expect(p3.isBoolean()).toBe(false);
+  expect(p3.isNumber()).toBe(true);
+  expect(p3.isDouble()).toBe(true);
+  expect(p3.isString()).toBe(false);
+  expect(p3.toString()).toBe("123.456");
+
+  const p4 = Parameter.parse(cpb("'Hello'"));
+  if (!p4) throw new Error("p4 is null");
+  expect(p4.isBoolean()).toBe(false);
+  expect(p4.isNumber()).toBe(false);
+  expect(p4.isDouble()).toBe(false);
+  expect(p4.isString()).toBe(true);
+  expect(p4.toString()).toBe("Hello");
 });
