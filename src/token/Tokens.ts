@@ -1,6 +1,5 @@
 // ALGO: Tokens implementation is adopted from https://github.com/Jerrylum/ProtocolDiagram under the GPLv3 license.
 
-
 /**
  * A utility function that checks whether the character is delimiter (null | ' ')
  *
@@ -569,98 +568,87 @@ export class Parameter {
   private string: StringT | null = null;
 
   constructor(bool: BooleanT | null = null, number: NumberT | null = null, string: StringT | null = null) {
-      this.bool = bool;
-      this.number = number;
-      this.string = string;
+    this.bool = bool;
+    this.number = number;
+    this.string = string;
   }
 
   static parse(buffer: CodePointBuffer): Parameter | null {
-      buffer.savepoint();
+    buffer.savepoint();
 
-      let i = 0;
-      while (!isDelimiter(buffer.peek(i)))
-          i++;
+    let i = 0;
+    while (!isDelimiter(buffer.peek(i))) i++;
 
-      let firstStop = buffer.getIndex() + i;
-      let bool = BooleanT.parse(buffer);
-      if (bool != null)
-          return buffer.commitAndReturn(new Parameter(bool));
+    let firstStop = buffer.getIndex() + i;
+    let bool = BooleanT.parse(buffer);
+    if (bool != null) return buffer.commitAndReturn(new Parameter(bool));
 
-      let number = NumberT.parse(buffer);
-      if (number != null) {
-          if (buffer.getIndex() == firstStop)
-              return buffer.commitAndReturn(new Parameter(null, number));
-          else {
-              buffer.rollback();
-              buffer.savepoint();
-          }
+    let number = NumberT.parse(buffer);
+    if (number != null) {
+      if (buffer.getIndex() == firstStop) return buffer.commitAndReturn(new Parameter(null, number));
+      else {
+        buffer.rollback();
+        buffer.savepoint();
       }
+    }
 
-      let string = StringT.parse(buffer);
-      if (string != null)
-          return buffer.commitAndReturn(new Parameter(null, null, string));
-      else
-          return buffer.rollbackAndReturn(null);
+    let string = StringT.parse(buffer);
+    if (string != null) return buffer.commitAndReturn(new Parameter(null, null, string));
+    else return buffer.rollbackAndReturn(null);
   }
 
   getBoolean(): boolean {
-      return this.bool!.bool;
+    return this.bool!.bool;
   }
 
   getInt(): number {
-      return this.number!.toInt();
+    return this.number!.toInt();
   }
 
   getDouble(): number {
-      return this.number!.toDouble();
+    return this.number!.toDouble();
   }
 
   getString(): string {
-      return this.string!.content;
+    return this.string!.content;
   }
 
   isBoolean(): boolean {
-      return this.bool != null;
+    return this.bool != null;
   }
 
   isNumber(): boolean {
-      return this.number != null;
+    return this.number != null;
   }
 
   isDouble(): boolean {
-      return this.number != null && this.number.isDouble;
+    return this.number != null && this.number.isDouble;
   }
 
   isString(): boolean {
-      return this.string != null;
+    return this.string != null;
   }
 
   toString(): string {
-      if (this.isBoolean())
-          return this.bool!.bool + "";
-      else if (this.isNumber())
-          return this.isDouble() ? this.number!.toDouble() + "" : this.number!.toInt() + "";
-      else
-          return this.getString();
+    if (this.isBoolean()) return this.bool!.bool + "";
+    else if (this.isNumber()) return this.isDouble() ? this.number!.toDouble() + "" : this.number!.toInt() + "";
+    else return this.getString();
   }
 
   equals(obj: any): boolean {
-      if (obj == null) {
-          return false;
-      }
+    if (obj == null) {
+      return false;
+    }
 
-      if (!(obj instanceof Parameter)) {
-          return false;
-      }
+    if (!(obj instanceof Parameter)) {
+      return false;
+    }
 
-      let other = obj as Parameter;
+    let other = obj as Parameter;
 
-      return other.string == this.string &&
-          other.number == this.number &&
-          other.bool == this.bool;
+    return other.string == this.string && other.number == this.number && other.bool == this.bool;
   }
 }
-
 
 // /**
 //  * this record is a data class that contains the prefix and the parameters of a
@@ -672,10 +660,10 @@ export class Parameter {
 //    * of a string, and returns a CommandLine object, which is a wrapper that
 //    * separated from the raw CodePointBuffer to two stuff, a command prefix and the
 //    * params right after the command prefix.
-//    * 
+//    *
 //    * via this process, it could assist the program to distinguish each commands
 //    * and tell the differences.
-//    * 
+//    *
 //    * @param buffer the CodePointBuffer to be parsed
 //    * @return the parsed CommandLine object, or null if the parse failed
 //    */
