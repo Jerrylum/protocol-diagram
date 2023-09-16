@@ -184,8 +184,71 @@ export class EnumOption extends Option<string> {
    * @return the manual statement for this enum option
    */
   getUsageDescription(): string {
-    return this.acceptedValues
-      .map(v => (v === this.defaultValue ? v.toUpperCase() : v))
-      .join(" | ");
+    return this.acceptedValues.map(v => (v === this.defaultValue ? v.toUpperCase() : v)).join(" | ");
+  }
+}
+
+export class RangeOption extends Option<number> {
+  private value: number;
+
+  public constructor(key: string, readonly defaultValue: number, readonly min: number, readonly max: number) {
+    super(key);
+    this.value = defaultValue;
+  }
+
+  /**
+   * a wrapper method that sets the value of this range option, the value of the
+   * parameter is required to be an integer
+   *
+   * @return whether the value is set successfully
+   */
+  setValue(value: Parameter | number): HandleResult {
+    if (value instanceof Parameter) {
+      if (value.isNumber() && !value.isDouble()) {
+        return this.setValue(value.getInt());
+      } else {
+        return fail("The value must be an integer.");
+      }
+    } else {
+      let oldValue: number = this.value;
+      if (!Number.isInteger(value)) {
+        return fail("The value must be an integer.");
+      }
+      if (oldValue === value) {
+        return fail("It is already " + value + ".");
+      } else if (value < this.min || value > this.max) {
+        return fail("The value must be between " + this.min + " and " + this.max + ".");
+      } else {
+        this.value = value;
+        return success('Set "' + this.key + '" from ' + oldValue + " to " + value + ".");
+      }
+    }
+  }
+
+  /**
+   * a getter method that retrieve the value of this range option
+   *
+   * @return the value of this range option
+   */
+  public getValue(): number {
+    return this.value;
+  }
+
+  /**
+   * a getter method that return the default value of this range option
+   *
+   * @return the default value of this range option
+   */
+  public getDefault(): number {
+    return this.defaultValue;
+  }
+
+  /**
+   * a method that return a manual statement.
+   *
+   * @return the manual statement
+   */
+  getUsageDescription(): string {
+    return "min:" + this.min + " max:" + this.max + " default:" + this.defaultValue;
   }
 }
