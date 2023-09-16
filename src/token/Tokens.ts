@@ -1,5 +1,7 @@
 // ALGO: Tokens implementation is adopted from https://github.com/Jerrylum/ProtocolDiagram under the GPLv3 license.
 
+import isEqual from "lodash.isequal";
+
 /**
  * A utility function that checks whether the character is delimiter (null | ' ')
  *
@@ -278,6 +280,10 @@ export class CodePointBuffer {
 export abstract class Token {
   public static parse(buffer: CodePointBuffer): Token | null {
     return null;
+  }
+
+  public equals(obj: unknown): boolean {
+    return isEqual(this, obj);
   }
 }
 
@@ -562,12 +568,13 @@ export class Zero extends Token {
   }
 }
 
-export class Parameter {
+export class Parameter extends Token {
   private bool: BooleanT | null = null;
   private number: NumberT | null = null;
   private string: StringT | null = null;
 
   constructor(bool: BooleanT | null = null, number: NumberT | null = null, string: StringT | null = null) {
+    super();
     this.bool = bool;
     this.number = number;
     this.string = string;
@@ -635,8 +642,8 @@ export class Parameter {
     else return this.getString();
   }
 
-  equals(obj: any): boolean {
-    if (obj == null) {
+  equals(obj: unknown): boolean {
+    if (obj === null) {
       return false;
     }
 
@@ -646,51 +653,53 @@ export class Parameter {
 
     let other = obj as Parameter;
 
-    return other.string == this.string && other.number == this.number && other.bool == this.bool;
+    return isEqual(other.string, this.string) && isEqual(other.number, this.number) && isEqual(other.bool, this.bool);
   }
 }
 
-// /**
-//  * this record is a data class that contains the prefix and the parameters of a
-//  * command line
-//  */
-// class CommandLine implements Token {
-//   /**
-//    * a static utility function that parses the CodePointBuffer, which is a wrapper
-//    * of a string, and returns a CommandLine object, which is a wrapper that
-//    * separated from the raw CodePointBuffer to two stuff, a command prefix and the
-//    * params right after the command prefix.
-//    *
-//    * via this process, it could assist the program to distinguish each commands
-//    * and tell the differences.
-//    *
-//    * @param buffer the CodePointBuffer to be parsed
-//    * @return the parsed CommandLine object, or null if the parse failed
-//    */
-//   public static CommandLine parse(CodePointBuffer buffer) {
-//       buffer.readDelimiter();
+/**
+ * this record is a data class that contains the prefix and the parameters of a
+ * command line
+ */
+export class CommandLine extends Token {
+  /**
+   * a static utility function that parses the CodePointBuffer, which is a wrapper
+   * of a string, and returns a CommandLine object, which is a wrapper that
+   * separated from the raw CodePointBuffer to two stuff, a command prefix and the
+   * params right after the command prefix.
+   *
+   * via this process, it could assist the program to distinguish each commands
+   * and tell the differences.
+   *
+   * @param buffer the CodePointBuffer to be parsed
+   * @return the parsed CommandLine object, or null if the parse failed
+   */
 
-//       String cname = buffer.readChunk();
-//       if (cname.isEmpty())
-//           return null;
+  constructor(public name: String, public params: Parameter[]) {
+    super();
+  }
 
-//       List<Parameter> params = new ArrayList<>();
-//       while (true) {
-//           buffer.readDelimiter();
-//           Parameter p = Parameter.parse(buffer);
-//           if (p == null)
-//               break;
-//           params.add(p);
-//       }
+  static parse(buffer: CodePointBuffer): CommandLine | null {
+    buffer.readDelimiter();
 
-//       if (buffer.hasNext())
-//           return null;
-//       else
-//           return new CommandLine(cname, params);
-//   }
+    const cname: string = buffer.readChunk();
+    if (cname.length === 0) {
+      return null;
+    }
 
-//   constructor(public name: String, public params: Parameter[]) {
-//       this.name = name;
-//       this.params = params;
-//   }
-// }
+    let params: Parameter[] = [];
+    while (true) {
+      buffer.readDelimiter();
+      let p: Parameter | null = Parameter.parse(buffer);
+      if (p === null) {
+        break;
+      }
+      params.push(p);
+    }
+    if (buffer.hasNext()) {
+      return null;
+    } else {
+      return new CommandLine(cname, params);
+    }
+  }
+}
