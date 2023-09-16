@@ -54,6 +54,7 @@
     "workbox-window": "^7.0.0"
   },
   "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@craco/craco": "^7.1.0",
     "@types/dompurify": "^3.0.2",
     "@types/jest": "^27.5.2",
