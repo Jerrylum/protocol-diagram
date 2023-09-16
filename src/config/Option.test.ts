@@ -1,7 +1,7 @@
 import { CodePointBuffer, Parameter } from "../token/Tokens";
 import { BooleanOption, EnumOption, RangeOption } from "./Option";
 
-test("BooleanOption Get", () => {
+test("BooleanOption getter", () => {
   const option = new BooleanOption("test", true);
   expect(option.key).toBe("test");
   expect(option.defaultValue).toBe(true);
@@ -13,7 +13,7 @@ test("BooleanOption Get", () => {
   expect(option2.getUsageDescription()).toBe("true | FALSE");
 });
 
-test("BooleanOption Set Boolean", () => {
+test("BooleanOption boolean setter", () => {
   const option = new BooleanOption("test", true);
   expect(option.setValue(true).success).toBe(false);
   expect(option.setValue(true).message).toBe("It is already true.");
@@ -30,7 +30,7 @@ test("BooleanOption Set Boolean", () => {
   expect(option.getUsageDescription()).toBe("TRUE | false");
 });
 
-test("BooleanOption Set Parameter", () => {
+test("BooleanOption parameter setter", () => {
   const option = new BooleanOption("test", true);
   expect(option.setValue(Parameter.parse(new CodePointBuffer("true"))!).success).toBe(false);
   expect(option.setValue(Parameter.parse(new CodePointBuffer("true"))!).message).toBe("It is already true.");
@@ -53,7 +53,7 @@ test("BooleanOption Set Parameter", () => {
   expect(result5.message).toBe("The value must be a boolean.");
 });
 
-test("EnumOption Get", () => {
+test("EnumOption getter", () => {
   const option = new EnumOption("test", "a", ["a", "b", "c"]);
   expect(option.key).toBe("test");
   expect(option.defaultValue).toBe("a");
@@ -61,7 +61,7 @@ test("EnumOption Get", () => {
   expect(option.getUsageDescription()).toBe("A | b | c");
 });
 
-test("EnumOption Set String", () => {
+test("EnumOption string setter", () => {
   const option = new EnumOption("test", "aaa", ["aaa", "bbb", "ccc", "abc"]);
   expect(option.setValue("bbb").success).toBe(true);
   expect(option.getValue()).toBe("bbb");
@@ -76,7 +76,7 @@ test("EnumOption Set String", () => {
   expect(option.setValue("bb").message).toBe('Set "test" from "abc" to "bbb".');
 });
 
-test("EnumOption Set Parameter", () => {
+test("EnumOption parameter setter", () => {
   const option = new EnumOption("test", "aaa", ["aaa", "bbb", "ccc", "abc"]);
   expect(option.setValue(Parameter.parse(new CodePointBuffer("bbb"))!).success).toBe(true);
   expect(option.getValue()).toBe("bbb");
@@ -93,7 +93,7 @@ test("EnumOption Set Parameter", () => {
   expect(option.setValue(Parameter.parse(new CodePointBuffer("5"))!).message).toBe('The value "5" is not accepted.');
 });
 
-test("RangeOption Get", () => {
+test("RangeOption getter", () => {
   const option = new RangeOption("test", 1, 0, 10);
   expect(option.key).toBe("test");
   expect(option.defaultValue).toBe(1);
@@ -101,7 +101,7 @@ test("RangeOption Get", () => {
   expect(option.getUsageDescription()).toBe("min:0 max:10 default:1");
 });
 
-test("RangeOption Set Integer", () => {
+test("RangeOption number setter", () => {
   const option = new RangeOption("test", 1, 0, 10);
   expect(option.setValue(5).success).toBe(true);
   expect(option.getValue()).toBe(5);
@@ -139,7 +139,7 @@ test("RangeOption Set Integer", () => {
   expect(result7.message).toBe("The value must be an integer.");
 });
 
-test("RangeOption Set Parameter", () => {
+test("RangeOption parameter setter", () => {
   const option = new RangeOption("test", 1, 0, 10);
   expect(option.setValue(Parameter.parse(new CodePointBuffer("5"))!).success).toBe(true);
   expect(option.getValue()).toBe(5);
