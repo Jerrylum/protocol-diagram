@@ -657,47 +657,49 @@ export class Parameter extends Token {
   }
 }
 
-// /**
-//  * this record is a data class that contains the prefix and the parameters of a
-//  * command line
-//  */
-// class CommandLine implements Token {
-//   /**
-//    * a static utility function that parses the CodePointBuffer, which is a wrapper
-//    * of a string, and returns a CommandLine object, which is a wrapper that
-//    * separated from the raw CodePointBuffer to two stuff, a command prefix and the
-//    * params right after the command prefix.
-//    *
-//    * via this process, it could assist the program to distinguish each commands
-//    * and tell the differences.
-//    *
-//    * @param buffer the CodePointBuffer to be parsed
-//    * @return the parsed CommandLine object, or null if the parse failed
-//    */
-//   public static CommandLine parse(CodePointBuffer buffer) {
-//       buffer.readDelimiter();
+/**
+ * this record is a data class that contains the prefix and the parameters of a
+ * command line
+ */
+export class CommandLine extends Token {
+  /**
+   * a static utility function that parses the CodePointBuffer, which is a wrapper
+   * of a string, and returns a CommandLine object, which is a wrapper that
+   * separated from the raw CodePointBuffer to two stuff, a command prefix and the
+   * params right after the command prefix.
+   *
+   * via this process, it could assist the program to distinguish each commands
+   * and tell the differences.
+   *
+   * @param buffer the CodePointBuffer to be parsed
+   * @return the parsed CommandLine object, or null if the parse failed
+   */
 
-//       String cname = buffer.readChunk();
-//       if (cname.isEmpty())
-//           return null;
+  constructor(public name: String, public params: Parameter[]) {
+    super();
+  }
 
-//       List<Parameter> params = new ArrayList<>();
-//       while (true) {
-//           buffer.readDelimiter();
-//           Parameter p = Parameter.parse(buffer);
-//           if (p == null)
-//               break;
-//           params.add(p);
-//       }
+  static parse(buffer: CodePointBuffer): CommandLine | null {
+    buffer.readDelimiter();
 
-//       if (buffer.hasNext())
-//           return null;
-//       else
-//           return new CommandLine(cname, params);
-//   }
+    const cname: string = buffer.readChunk();
+    if (cname.length === 0) {
+      return null;
+    }
 
-//   constructor(public name: String, public params: Parameter[]) {
-//       this.name = name;
-//       this.params = params;
-//   }
-// }
+    let params: Parameter[] = [];
+    while (true) {
+      buffer.readDelimiter();
+      let p: Parameter | null = Parameter.parse(buffer);
+      if (p === null) {
+        break;
+      }
+      params.push(p);
+    }
+    if (buffer.hasNext()) {
+      return null;
+    } else {
+      return new CommandLine(cname, params);
+    }
+  }
+}

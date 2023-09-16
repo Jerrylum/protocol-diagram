@@ -16,7 +16,8 @@ import {
   PositiveInt,
   SingleQuoteString,
   StringT,
-  Parameter
+  Parameter,
+  CommandLine
 } from "./Tokens";
 
 function cpb(s: string): CodePointBuffer {
@@ -426,4 +427,41 @@ test("Parameter Methods", () => {
   expect(p4.isDouble()).toBe(false);
   expect(p4.isString()).toBe(true);
   expect(p4.toString()).toBe("Hello");
+});
+
+test("CommandLine Valid", () => {
+  let params: Parameter[] = [];
+  expect(CommandLine.parse(cpb("target"))!.name).toBe("target");
+  expect(CommandLine.parse(cpb("target "))!.name).toBe("target");
+  expect(CommandLine.parse(cpb("  target   "))!.name).toBe("target");
+  expect(CommandLine.parse(cpb("target"))!.params).toStrictEqual(params);
+  params.push(Parameter.parse(cpb("value1"))!);
+  expect(CommandLine.parse(cpb("target value1"))!.params).toStrictEqual(params);
+  params.push(Parameter.parse(cpb("'value2'"))!);
+  expect(CommandLine.parse(cpb("target value1 'value2'"))!.params).toStrictEqual(params);
+  params.push(Parameter.parse(cpb('"value3"'))!);
+  expect(CommandLine.parse(cpb("target value1 'value2' \"value3\""))!.params).toStrictEqual(params);
+  params.push(Parameter.parse(cpb("True"))!);
+  expect(CommandLine.parse(cpb("target value1 'value2' \"value3\" True"))!.params).toStrictEqual(params);
+  params.push(Parameter.parse(cpb("False"))!);
+  expect(CommandLine.parse(cpb("target value1 'value2' \"value3\" True False"))!.params).toStrictEqual(params);
+  params.push(Parameter.parse(cpb("123"))!);
+  expect(CommandLine.parse(cpb("target value1 'value2' \"value3\" True False 123"))!.params).toStrictEqual(params);
+  params.push(Parameter.parse(cpb("123.456"))!);
+  expect(CommandLine.parse(cpb("target value1 'value2' \"value3\" True False 123 123.456"))!.params).toStrictEqual(
+    params
+  );
+  params.push(Parameter.parse(cpb("-123.456"))!);
+  expect(
+    CommandLine.parse(cpb("target value1 'value2' \"value3\" True False 123 123.456 -123.456"))!.params
+  ).toStrictEqual(params);
+  params.push(Parameter.parse(cpb("-123"))!);
+  expect(
+    CommandLine.parse(cpb("target value1 'value2' \"value3\" True False 123 123.456 -123.456 -123"))!.params
+  ).toStrictEqual(params);
+});
+
+test("CommandLine Null", () => {
+  expect(CommandLine.parse(cpb(""))).toBeNull();
+  expect(CommandLine.parse(cpb("target '"))).toBeNull();
 });
