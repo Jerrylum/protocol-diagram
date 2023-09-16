@@ -1,0 +1,111 @@
+import { boolean } from "yargs";
+import { HandleResult, success, fail } from "../command/HandleResult";
+import { Parameter } from "../token/Tokens";
+
+/**
+ * this abstract class provides a basic shape of an option class, that takes a
+ * key in order to instantiate an option class, once it is set, it could not be
+ * changed afterward
+ */
+export abstract class Option<T> {
+
+    /**
+     * the key of this option, it should be treated as a readonly value,
+     * since by logic, the key of a option should not be able to be changed,
+     * otherwise it would cause confusions
+     */
+
+    constructor(readonly key: string) {}
+
+    /**
+     * a setter method that sets the value of this option
+     * 
+     * @param value the value of this option
+     * @return HandleResult
+     */
+    public abstract setValue(value: Parameter | T): HandleResult;
+
+    /**
+     * a getter method that retrieves the value of this option
+     * 
+     * @return the value of this option
+     */
+    public abstract getValue(): T;
+
+    /**
+     * a getter method that retrieves the default value of this option
+     * 
+     * @return the default value of this option
+     */
+    public abstract getDefault(): T;
+
+    /**
+     * a method that returns a manual statement for displaying the usage description
+     * 
+     * @return the usage description of this option
+     */
+    public abstract getUsageDescription(): string;
+
+}
+
+export class BooleanOption extends Option<boolean> {
+
+    private value: boolean;
+
+    public constructor(key: string, readonly defaultValue:boolean) {
+        super(key);
+        this.value = defaultValue;
+    }
+
+    /**
+     * a wrapper method that sets the value of this boolean option, the value of the
+     * parameter is required to be an boolean
+     * 
+     * @return whether the value is set successfully
+     */
+    setValue(value: Parameter | boolean): HandleResult {
+        if (value instanceof Parameter){
+            if (value.isBoolean()) {
+                return this.setValue(value.getBoolean());
+            } else {
+                return fail("The value must be a boolean.");
+            }
+        }else {
+          const oldValue = this.value;
+          if (oldValue === value) {
+              return fail("It is already " + value + ".");
+          } else {
+              this.value = value;
+              return success("Set \"" + this.key + "\" from " + oldValue + " to " + value + ".");
+          }
+        }
+    }
+
+
+    /**
+     * a getter method that reads the value of this boolean option and returns it
+     * 
+     * @return the value of this boolean option
+     */
+    getValue(): boolean {
+        return this.value;
+    }
+
+    /**
+     * a getter method that returns the default value of this boolean option
+     * 
+     * @return the default value of this boolean option
+     */
+    getDefault(): boolean {
+        return this.defaultValue;
+    }
+
+    /**
+     * a method that returns a manual statement
+     * 
+     * @return the usage description of this option
+     */
+    public getUsageDescription(): string {
+        return this.defaultValue ? "TRUE | false" : "true | FALSE";
+    }
+}
