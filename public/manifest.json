@@ -1,6 +1,7 @@
 {
   "short_name": "Protocol Diagram",
-  "name": "A tool to help developers and researchers create protocol diagrams only using the keyboard or with an interactive user interface",
+  "name": "Protocol Diagram",
+  "description": "A tool to help developers and researchers create protocol diagrams only using the keyboard or with an interactive user interface",
   "icons": [
     {
       "src": "favicon.ico",
