@@ -54,7 +54,7 @@ test("BooleanOption parameter setter", () => {
 });
 
 test("EnumOption getter", () => {
-  const option = new EnumOption("test", "a", ["a", "b", "c"]);
+  const option = new EnumOption("test", "a", ["a", "b", "c"] as const);
   expect(option.key).toBe("test");
   expect(option.defaultValue).toBe("a");
   expect(option.getValue()).toBe("a");
@@ -62,7 +62,7 @@ test("EnumOption getter", () => {
 });
 
 test("EnumOption string setter", () => {
-  const option = new EnumOption("test", "aaa", ["aaa", "bbb", "ccc", "abc"]);
+  const option = new EnumOption("test", "aaa", ["aaa", "bbb", "ccc", "abc"] as const);
   expect(option.setValue("bbb").success).toBe(true);
   expect(option.getValue()).toBe("bbb");
   expect(option.defaultValue).toBe("aaa");
@@ -77,7 +77,7 @@ test("EnumOption string setter", () => {
 });
 
 test("EnumOption parameter setter", () => {
-  const option = new EnumOption("test", "aaa", ["aaa", "bbb", "ccc", "abc"]);
+  const option = new EnumOption("test", "aaa", ["aaa", "bbb", "ccc", "abc"] as const);
   expect(option.setValue(Parameter.parse(new CodePointBuffer("bbb"))!).success).toBe(true);
   expect(option.getValue()).toBe("bbb");
   expect(option.defaultValue).toBe("aaa");
@@ -179,3 +179,4 @@ test("RangeOption parameter setter", () => {
   expect(result8.success).toBe(false);
   expect(result8.message).toBe("The value must be an integer.");
 });
+
