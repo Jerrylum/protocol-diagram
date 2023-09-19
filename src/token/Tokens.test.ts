@@ -21,7 +21,7 @@ import {
   ParameterType
 } from "./Tokens";
 
-function cpb(s: string): CodePointBuffer {
+export function cpb(s: string): CodePointBuffer {
   return new CodePointBuffer(s);
 }
 
