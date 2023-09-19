@@ -29,12 +29,12 @@ export const DiagramTextLineElement = observer((props: { line: string; lineNumbe
         <Text
           key={index}
           text={char}
-          x={16 * index}
+          x={9 * index}
           y={16 * props.lineNumber}
           fontSize={16}
           fontFamily={"Consolas"}
           fill={"black"}
-          width={16}
+          width={9}
           height={16}
           align="center"
         />
