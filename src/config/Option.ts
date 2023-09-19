@@ -1,12 +1,14 @@
 import { HandleResult, success, fail } from "../command/HandleResult";
 import { Parameter, ParameterType } from "../token/Tokens";
 
+export type OptionType = boolean | number | string;
+
 /**
  * this abstract class provides a basic shape of an option class, that takes a
  * key in order to instantiate an option class, once it is set, it could not be
  * changed afterward
  */
-export abstract class Option<T extends boolean | number | string> {
+export abstract class Option<T extends OptionType> {
   protected value: T;
 
   constructor(readonly key: string, readonly defaultValue: T) {
@@ -182,4 +184,6 @@ export class RangeOption extends Option<number> {
     return "min:" + this.min + " max:" + this.max + " default:" + this.defaultValue;
   }
 }
+
+
 
