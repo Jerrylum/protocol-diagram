@@ -455,7 +455,7 @@ export class NumberT extends Token {
     buffer.savepoint();
 
     let rtn = "";
-    let isPositive: boolean, isDouble: boolean;
+    let isPositive: boolean;
 
     const n = NegativeInt.parse(buffer);
     if (n) {
@@ -471,9 +471,9 @@ export class NumberT extends Token {
     }
 
     const f = Frac.parse(buffer);
-    isDouble = f !== null;
+    const isDouble = f !== null;
     if (isDouble) {
-      rtn += f!.value;
+      rtn += f.value;
     }
 
     return buffer.commitAndReturn(new NumberT(rtn, isPositive, isDouble));
@@ -568,77 +568,78 @@ export class Zero extends Token {
   }
 }
 
-export class Parameter extends Token {
-  private bool: BooleanT | null = null;
-  private number: NumberT | null = null;
-  private string: StringT | null = null;
+export type ParameterType = BooleanT | NumberT | StringT;
 
-  constructor(bool: BooleanT | null = null, number: NumberT | null = null, string: StringT | null = null) {
+export class Parameter<T extends ParameterType> extends Token {
+  // private bool: BooleanT | null = null;
+  // private number: NumberT | null = null;
+  // private string: StringT | null = null;
+  private value: T;
+
+  constructor(value: T) {
     super();
-    this.bool = bool;
-    this.number = number;
-    this.string = string;
+    this.value = value;
   }
 
-  static parse(buffer: CodePointBuffer): Parameter | null {
+  static parse(buffer: CodePointBuffer): Parameter<ParameterType> | null {
     buffer.savepoint();
 
-    let i = 0;
-    while (!isDelimiter(buffer.peek(i))) i++;
+    let chunkLen = 0;
+    while (!isDelimiter(buffer.peek(chunkLen))) chunkLen++;
 
-    let firstStop = buffer.getIndex() + i;
-    let bool = BooleanT.parse(buffer);
-    if (bool != null) return buffer.commitAndReturn(new Parameter(bool));
+    const chunkEndIdx = buffer.getIndex() + chunkLen;
+    const bool = BooleanT.parse(buffer);
+    if (bool !== null) return buffer.commitAndReturn(new Parameter(bool));
 
-    let number = NumberT.parse(buffer);
-    if (number != null) {
-      if (buffer.getIndex() == firstStop) return buffer.commitAndReturn(new Parameter(null, number));
+    const number = NumberT.parse(buffer);
+    if (number !== null) {
+      if (buffer.getIndex() === chunkEndIdx) return buffer.commitAndReturn(new Parameter(number));
       else {
         buffer.rollback();
         buffer.savepoint();
       }
     }
 
-    let string = StringT.parse(buffer);
-    if (string != null) return buffer.commitAndReturn(new Parameter(null, null, string));
+    const string = StringT.parse(buffer);
+    if (string !== null) return buffer.commitAndReturn(new Parameter(string));
     else return buffer.rollbackAndReturn(null);
   }
 
   getBoolean(): boolean {
-    return this.bool!.bool;
+    return this.isBoolean() ? this.value.bool : false;
   }
 
   getInt(): number {
-    return this.number!.toInt();
+    return this.isNumber() ? this.value.toInt() : 0;
   }
 
   getDouble(): number {
-    return this.number!.toDouble();
+    return this.isNumber() ? this.value.toDouble() : 0;
   }
 
   getString(): string {
-    return this.string!.content;
+    return this.isString() ? this.value.content : "";
   }
 
-  isBoolean(): boolean {
-    return this.bool != null;
+  isBoolean(): this is Parameter<BooleanT> {
+    return this.value instanceof BooleanT;
   }
 
-  isNumber(): boolean {
-    return this.number != null;
+  isNumber(): this is Parameter<NumberT> {
+    return this.value instanceof NumberT;
   }
 
-  isDouble(): boolean {
-    return this.number != null && this.number.isDouble;
+  isDouble(): this is Parameter<NumberT> & boolean {
+    return this.isNumber() && this.value.isDouble;
   }
 
-  isString(): boolean {
-    return this.string != null;
+  isString(): this is Parameter<StringT> {
+    return this.value instanceof StringT;
   }
 
   toString(): string {
-    if (this.isBoolean()) return this.bool!.bool + "";
-    else if (this.isNumber()) return this.isDouble() ? this.number!.toDouble() + "" : this.number!.toInt() + "";
+    if (this.isBoolean()) return this.getBoolean() + "";
+    else if (this.isNumber()) return this.isDouble() ? this.getDouble() + "" : this.getInt() + "";
     else return this.getString();
   }
 
@@ -651,9 +652,9 @@ export class Parameter extends Token {
       return false;
     }
 
-    let other = obj as Parameter;
+    let other = obj as Parameter<ParameterType>;
 
-    return isEqual(other.string, this.string) && isEqual(other.number, this.number) && isEqual(other.bool, this.bool);
+    return isEqual(other.value, this.value);
   }
 }
 
@@ -675,7 +676,7 @@ export class CommandLine extends Token {
    * @return the parsed CommandLine object, or null if the parse failed
    */
 
-  constructor(public name: String, public params: Parameter[]) {
+  constructor(public name: String, public params: Parameter<ParameterType>[]) {
     super();
   }
 
@@ -687,10 +688,10 @@ export class CommandLine extends Token {
       return null;
     }
 
-    let params: Parameter[] = [];
+    let params: Parameter<ParameterType>[] = [];
     while (true) {
       buffer.readDelimiter();
-      let p: Parameter | null = Parameter.parse(buffer);
+      let p: Parameter<ParameterType> | null = Parameter.parse(buffer);
       if (p === null) {
         break;
       }
@@ -703,3 +704,4 @@ export class CommandLine extends Token {
     }
   }
 }
+
