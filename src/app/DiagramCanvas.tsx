@@ -29,12 +29,12 @@ export const DiagramTextLineElement = observer((props: { line: string; lineNumbe
         <Text
           key={index}
           text={char}
-          x={9 * index}
+          x={12 * index}
           y={16 * props.lineNumber}
           fontSize={16}
-          fontFamily={"Consolas"}
+          fontFamily={"Ubuntu Mono Arial"}
           fill={"black"}
-          width={9}
+          width={16}
           height={16}
           align="center"
         />
@@ -53,20 +53,26 @@ export const DiagramCanvas = observer(() => {
 │      Type     │      Code     │
 └───────────────┴───────────────┘`;
 
+  const canvasSize = controller.canvasSize;
+
+  const diagramLines = diagramText.split("\n");
+  const diagramLineLength = diagramLines[0].length ?? 0;
+  const diagramWidthInPx = diagramLineLength * 12;
+  const diagramHeightInPx = diagramLines.length * 16;
+
   return (
     <Box sx={{ position: "fixed", top: 0, left: 0, bottom: 0, right: 0 }}>
       <Stage
         className="diagram-canvas"
         ref={stageRef}
-        width={controller.canvasSize.x}
-        height={controller.canvasSize.y}
+        width={canvasSize.x}
+        height={canvasSize.y}
+        offset={{ x: (canvasSize.x - diagramWidthInPx) / -2, y: (canvasSize.y - diagramHeightInPx) / -2 }}
         onContextMenu={e => e.evt.preventDefault()}>
         <Layer>
-          {
-            diagramText.split("\n").map((line, index) => (
-              <DiagramTextLineElement key={index} line={line} lineNumber={index} />
-            ))
-          }
+          {diagramLines.map((line, index) => (
+            <DiagramTextLineElement key={index} line={line} lineNumber={index} />
+          ))}
         </Layer>
       </Stage>
     </Box>
