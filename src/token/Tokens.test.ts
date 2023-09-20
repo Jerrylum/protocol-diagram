@@ -19,7 +19,8 @@ import {
   StringT,
   Parameter,
   CommandLine,
-  ParameterType
+  ParameterType,
+  Token
 } from "./Tokens";
 
 export function cpb(s: string): CodePointBuffer {
@@ -469,12 +470,17 @@ test("CommandLine Null", () => {
 });
 
 test("Read Safe Chunk", () => {
-  expect(cpb("target").readSafeChunk()).toStrictEqual(cpb("target"));
-  expect(cpb("target ").readSafeChunk()).toStrictEqual(cpb("target"));
-  expect(cpb(" target ").readSafeChunk()).toStrictEqual(cpb(""));
-  expect(cpb("target:").readSafeChunk()).toStrictEqual(cpb("target"));
-  expect(cpb(":target").readSafeChunk()).toStrictEqual(cpb(""));
-  expect(cpb("target,").readSafeChunk()).toStrictEqual(cpb("target"));
-  expect(cpb(",target").readSafeChunk()).toStrictEqual(cpb(""));
+  expect(cpb("target").readSafeChunk()).toStrictEqual(("target"));
+  expect(cpb("target ").readSafeChunk()).toStrictEqual(("target"));
+  expect(cpb(" target ").readSafeChunk()).toStrictEqual((""));
+  expect(cpb("target:").readSafeChunk()).toStrictEqual(("target"));
+  expect(cpb(":target").readSafeChunk()).toStrictEqual((""));
+  expect(cpb("target,").readSafeChunk()).toStrictEqual(("target"));
+  expect(cpb(",target").readSafeChunk()).toStrictEqual((""));
 });
 
+test("Token", () => {
+  let result;
+  expect(Token.parse(cpb("target"))).toBeNull();
+  expect(BooleanT.parse(cpb("true"))?.equals(BooleanT.parse(cpb("true")))).toBe(true);
+});
