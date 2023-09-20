@@ -17,10 +17,11 @@ import {
   SingleQuoteString,
   StringT,
   Parameter,
-  CommandLine
+  CommandLine,
+  ParameterType
 } from "./Tokens";
 
-function cpb(s: string): CodePointBuffer {
+export function cpb(s: string): CodePointBuffer {
   return new CodePointBuffer(s);
 }
 
@@ -430,7 +431,7 @@ test("Parameter Methods", () => {
 });
 
 test("CommandLine Valid", () => {
-  let params: Parameter[] = [];
+  let params: Parameter<ParameterType>[] = [];
   expect(CommandLine.parse(cpb("target"))!.name).toBe("target");
   expect(CommandLine.parse(cpb("target "))!.name).toBe("target");
   expect(CommandLine.parse(cpb("  target   "))!.name).toBe("target");
@@ -465,3 +466,4 @@ test("CommandLine Null", () => {
   expect(CommandLine.parse(cpb(""))).toBeNull();
   expect(CommandLine.parse(cpb("target '"))).toBeNull();
 });
+
