@@ -14,7 +14,7 @@ test("Configuration getter", () => {
     const ro = new RangeOption("testro1", 1, 1, 10);
     const ro2 = new RangeOption("testro2", -1, -1, 10);
     const lstOption: Option<OptionType>[] = [bo, bo2, eo, ro, ro2];
-    const c: Configuration = new Configuration(lstOption);
+    const c: Configuration = new Configuration(...lstOption);
     expect(c.options).toStrictEqual(lstOption);
     expect(c.getValue("testbo1")).toBe(true);
     expect(c.getValue("testbo2")).toBe(false);
@@ -36,7 +36,7 @@ test("Configuration setter", () => {
     const bo2 = new BooleanOption("testbo2", false);
     const eo = new EnumOption("testeo", "aaa", ["aaa", "bbb", "ccc", "abc"] as const);
     const ro = new RangeOption("testro1", 1, 1, 10);
-    const c: Configuration = new Configuration([bo, bo2, eo, ro]);
+    const c: Configuration = new Configuration(bo, bo2, eo, ro);
     expect(c.setValue("testbo1", mp(false)).success).toBe(true);
     expect(c.setValue("testbo2", mp(true)).success).toBe(true);
     expect(c.setValue("testeo", mp("bbb")).success).toBe(true);
