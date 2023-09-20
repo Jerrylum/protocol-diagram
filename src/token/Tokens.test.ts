@@ -1,3 +1,4 @@
+import { cp } from "fs";
 import {
   Zero,
   CodePointBuffer,
@@ -465,5 +466,15 @@ test("CommandLine Valid", () => {
 test("CommandLine Null", () => {
   expect(CommandLine.parse(cpb(""))).toBeNull();
   expect(CommandLine.parse(cpb("target '"))).toBeNull();
+});
+
+test("Read Safe Chunk", () => {
+  expect(cpb("target").readSafeChunk()).toStrictEqual(cpb("target"));
+  expect(cpb("target ").readSafeChunk()).toStrictEqual(cpb("target"));
+  expect(cpb(" target ").readSafeChunk()).toStrictEqual(cpb(""));
+  expect(cpb("target:").readSafeChunk()).toStrictEqual(cpb("target"));
+  expect(cpb(":target").readSafeChunk()).toStrictEqual(cpb(""));
+  expect(cpb("target,").readSafeChunk()).toStrictEqual(cpb("target"));
+  expect(cpb(",target").readSafeChunk()).toStrictEqual(cpb(""));
 });
 
