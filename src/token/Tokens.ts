@@ -652,7 +652,7 @@ export class Parameter<T extends ParameterType> extends Token {
       return false;
     }
 
-    let other = obj as Parameter<ParameterType>;
+    const other = obj as Parameter<ParameterType>;
 
     return isEqual(other.value, this.value);
   }
@@ -691,7 +691,7 @@ export class CommandLine extends Token {
     let params: Parameter<ParameterType>[] = [];
     while (true) {
       buffer.readDelimiter();
-      let p: Parameter<ParameterType> | null = Parameter.parse(buffer);
+      const p: Parameter<ParameterType> | null = Parameter.parse(buffer);
       if (p === null) {
         break;
       }
