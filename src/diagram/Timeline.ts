@@ -1,4 +1,4 @@
-import { Cancellable } from "../command/Commands";
+import { Cancellable } from "../diagram/Diagram";
 import { Diagram, Memento } from "./Diagram";
 
 export class Snapshot<T extends Cancellable> {
@@ -6,13 +6,11 @@ export class Snapshot<T extends Cancellable> {
 }
 
 export class Timeline<T extends Cancellable> {
-  private diagram!: Diagram | null;
   private latest!: Memento;
   private undoStack: Snapshot<T>[] = [];
   private redoStack: T[] = [];
 
-  constructor(diagram: Diagram | null) {
-    this.diagram = diagram;
+  constructor(private diagram: Diagram) {
     this.resetHistory();
   }
 

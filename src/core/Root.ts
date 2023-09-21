@@ -21,7 +21,7 @@ export class MainDiagramHandler extends Timeline<CancellableCommand> {
   private isModifiedbool!: boolean;
 
   constructor() {
-    super(null);
+    super(null as any);
     this.newDiagram();
   }
 
