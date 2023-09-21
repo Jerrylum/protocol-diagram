@@ -98,7 +98,7 @@ export abstract class CancellableCommand extends Command implements Cancellable 
   constructor(name: string, usage: string, description: string) {
     super(name, usage, description);
   }
-  discriminator: "DiagramModifier" = "DiagramModifier";
+  readonly discriminator = "DiagramModifier";
 
   execute(): void {}
 }

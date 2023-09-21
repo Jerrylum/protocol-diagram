@@ -1,5 +1,6 @@
 import { CancellableCommand } from "../command/Commands";
-import { Diagram, Memento, Timeline } from "../diagram/Diagram";
+import { Diagram, Memento } from "../diagram/Diagram";
+import { Timeline } from "../diagram/Timeline";
 import { MainApp } from "./MainApp";
 import { Modals } from "./Modals";
 
