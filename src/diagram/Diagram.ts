@@ -1,4 +1,3 @@
-import { Config } from "dompurify";
 import { Field } from "./Field";
 import { Configuration } from "../config/Configuration";
 import { BooleanOption, EnumOption, RangeOption } from "../config/Option";
