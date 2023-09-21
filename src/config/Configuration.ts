@@ -11,7 +11,7 @@ import { Option, OptionType } from "./Option";
 export class Configuration {
   readonly options: ReadonlyArray<Option<OptionType>>;
 
-  constructor(options: Option<OptionType>[]) {
+  constructor(...options: Option<OptionType>[]) {
     this.options = options;
   }
 
