@@ -18,7 +18,7 @@ export function getRootStore(): RootStore {
 export class MainDiagramHandler extends Timeline<CancellableCommand> {
   // The current memento saved in the file or the first memento in the timeline
   private sourceCurrentMemento!: Memento | null;
-  private isModifiedbool!: boolean;
+  private isModifiedFlag!: boolean;
 
   constructor() {
     super(null as any);
@@ -59,7 +59,7 @@ export class MainDiagramHandler extends Timeline<CancellableCommand> {
    * @return whether the diagram is modified
    */
   isModified(): boolean {
-    return this.isModifiedbool || this.sourceCurrentMemento != this.getLatestMemento();
+    return this.isModifiedFlag || this.sourceCurrentMemento != this.getLatestMemento();
   }
 
   /**
@@ -71,7 +71,7 @@ export class MainDiagramHandler extends Timeline<CancellableCommand> {
    * @param isModified the value to set
    */
   setModified(isModified: boolean) {
-    this.isModifiedbool = isModified;
+    this.isModifiedFlag = isModified;
   }
 
   /**
@@ -80,6 +80,6 @@ export class MainDiagramHandler extends Timeline<CancellableCommand> {
   resetHistory() {
     super.resetHistory();
     this.sourceCurrentMemento = this.getLatestMemento();
-    this.isModifiedbool = false;
+    this.isModifiedFlag = false;
   }
 }
