@@ -1,6 +1,9 @@
 import { Field } from "./Field";
 import { Configuration } from "../config/Configuration";
 import { BooleanOption, EnumOption, RangeOption } from "../config/Option";
+import { Divider, Row } from "./render/SegmentGroup";
+import { hasVisibleSetting } from "./render/Elements";
+import { Segment } from "./render/Segment";
 
 interface MementoFieldPair {
   readonly name: string;
@@ -19,6 +22,11 @@ class Memento {
   }
 }
 
+export const DIAGRAM_STYLES = ["utf8", "utf8-header", "utf8-corner", "ascii", "ascii-verbose"] as const;
+export type DiagramStyle = (typeof DIAGRAM_STYLES)[number];
+export const HEADER_STYLES = ["none", "trim", "full"] as const;
+export type HeaderStyle = (typeof HEADER_STYLES)[number];
+
 /**
  * this class holds the information of what requires to render a diagram on
  * screen, such as the list of fields and the configuration of setting.
@@ -36,8 +44,8 @@ export class Diagram {
   public constructor() {
     this.config = new Configuration(
       new RangeOption("bit", 32, 1, 128),
-      new EnumOption("diagram-style", "utf8", ["utf8", "utf8-header", "utf8-corner", "ascii", "ascii-verbose"]),
-      new EnumOption("header-style", "trim", ["none", "trim", "full"]),
+      new EnumOption("diagram-style", "utf8", DIAGRAM_STYLES),
+      new EnumOption("header-style", "trim", HEADER_STYLES),
       new BooleanOption("left-space-placeholder", false)
     );
   }
@@ -138,4 +146,148 @@ export class Diagram {
     // }
     this._fields = m.fields.map(p => new Field(p.name, p.length));
   }
+
+  toString() {
+    const bit = this.config.getValue("bit") as number;
+    const style = this.config.getValue("diagram-style") as string;
+    const headerStyle = this.config.getValue("header-style") as string;
+    const leftSpacePlaceholder = this.config.getValue("left-space-placeholder") as boolean;
+  }
+}
+
+export function convertFieldsToRow(bit: number, fields: Field[], hasTail: boolean): Row[] {
+  const rows: Row[] = [];
+
+  let currentRow = new Row(bit);
+  for (const original of fields) {
+    const field = original.clone();
+    while (field.length !== 0) {
+      currentRow.addField(field);
+      if (currentRow.used === bit) {
+        rows.push(currentRow);
+        currentRow = new Row(bit);
+      }
+    }
+  }
+
+  if (currentRow.used !== 0) {
+    currentRow.addTail(hasTail);
+    rows.push(currentRow);
+  }
+
+  return rows;
+}
+
+export function spliceDividers(bit: number, rows: Row[]): Divider[] {
+  let index = 0;
+  let topSegmentIndex = 0;
+  let bottomSegmentIndex = 0;
+
+  rows = rows.slice();
+
+  // ALGO: Create two rows, one for the top and one for the bottom
+  rows.splice(0, 0, new Row(bit).addField(new Field("", bit)));
+  rows.push(new Row(bit).addField(new Field("", bit)));
+
+  function getTopSegment(): Segment {
+    return getTopRow()?.get(topSegmentIndex)!;
+  }
+
+  function getBottomSegment(): Segment {
+    return getBottomRow()?.get(bottomSegmentIndex)!;
+  }
+
+  function getTopRow(): Row {
+    return rows[index];
+  }
+
+  function getBottomRow(): Row {
+    return rows[index + 1];
+  }
+
+  function topRowHasNext(): boolean {
+    return topSegmentIndex < getTopRow()!.count;
+  }
+
+  const dividers: Divider[] = [];
+
+  for (; index < rows.length - 1; index++) {
+    topSegmentIndex = 0;
+    bottomSegmentIndex = 0;
+
+    const divider = new Divider(bit);
+
+    while (topRowHasNext() /* && bottomRowHasNext()) */) {
+      if (getTopSegment().endIndex < getBottomSegment().endIndex) {
+        divider.addSplice(getTopSegment(), getBottomSegment());
+        topSegmentIndex++;
+      } else if (getTopSegment()?.endIndex === getBottomSegment()?.endIndex) {
+        divider.addSplice(getTopSegment(), getBottomSegment());
+        topSegmentIndex++;
+        bottomSegmentIndex++;
+      } else {
+        divider.addSplice(getBottomSegment(), getTopSegment());
+        bottomSegmentIndex++;
+      }
+    }
+    dividers.push(divider);
+  }
+
+  return dividers;
+}
+
+export function mergeRowsAndDividers(rows: Row[], dividers: Divider[]) {
+  const segments: Segment[] = [];
+
+  for (let i = 0; i < rows.length; i++) {
+    segments.push(...dividers[i].segments);
+    segments.push(...rows[i].segments);
+  }
+
+  segments.push(...dividers[dividers.length - 1].segments);
+
+  return segments;
+}
+
+export function displayNameAtTheCentralSegment(field: Field, segments: Segment[]): void {
+  // ALGO: Set display name of the center item Of the greatest represented segments to true
+
+  let greatestLength: number = 0;
+  let greatestSegments: Segment[] = [];
+
+  for (const s of segments) {
+    if (field.equals(s.represent)) {
+      if (greatestLength < s.length) {
+        greatestLength = s.length;
+        greatestSegments = [];
+      }
+      if (greatestLength === s.length) {
+        greatestSegments.push(s);
+      }
+    }
+  }
+  greatestSegments[Math.floor(greatestSegments.length / 2) - ((greatestSegments.length + 1) % 2)].displayName = true;
+}
+
+export function generateHeader(elements: Element[], bit: number, headerStyle: HeaderStyle): string {
+  let rtn = "";
+  let maximumEndIndex = headerStyle === "full" ? bit : 0; // visible item only
+
+  for (const e of elements) {
+    if (hasVisibleSetting(e) && e instanceof Segment && e.isVisible) {
+      maximumEndIndex = Math.max(maximumEndIndex, e.endIndex);
+    }
+  }
+
+  if (maximumEndIndex === 0 || headerStyle === "none") return "";
+
+  for (let i = 0; i < maximumEndIndex; i++) rtn += " " + (i % 10 === 0 ? i / 10 : " ");
+
+  rtn += "\n";
+
+  for (let i = 0; i < maximumEndIndex; i++) rtn += " " + (i % 10);
+
+  rtn += "\n";
+
+  return rtn;
 }
