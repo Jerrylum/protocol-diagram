@@ -13,34 +13,7 @@ export abstract class Command {
    * @param usage       the usage of the command
    * @param description the description of the command
    */
-  constructor(private readonly name: string, private readonly usage: string, private readonly description: string) {}
-
-  /**
-   * a getter method that returns the name of this command
-   *
-   * @return String
-   */
-  getName(): string {
-    return this.name;
-  }
-
-  /**
-   * a getter method that returns the usage of this command
-   *
-   * @return String
-   */
-  getUsage(): string {
-    return this.usage;
-  }
-
-  /**
-   * a getter method that returns the description of this command
-   *
-   * @return String
-   */
-  getDescription(): string {
-    return this.description;
-  }
+  constructor(readonly name: string, readonly usage: string, readonly description: string) {}
 
   /**
    * a method that determines whether the current command instance matches the
@@ -54,7 +27,7 @@ export abstract class Command {
    * @return HandleResult
    */
   handleLine(line: CommandLine): HandleResult {
-    if (this.getName().toUpperCase() === line.name.toUpperCase()) return this.handle(line.params);
+    if (this.name.toUpperCase() === line.name.toUpperCase()) return this.handle(line.params);
     else return HandleResult.NOT_HANDLED;
   }
 
