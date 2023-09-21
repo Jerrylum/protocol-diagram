@@ -1,3 +1,4 @@
 {
-    "typescript.preferences.includePackageJsonAutoImports": "on"
+    "typescript.preferences.includePackageJsonAutoImports": "on",
+    "editor.tabSize": 2
 }
