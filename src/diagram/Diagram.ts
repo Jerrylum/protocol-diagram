@@ -3,17 +3,17 @@ import { Field } from "./Field";
 import { Configuration } from "../config/Configuration";
 import { BooleanOption, EnumOption, RangeOption } from "../config/Option";
 
-interface FieldPair {
-  name: string;
-  length: number;
+interface MementoFieldPair {
+  readonly name: string;
+  readonly length: number;
 }
-let fields: ReadonlyArray<FieldPair> = [];
+
 /**
  * a subclass that used to record the state of the diagram, will be helpful
  * for restoring diagram via store a list of this object
  */
 class Memento {
-  readonly fields: ReadonlyArray<FieldPair>;
+  readonly fields: ReadonlyArray<MementoFieldPair>;
 
   constructor(d: Diagram) {
     this.fields = d.fields.map(f => ({ name: f.name, length: f.length }));
@@ -32,7 +32,7 @@ export class Diagram {
   /**
    * the configuration of the diagram
    */
-  private config: Configuration;
+  readonly config: Configuration;
 
   public constructor() {
     this.config = new Configuration(
@@ -41,15 +41,6 @@ export class Diagram {
       new EnumOption("header-style", "trim", ["none", "trim", "full"]),
       new BooleanOption("left-space-placeholder", false)
     );
-  }
-
-  /**
-   * a getter method that returns the configuration instance of the diagram
-   *
-   * @return Configuration
-   */
-  getConfig(): Configuration {
-    return this.config;
   }
 
   /**
@@ -123,7 +114,7 @@ export class Diagram {
    * @param to   the index of the field to be moved to
    */
   moveField(from: number, to: number) {
-    let field: Field = this._fields.splice(from, 1)[0];
+    const field: Field = this._fields.splice(from, 1)[0];
     this.insertField(to, field);
   }
 
