@@ -2,16 +2,33 @@ import { Field } from "./Field";
 import { Configuration } from "../config/Configuration";
 import { BooleanOption, EnumOption, RangeOption } from "../config/Option";
 
-interface MementoFieldPair {
+/**
+ * this interface is used to distinguish whether the command will manipulate the diagram instance
+ */
+export interface DiagramModifier {
+  readonly discriminator: "DiagramModifier";
+}
+
+/**
+ * this interface is used to distinguish whether the descendant command is allowed to be undo/redo
+ */
+export interface Cancellable extends DiagramModifier {
+  /**
+   * the method for invoking cancellable command
+   */
+  execute(): void;
+}
+
+export interface MementoFieldPair {
   readonly name: string;
   readonly length: number;
 }
 
 /**
- * a subclass that used to record the state of the diagram, will be helpful
+ * a class that used to record the state of the diagram, will be helpful
  * for restoring diagram via store a list of this object
  */
-class Memento {
+export class Memento {
   readonly fields: ReadonlyArray<MementoFieldPair>;
 
   constructor(d: Diagram) {
@@ -33,7 +50,7 @@ export class Diagram {
    */
   readonly config: Configuration;
 
-  public constructor() {
+  constructor() {
     this.config = new Configuration(
       new RangeOption("bit", 32, 1, 128),
       new EnumOption("diagram-style", "utf8", ["utf8", "utf8-header", "utf8-corner", "ascii", "ascii-verbose"]),
