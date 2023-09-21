@@ -5,9 +5,9 @@ const { app } = getRootStore();
 
 test("MainDiagramHandler", () => {
   let test = new MainDiagramHandler();
-  expect(test.getDiagram()).toBe(app.diagram);
+  expect(test.diagram).toBe(app.diagram);
   let d = new Diagram();
-  test.setDiagram(d);
+  test.diagram = d;
   expect(d).toBe(app.diagram);
   expect(test.isModified()).toBe(false);
   test.setModified(true);

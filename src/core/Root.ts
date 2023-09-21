@@ -28,7 +28,7 @@ export class MainDiagramHandler extends Timeline<CancellableCommand> {
   /**
    * an instance method that gets the diagram from Main
    */
-  getDiagram(): Diagram {
+  get diagram(): Diagram {
     const { app } = getRootStore();
     return app.diagram;
   }
@@ -38,7 +38,7 @@ export class MainDiagramHandler extends Timeline<CancellableCommand> {
    *
    * @param diagram the diagram to be set
    */
-  setDiagram(diagram: Diagram) {
+  set diagram(diagram: Diagram) {
     const { app } = getRootStore();
     app.diagram = diagram;
   }
@@ -48,7 +48,7 @@ export class MainDiagramHandler extends Timeline<CancellableCommand> {
    * new diagram
    */
   newDiagram() {
-    this.setDiagram(new Diagram());
+    this.diagram = new Diagram();
     this.resetHistory();
   }
 

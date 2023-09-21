@@ -10,7 +10,7 @@ export class Timeline<T extends Cancellable> {
   private undoStack: Snapshot<T>[] = [];
   private redoStack: T[] = [];
 
-  constructor(private diagram: Diagram) {
+  constructor(private _diagram: Diagram) {
     this.resetHistory();
   }
 
@@ -19,8 +19,8 @@ export class Timeline<T extends Cancellable> {
    *
    * @return Diagram
    */
-  getDiagram(): Diagram | null {
-    return this.diagram;
+  get diagram(): Diagram {
+    return this._diagram;
   }
 
   /**
@@ -39,7 +39,7 @@ export class Timeline<T extends Cancellable> {
   resetHistory() {
     this.undoStack.splice(0, this.undoStack.length);
     this.redoStack.splice(0, this.redoStack.length);
-    if (this.diagram) this.latest = this.diagram.createMemento();
+    this.latest = this.diagram.createMemento();
   }
 
   /**
@@ -51,7 +51,7 @@ export class Timeline<T extends Cancellable> {
   operate(modifier: T) {
     this.undoStack.push(new Snapshot<T>(this.latest, modifier));
     this.redoStack.splice(0, this.redoStack.length);
-    if (this.diagram) this.latest = this.diagram.createMemento();
+    this.latest = this.diagram.createMemento();
   }
 
   /**
@@ -65,7 +65,7 @@ export class Timeline<T extends Cancellable> {
     const snapshot: Snapshot<T> | undefined = this.undoStack.pop();
     if (!snapshot) return null;
     this.redoStack.push(snapshot.modifier);
-    if (this.diagram) this.diagram.restoreFromMemento((this.latest = snapshot.origin));
+    this.diagram.restoreFromMemento((this.latest = snapshot.origin));
 
     return snapshot.modifier;
   }
@@ -83,7 +83,7 @@ export class Timeline<T extends Cancellable> {
     if (!modifier) return null;
     modifier.execute();
     this.undoStack.push(new Snapshot<T>(this.latest, modifier));
-    if (this.diagram) this.latest = this.diagram.createMemento();
+    this.latest = this.diagram.createMemento();
 
     return modifier;
   }
