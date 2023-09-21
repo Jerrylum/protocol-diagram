@@ -1,5 +1,5 @@
+import { MainApp } from "../core/MainApp";
 import { getRootStore } from "../core/Root";
-import { Diagram } from "../diagram/Diagram";
 import { Field } from "../diagram/Field";
 import { CommandLine, Parameter, ParameterType } from "../token/Tokens";
 import { HandleResult, fail, success } from "./HandleResult";
@@ -14,14 +14,14 @@ export interface DiagramModifier {
 /**
  * this interface is used to distinguish whether the descendant command is allowed to be undo/redo
  */
-interface Cancellable extends DiagramModifier {
+export interface Cancellable extends DiagramModifier {
   /**
    * the method for invoking cancellable command
    */
   execute(): void;
 }
 
-abstract class Command {
+export abstract class Command {
   /**
    * a constructor that takes three values, name, usage, and description and
    * assign them into the instance variables
@@ -94,7 +94,7 @@ abstract class Command {
  * an abstract class that extends Command and ICancellable, which acts as an adapter,
  * every commands extends upon this will be recognized as cancellable command
  */
-abstract class CancellableCommand extends Command implements Cancellable {
+export abstract class CancellableCommand extends Command implements Cancellable {
   constructor(name: string, usage: string, description: string) {
     super(name, usage, description);
   }
@@ -143,7 +143,7 @@ export class AddCommand extends CancellableCommand {
   }
 
   execute() {
-    const { diagram } = getRootStore();
-    diagram.addField(new Field(this.paramName, this.paramLength));
+    const {app} = getRootStore();
+    app.diagram.addField(new Field(this.paramName, this.paramLength));
   }
 }

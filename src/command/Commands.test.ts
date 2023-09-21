@@ -3,10 +3,10 @@ import { AddCommand } from "./Commands";
 import { cpb } from "../token/Tokens.test";
 import { getRootStore } from "../core/Root";
 
-const { diagram } = getRootStore();
+let {app} = getRootStore();
 
 test("AddCommand handle success", () => {
-  diagram.clear();
+  app.diagram.clear();
   const ac = new AddCommand();
   expect(ac.handleLine(CommandLine.parse(cpb("add 1 test1"))!).success).toBe(true);
   expect(ac.paramLength).toBe(1);
@@ -17,16 +17,18 @@ test("AddCommand handle success", () => {
   expect(ac.handleLine(CommandLine.parse(cpb("add 3 test3"))!).success).toBe(true);
   expect(ac.paramLength).toBe(3);
   expect(ac.paramName).toBe("test3");
+  app.diagram.clear();
 });
 
 test("AddCommand handle fail", () => {
-  diagram.clear();
+  app.diagram.clear();
   const ac = new AddCommand();
-    expect(ac.handleLine(CommandLine.parse(cpb("add 1"))!).success).toBe(false);
-    expect(ac.handleLine(CommandLine.parse(cpb("add 1 2 3"))!).success).toBe(false);
-    expect(ac.handleLine(CommandLine.parse(cpb("test"))!).success).toBe(false);
-    expect(ac.handleLine(CommandLine.parse(cpb("add a test"))!).success).toBe(false);
-    expect(ac.handleLine(CommandLine.parse(cpb("add -1 test"))!).success).toBe(false);
-    expect(ac.handleLine(CommandLine.parse(cpb("add 0 test"))!).success).toBe(false);
-    expect(ac.handleLine(CommandLine.parse(cpb("add 1 -1"))!).success).toBe(false);
+  expect(ac.handleLine(CommandLine.parse(cpb("add 1"))!).success).toBe(false);
+  expect(ac.handleLine(CommandLine.parse(cpb("add 1 2 3"))!).success).toBe(false);
+  expect(ac.handleLine(CommandLine.parse(cpb("test"))!).success).toBe(false);
+  expect(ac.handleLine(CommandLine.parse(cpb("add a test"))!).success).toBe(false);
+  expect(ac.handleLine(CommandLine.parse(cpb("add -1 test"))!).success).toBe(false);
+  expect(ac.handleLine(CommandLine.parse(cpb("add 0 test"))!).success).toBe(false);
+  expect(ac.handleLine(CommandLine.parse(cpb("add 1 -1"))!).success).toBe(false);
+  app.diagram.clear();
 });

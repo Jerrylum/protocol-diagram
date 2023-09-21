@@ -1,17 +1,18 @@
 import { Field } from "./Field";
 import { Configuration } from "../config/Configuration";
 import { BooleanOption, EnumOption, RangeOption } from "../config/Option";
+import { Cancellable } from "../command/Commands";
 
-interface MementoFieldPair {
+export interface MementoFieldPair {
   readonly name: string;
   readonly length: number;
 }
 
 /**
- * a subclass that used to record the state of the diagram, will be helpful
+ * a class that used to record the state of the diagram, will be helpful
  * for restoring diagram via store a list of this object
  */
-class Memento {
+export class Memento {
   readonly fields: ReadonlyArray<MementoFieldPair>;
 
   constructor(d: Diagram) {
@@ -33,7 +34,7 @@ export class Diagram {
    */
   readonly config: Configuration;
 
-  public constructor() {
+  constructor() {
     this.config = new Configuration(
       new RangeOption("bit", 32, 1, 128),
       new EnumOption("diagram-style", "utf8", ["utf8", "utf8-header", "utf8-corner", "ascii", "ascii-verbose"]),
@@ -137,5 +138,95 @@ export class Diagram {
     //     fields.add(new Field(p));
     // }
     this._fields = m.fields.map(p => new Field(p.name, p.length));
+  }
+}
+
+export class Snapshot<T extends Cancellable> {
+  constructor(readonly origin: Memento, readonly modifier: T) {}
+}
+
+export class Timeline<T extends Cancellable> {
+  private diagram!: Diagram | null;
+  private latest!: Memento;
+  private undoStack: Snapshot<T>[] = [];
+  private redoStack: T[] = [];
+
+  constructor(diagram: Diagram | null) {
+    this.diagram = diagram;
+    this.resetHistory();
+  }
+
+  /**
+   * a getter method that returns the diagram it stored
+   *
+   * @return Diagram
+   */
+  getDiagram(): Diagram | null {
+    return this.diagram;
+  }
+
+  /**
+   * a getter method that returns the latest memento
+   *
+   * @return Diagram.Memento
+   */
+  getLatestMemento(): Memento {
+    return this.latest;
+  }
+
+  /**
+   * a method that eliminates all undo history and redo history, and generates a
+   * new memento
+   */
+  resetHistory() {
+    this.undoStack.splice(0, this.undoStack.length);
+    this.redoStack.splice(0, this.redoStack.length);
+    if (this.diagram) this.latest = this.diagram.createMemento();
+  }
+
+  /**
+   * a method that pushes a modifier into the undo history, and resets the stack
+   * of redo.
+   *
+   * @param modifier the modifier that is going to be pushed into the undo history
+   */
+  operate(modifier: T) {
+    this.undoStack.push(new Snapshot<T>(this.latest, modifier));
+    this.redoStack.splice(0, this.redoStack.length);
+    if (this.diagram) this.latest = this.diagram.createMemento();
+  }
+
+  /**
+   * a method that pops the top of the undo stack, pushes that popped history into
+   * the redo stack, and restores the diagram based on the popped snapshot.
+   *
+   * @return T
+   */
+  undo(): T | null {
+    if (this.undoStack.length === 0) return null;
+    const snapshot: Snapshot<T> | undefined = this.undoStack.pop();
+    if (!snapshot) return null;
+    this.redoStack.push(snapshot.modifier);
+    if (this.diagram) this.diagram.restoreFromMemento((this.latest = snapshot.origin));
+
+    return snapshot.modifier;
+  }
+
+  /**
+   * a method that pops the top of the redo stack, pushes that popped history into
+   * the undo stack, and executes the popped command from the redo stack.
+   *
+   * @return T
+   */
+  redo(): T | null {
+    if (this.redoStack.length === 0) return null;
+
+    const modifier: T | undefined = this.redoStack.pop();
+    if (!modifier) return null;
+    modifier.execute();
+    this.undoStack.push(new Snapshot<T>(this.latest, modifier));
+    if (this.diagram) this.latest = this.diagram.createMemento();
+
+    return modifier;
   }
 }
