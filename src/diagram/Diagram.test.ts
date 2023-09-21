@@ -1,4 +1,3 @@
-import { Cancellable } from "../command/Commands";
 import { Diagram } from "./Diagram";
 import { Field } from "./Field";
 

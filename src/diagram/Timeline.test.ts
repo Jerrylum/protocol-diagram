@@ -1,4 +1,4 @@
-import { Cancellable } from "../command/Commands";
+import { Cancellable } from "../diagram/Diagram";
 import { Diagram, Memento } from "./Diagram";
 import { Field } from "./Field";
 import { Timeline } from "./Timeline";

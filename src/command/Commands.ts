@@ -1,25 +1,8 @@
-import { MainApp } from "../core/MainApp";
 import { getRootStore } from "../core/Root";
+import { Cancellable } from "../diagram/Diagram";
 import { Field } from "../diagram/Field";
 import { CommandLine, Parameter, ParameterType } from "../token/Tokens";
 import { HandleResult, fail, success } from "./HandleResult";
-
-/**
- * this interface is used to distinguish whether the command will manipulate the diagram instance
- */
-export interface DiagramModifier {
-  readonly discriminator: "DiagramModifier";
-}
-
-/**
- * this interface is used to distinguish whether the descendant command is allowed to be undo/redo
- */
-export interface Cancellable extends DiagramModifier {
-  /**
-   * the method for invoking cancellable command
-   */
-  execute(): void;
-}
 
 export abstract class Command {
   /**

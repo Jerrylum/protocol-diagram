@@ -1,7 +1,23 @@
 import { Field } from "./Field";
 import { Configuration } from "../config/Configuration";
 import { BooleanOption, EnumOption, RangeOption } from "../config/Option";
-import { Cancellable } from "../command/Commands";
+
+/**
+ * this interface is used to distinguish whether the command will manipulate the diagram instance
+ */
+export interface DiagramModifier {
+  readonly discriminator: "DiagramModifier";
+}
+
+/**
+ * this interface is used to distinguish whether the descendant command is allowed to be undo/redo
+ */
+export interface Cancellable extends DiagramModifier {
+  /**
+   * the method for invoking cancellable command
+   */
+  execute(): void;
+}
 
 export interface MementoFieldPair {
   readonly name: string;
