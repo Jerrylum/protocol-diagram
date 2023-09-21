@@ -3,7 +3,7 @@ import { AddCommand } from "./Commands";
 import { cpb } from "../token/Tokens.test";
 import { getRootStore } from "../core/Root";
 
-let {app} = getRootStore();
+let { app } = getRootStore();
 
 test("AddCommand handle success", () => {
   app.diagram.clear();

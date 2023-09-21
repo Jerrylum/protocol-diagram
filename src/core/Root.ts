@@ -25,8 +25,8 @@ export class MainDiagramHandler extends Timeline<CancellableCommand> {
   }
 
   /**
-     * an instance method that gets the diagram from Main
-     */
+   * an instance method that gets the diagram from Main
+   */
   getDiagram(): Diagram {
     const { app } = getRootStore();
     return app.diagram;

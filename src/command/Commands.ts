@@ -143,7 +143,7 @@ export class AddCommand extends CancellableCommand {
   }
 
   execute() {
-    const {app} = getRootStore();
+    const { app } = getRootStore();
     app.diagram.addField(new Field(this.paramName, this.paramLength));
   }
 }
