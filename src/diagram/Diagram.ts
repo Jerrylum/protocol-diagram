@@ -1,8 +1,9 @@
+import { Element } from "./render/Element";
 import { Field } from "./Field";
 import { Configuration } from "../config/Configuration";
 import { BooleanOption, EnumOption, RangeOption } from "../config/Option";
 import { Divider, Row } from "./render/SegmentGroup";
-import { hasVisibleSetting } from "./render/Elements";
+import { hasVisibleSetting } from "./render/Element";
 import { Segment } from "./render/Segment";
 
 /**

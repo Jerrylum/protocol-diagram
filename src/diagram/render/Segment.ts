@@ -1,5 +1,5 @@
 import { Field } from "../Field";
-import { Element, VisibleSetting } from "./Elements";
+import { Element, VisibleSetting } from "./Element";
 import { Matrix } from "./Matrix";
 
 export abstract class Segment extends Element {

@@ -1,4 +1,4 @@
-import { Connector, Element, NextLine } from "./Elements";
+import { Connector, Element, NextLine } from "./Element";
 import { DividerSegment, Segment } from "./Segment";
 
 export class Matrix {
