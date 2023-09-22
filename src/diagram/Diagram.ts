@@ -4,7 +4,7 @@ import { Configuration } from "../config/Configuration";
 import { BooleanOption, EnumOption, RangeOption } from "../config/Option";
 import { Divider, Row } from "./render/SegmentGroup";
 import { hasVisibleSetting } from "./render/Element";
-import { Segment } from "./render/Segment";
+import { RowSegment, Segment } from "./render/Segment";
 
 /**
  * this interface is used to distinguish whether the command will manipulate the diagram instance
@@ -207,11 +207,11 @@ export function spliceDividers(bit: number, rows: Row[]): Divider[] {
   rows.splice(0, 0, new Row(bit).addField(new Field("", bit)));
   rows.push(new Row(bit).addField(new Field("", bit)));
 
-  function getTopSegment(): Segment {
+  function getTopSegment(): RowSegment {
     return getTopRow()?.get(topSegmentIndex)!;
   }
 
-  function getBottomSegment(): Segment {
+  function getBottomSegment(): RowSegment {
     return getBottomRow()?.get(bottomSegmentIndex)!;
   }
 

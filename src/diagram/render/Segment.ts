@@ -41,7 +41,7 @@ export class DividerSegment extends Segment implements VisibleSetting {
 }
 
 export class RowSegment extends Segment {
-  constructor(represent: Field, startIndex: number, length: number) {
+  constructor(readonly represent: Field, startIndex: number, length: number) {
     super(represent, startIndex, length);
   }
 
@@ -50,9 +50,7 @@ export class RowSegment extends Segment {
   }
 
   toString() {
-    if (this.represent)
-      return `RowSegment [name=${this.represent.name}, start=${this.startIndex}, end=${this.endIndex}, display=${this.displayName}]`;
-    else return `RowSegment [start=${this.startIndex}, end=${this.endIndex}, display=${this.displayName}]`;
+    return `RowSegment [name=${this.represent.name}, start=${this.startIndex}, end=${this.endIndex}, display=${this.displayName}]`;
   }
 }
 
@@ -61,3 +59,4 @@ export class RowTail extends RowSegment implements VisibleSetting {
     super(new Field("", length), start, length);
   }
 }
+
