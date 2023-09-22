@@ -10,7 +10,7 @@ export class Timeline<T extends Cancellable> {
   private undoStack: Snapshot<T>[] = [];
   private redoStack: T[] = [];
 
-  constructor(private _diagram: Diagram) {
+  constructor(protected _diagram: Diagram) {
     this.resetHistory();
   }
 
