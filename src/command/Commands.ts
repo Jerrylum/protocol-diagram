@@ -141,7 +141,7 @@ export class RedoCommand extends Command {
       if (params.length > 0)
           return HandleResult.TOO_MANY_ARGUMENTS;
       const { app } = getRootStore();
-      const command: CancellableCommand | null = app.handler.redo();
+      const command: CancellableCommand | null = app.redo();
       if (command == null)
           return fail("Nothing to redo");
       else

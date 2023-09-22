@@ -1,5 +1,5 @@
 import { CommandLine } from "../token/Tokens";
-import { AddCommand, UndoCommand } from "./Commands";
+import { AddCommand, RedoCommand, UndoCommand } from "./Commands";
 import { cpb } from "../token/Tokens.test";
 import { getRootStore } from "../core/Root";
 
@@ -33,28 +33,6 @@ test("AddCommand handle fail", () => {
   app.diagram.clear();
 });
 
-// public class UndoCommandTest {
-
-//   @Test
-//   public void testUndoCommandHandleSuccess() {
-//       UndoCommand uc = new UndoCommand();
-//       List<Parameter> params = new ArrayList<Parameter>();
-//       AddCommand tic = new AddCommand();
-//       Main.handler.operate(tic);
-//       assertTrue(uc.handle(params).success());
-//   }
-
-//   @Test
-//   public void testUndoCommandHandleFail() {
-//       UndoCommand uc = new UndoCommand();
-//       List<Parameter> params = new ArrayList<Parameter>();
-//       assertFalse(uc.handle(params).success());
-
-//       params.add(Parameter.parse(new CodePointBuffer("test")));
-//       assertFalse(uc.handle(params).success());
-//   }
-// }
-
 test("UndoCommand handle success", () => {
   const uc = new UndoCommand();
   const ac = new AddCommand();
@@ -67,4 +45,20 @@ test("UndoCommand handle success", () => {
 test("UndoCommand handle fail", () => {
   const uc = new UndoCommand();
   expect(uc.handleLine(CommandLine.parse(cpb("undo test"))!).success).toBe(false);
+});
+
+test("RedoCommand handle success", () => {
+  const uc = new UndoCommand();
+  const ac = new AddCommand();
+  expect(ac.handleLine(CommandLine.parse(cpb("add 1 test1"))!).success).toBe(true);
+  const { app } = getRootStore();
+  app.operate(ac);
+  expect(uc.handleLine(CommandLine.parse(cpb("undo"))!).success).toBe(true);
+  const rc = new RedoCommand();
+  expect(rc.handleLine(CommandLine.parse(cpb("redo"))!).success).toBe(true);
+});
+
+test("RedoCommand handle fail", () => {
+  const rc = new RedoCommand();
+  expect(rc.handleLine(CommandLine.parse(cpb("redo test"))!).success).toBe(false);
 });
