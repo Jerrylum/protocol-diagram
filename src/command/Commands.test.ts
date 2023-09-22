@@ -59,6 +59,8 @@ test("UndoCommand handle success", () => {
   const uc = new UndoCommand();
   const ac = new AddCommand();
   expect(ac.handleLine(CommandLine.parse(cpb("add 1 test1"))!).success).toBe(true);
+  const { app } = getRootStore();
+  app.operate(ac);
   expect(uc.handleLine(CommandLine.parse(cpb("undo"))!).success).toBe(true);
 });
 
