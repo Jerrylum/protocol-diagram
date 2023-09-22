@@ -6,7 +6,7 @@ export interface VisibleSetting {
 }
 
 export function hasVisibleSetting(o: unknown): o is VisibleSetting {
-  return typeof (o as VisibleSetting).isVisible === "function";
+  return typeof o === "object" && o !== null && "isVisible" in o && typeof o.isVisible === "boolean";
 }
 
 export abstract class Element {
@@ -61,3 +61,4 @@ export class Connector extends Element {
     }
   }
 }
+
