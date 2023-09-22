@@ -24,7 +24,7 @@ export class MainApp extends Timeline<CancellableCommand> {
     this.diagram = new Diagram();
     this.resetHistory();
   }
-  
+
   /**
    * a method that checks whether the diagram is modified, returns true if the
    * flag `isModified` is true or the file is not saved
@@ -55,7 +55,4 @@ export class MainApp extends Timeline<CancellableCommand> {
     this.sourceCurrentMemento = this.getLatestMemento();
     this.isModifiedFlag = false;
   }
-
-  // diagram: Diagram = new Diagram();
-  // handler: MainDiagramHandler = new MainDiagramHandler(this);
 }
