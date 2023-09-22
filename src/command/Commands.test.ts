@@ -45,6 +45,7 @@ test("UndoCommand handle success", () => {
 test("UndoCommand handle fail", () => {
   const uc = new UndoCommand();
   expect(uc.handleLine(CommandLine.parse(cpb("undo test"))!).success).toBe(false);
+  expect(uc.handleLine(CommandLine.parse(cpb("undo"))!).success).toBe(false);
 });
 
 test("RedoCommand handle success", () => {
@@ -61,4 +62,5 @@ test("RedoCommand handle success", () => {
 test("RedoCommand handle fail", () => {
   const rc = new RedoCommand();
   expect(rc.handleLine(CommandLine.parse(cpb("redo test"))!).success).toBe(false);
+  expect(rc.handleLine(CommandLine.parse(cpb("redo"))!).success).toBe(false);
 });
