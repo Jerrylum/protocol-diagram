@@ -103,3 +103,49 @@ export class AddCommand extends CancellableCommand {
     app.diagram.addField(new Field(this.paramName, this.paramLength));
   }
 }
+
+ /**
+ * this command responsible in popping the undo stack and pushing the popped history
+ * into the redo stack.
+ */
+export class UndoCommand extends Command {
+
+  constructor() {
+      super("undo", "", "Undo the last action");
+  }
+
+  handle(params: Parameter<ParameterType>[]): HandleResult {
+      if (params.length > 0)
+          return HandleResult.TOO_MANY_ARGUMENTS;
+      const { app } = getRootStore();
+      const command: CancellableCommand | null = app.handler.undo();
+      if (command == null)
+          return fail("Nothing to undo");
+      else
+          return success("Undo " + command.name);
+  }
+
+}
+
+/**
+ * this command responsible in popping the redo stack and pushing the popped history
+ * into the undo stack.
+ */
+export class RedoCommand extends Command {
+    
+  constructor() {
+      super("redo", "", "Redo the last action");
+  }
+  
+  handle(params: Parameter<ParameterType>[]): HandleResult {
+      if (params.length > 0)
+          return HandleResult.TOO_MANY_ARGUMENTS;
+      const { app } = getRootStore();
+      const command: CancellableCommand | null = app.handler.redo();
+      if (command == null)
+          return fail("Nothing to redo");
+      else
+          return success("Redo " + command.name);
+  }
+  
+}
