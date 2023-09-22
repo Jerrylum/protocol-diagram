@@ -5,6 +5,8 @@ import { BooleanOption, EnumOption, RangeOption } from "../config/Option";
 import { Divider, Row } from "./render/SegmentGroup";
 import { hasVisibleSetting } from "./render/Element";
 import { RowSegment, Segment } from "./render/Segment";
+import { Matrix } from "./render/Matrix";
+import { AsciiStyle, AsciiVerboseStyle, UTF8CornerStyle, UTF8HeaderStyle, UTF8Style } from "./render/Style";
 
 /**
  * this interface is used to distinguish whether the command will manipulate the diagram instance
@@ -167,13 +169,35 @@ export class Diagram {
 
   toString() {
     const bit = this.config.getValue("bit") as number;
-    const style = this.config.getValue("diagram-style") as string;
-    const headerStyle = this.config.getValue("header-style") as string;
+    const style = this.config.getValue("diagram-style") as DiagramStyle;
+    const headerStyle = this.config.getValue("header-style") as HeaderStyle;
     const leftSpacePlaceholder = this.config.getValue("left-space-placeholder") as boolean;
+
+    const rows = convertFieldsToRow(bit, this.fields, leftSpacePlaceholder);
+    const dividers = spliceDividers(bit, rows);
+    const segments = mergeRowsAndDividers(rows, dividers);
+    this.fields.forEach(f => displayNameAtTheCentralSegment(f, segments));
+
+    const matrix = new Matrix(segments);
+    matrix.process();
+    matrix.process(); // process twice to make sure all the connector are processed
+
+    const elements = matrix.elements;
+
+    return (
+      generateHeader(elements, bit, headerStyle) +
+      new {
+        utf8: UTF8Style,
+        "utf8-header": UTF8HeaderStyle,
+        "utf8-corner": UTF8CornerStyle,
+        ascii: AsciiStyle,
+        "ascii-verbose": AsciiVerboseStyle
+      }[style](elements).output()
+    );
   }
 }
 
-export function convertFieldsToRow(bit: number, fields: Field[], hasTail: boolean): Row[] {
+export function convertFieldsToRow(bit: number, fields: readonly Field[], hasTail: boolean): Row[] {
   const rows: Row[] = [];
 
   let currentRow = new Row(bit);
