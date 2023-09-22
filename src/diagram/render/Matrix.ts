@@ -3,13 +3,13 @@ import { DividerSegment, Segment } from "./Segment";
 
 export class Matrix {
   readonly width: number = 0;
-  readonly height: number = 0;
+  readonly height: number = 1;
   readonly elements: Element[] = [];
 
   constructor(segments: Segment[]) {
     if (segments.length < 3) return;
 
-    let isDivider = false;
+    let isDivider = true;
     for (const segment of segments) {
       if (segment instanceof DividerSegment !== isDivider) {
         isDivider = !isDivider;
@@ -29,7 +29,7 @@ export class Matrix {
 
     this.elements.push(new Connector());
     this.elements.push(new NextLine());
-    this.width = this.elements.length / this.height;
+    this.width = Math.floor(this.elements.length / this.height);
   }
 
   get(x: number, y: number): Element | null {
@@ -43,7 +43,8 @@ export class Matrix {
       for (let x = 0; x < this.width; x++) {
         const e = this.get(x, y);
         if (last !== e) {
-          if (e !== null) e.process(this, x, y);
+          if (e !== null) 
+          e.process(this, x, y);
           last = e;
         }
       }
