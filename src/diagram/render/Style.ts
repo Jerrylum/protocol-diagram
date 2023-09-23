@@ -98,7 +98,7 @@ export class AsciiStyle extends Style {
   }
 }
 
-export class AsciiVerbose extends AsciiStyle {
+export class AsciiVerboseStyle extends AsciiStyle {
   build(e: Connector | DividerSegment | RowTail | NextLine | RowSegment): string {
     if (e instanceof DividerSegment) {
       if (e.displayName) {
@@ -150,6 +150,20 @@ export class UTF8Style extends Style {
   }
 }
 
+export class UTF8HeaderStyle extends UTF8Style {
+  constructor(elements: Element[]) {
+    super(elements);
+
+    for (const e of elements) {
+      if (e instanceof Connector) {
+        e.value |= Connector.TOP;
+      } else if (e instanceof NextLine) {
+        break;
+      }
+    }
+  }
+}
+
 export class UTF8CornerStyle extends UTF8Style {
   build(e: Connector | DividerSegment | RowTail | NextLine | RowSegment): string {
     if (e instanceof Connector) {
@@ -174,19 +188,5 @@ export class UTF8CornerStyle extends UTF8Style {
     }
 
     return super.build(e);
-  }
-}
-
-export class UTF8HeaderStyle extends UTF8Style {
-  constructor(elements: Element[]) {
-    super(elements);
-
-    for (const e of elements) {
-      if (e instanceof Connector) {
-        e.value |= Connector.TOP;
-      } else if (e instanceof NextLine) {
-        break;
-      }
-    }
   }
 }
