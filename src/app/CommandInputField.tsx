@@ -4,7 +4,7 @@ import { CommandLine, CodePointBuffer } from "../token/Tokens";
 import { CancellableCommand, Command } from "../command/Commands";
 import { HandleResult } from "../command/HandleResult";
 import { getRootStore } from "../core/Root";
-import { DiagramModifier, isDiagramModifier } from "../diagram/Diagram";
+import { isDiagramModifier } from "../diagram/Diagram";
 
 export const CommandInputField = observer(() => {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
