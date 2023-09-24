@@ -15,6 +15,10 @@ export interface DiagramModifier {
   readonly discriminator: "DiagramModifier";
 }
 
+export function isDiagramModifier(o: unknown): o is DiagramModifier {
+  return typeof o === "object" && o !== null && "discriminator" in o && o.discriminator === "DiagramModifier";
+}
+
 /**
  * this interface is used to distinguish whether the descendant command is allowed to be undo/redo
  */
