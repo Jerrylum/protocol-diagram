@@ -7,6 +7,7 @@ import { getWindowSize } from "../core/Util";
 import { useBetterMemo } from "../core/Hook";
 import React from "react";
 import Konva from "konva";
+import { getRootStore } from "../core/Root";
 
 export class DiagramCanvasController {
   canvasSize: Vector = getWindowSize();
@@ -47,11 +48,8 @@ export const DiagramCanvas = observer(() => {
   const controller = useBetterMemo(() => new DiagramCanvasController(), []);
   const stageRef = React.useRef<Konva.Stage>(null);
 
-  const diagramText = ` 0                   1           
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 
-┌───────────────┬───────────────┐
-│      Type     │      Code     │
-└───────────────┴───────────────┘`;
+  const {app} = getRootStore();
+  const diagramText = app.diagram.toString();
 
   const canvasSize = controller.canvasSize;
 

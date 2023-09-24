@@ -7,6 +7,7 @@ import { hasVisibleSetting } from "./render/Element";
 import { RowSegment, Segment } from "./render/Segment";
 import { Matrix } from "./render/Matrix";
 import { AsciiStyle, AsciiVerboseStyle, UTF8CornerStyle, UTF8HeaderStyle, UTF8Style } from "./render/Style";
+import { action, computed, makeAutoObservable, makeObservable, observable } from "mobx";
 
 /**
  * this interface is used to distinguish whether the command will manipulate the diagram instance
@@ -66,6 +67,16 @@ export class Diagram {
   readonly config: Configuration;
 
   constructor() {
+    makeObservable<Diagram, "_fields">(this, {
+      _fields: observable,
+      config: observable,
+      clear: action,
+      addField: action,
+      insertField: action,
+      removeField: action,
+      moveField: action,
+      restoreFromMemento: action
+    });
     this.config = new Configuration(
       new RangeOption("bit", 32, 1, 128),
       new EnumOption("diagram-style", "utf8", DIAGRAM_STYLES),
