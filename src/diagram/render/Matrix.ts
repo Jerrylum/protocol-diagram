@@ -1,7 +1,7 @@
-import { Connector, Element, NextLine } from "./Element";
-import { DividerSegment, Segment } from "./Segment";
+import { Element, MatrixLike } from "./Element";
+import { Connector, DividerSegment, NextLine, Segment } from "./Segment";
 
-export class Matrix {
+export class Matrix implements MatrixLike {
   readonly width: number = 0;
   readonly height: number = 1;
   readonly elements: Element[] = [];

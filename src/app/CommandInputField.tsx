@@ -5,6 +5,7 @@ import { CancellableCommand, Command } from "../command/Commands";
 import { HandleResult } from "../command/HandleResult";
 import { getRootStore } from "../core/Root";
 import { isDiagramModifier } from "../diagram/Diagram";
+import React from "react";
 
 export const CommandInputField = observer(() => {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -23,7 +24,7 @@ export const CommandInputField = observer(() => {
       const { app } = getRootStore();
       for (const cmd of Command.getAvailableCommands()) {
         const result: HandleResult = cmd.handleLine(line);
-        if (result == HandleResult.NOT_HANDLED) {
+        if (result === HandleResult.NOT_HANDLED) {
           continue;
         }
         if (result.success) {
@@ -65,7 +66,13 @@ export const CommandInputField = observer(() => {
           alignItems: "center",
           gap: "4px"
         }}>
-        <Button>Export As Text</Button>
+        <Button
+          onClick={e => {
+            const { app } = getRootStore();
+            navigator.clipboard.writeText(app.diagram.toString());
+          }}>
+          Export As Text
+        </Button>
         {/* <Button>Share URL</Button> */}
       </Box>
     </Box>

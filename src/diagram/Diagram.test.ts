@@ -1,6 +1,6 @@
 import { convertFieldsToRow, Diagram, generateHeader, spliceDividers } from "./Diagram";
 import { Field } from "./Field";
-import { Element, VisibleSetting } from "./render/Element";
+import { Element, MatrixLike, VisibleSetting } from "./render/Element";
 import { Matrix } from "./render/Matrix";
 import { RowSegment, RowTail, Segment } from "./render/Segment";
 import { Divider, Row } from "./render/SegmentGroup";
@@ -233,7 +233,7 @@ class VisibleSettingTestStub extends Element implements VisibleSetting {
     super();
     this.isVisible = isVisible;
   }
-  process(m: Matrix, x: number, y: number): void {
+  process(m: MatrixLike, x: number, y: number): void {
     return;
   }
   isVisible: boolean;
@@ -260,3 +260,133 @@ test("generateHeader", () => {
   expect(generateHeader(elementList, 32, "none")).toBe("");
 });
 
+test("Diagram render", () => {
+  const dtest = new Diagram();
+  dtest.addField(new Field("testadd", 1));
+  expect(dtest.toString()).toBe(
+` 0
+ 0
+┌─┐                                                              
+│t│                                                              
+└─┘                                                              
+`);
+  dtest.addField(new Field("testadd2", 2));
+  expect(dtest.toString()).toBe(
+` 0    
+ 0 1 2
+┌─┬───┐                                                          
+│t│tes│                                                          
+└─┴───┘                                                          
+`);
+  dtest.addField(new Field("testadd3", 3));
+  expect(dtest.toString()).toBe(` 0          
+ 0 1 2 3 4 5
+┌─┬───┬─────┐                                                    
+│t│tes│testa│                                                    
+└─┴───┴─────┘                                                    
+`);
+  dtest.clear();
+  dtest.addField(new Field("testadd", 64));
+  expect(dtest.toString()).toBe(` 0                   1                   2                   3  
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+┌───────────────────────────────────────────────────────────────┐
+│                                                               │
+│                            testadd                            │
+│                                                               │
+└───────────────────────────────────────────────────────────────┘
+`);
+  dtest.config.getOption("bit")?.setValue(64)
+  expect(dtest.toString()).toBe(` 0                   1                   2                   3                   4                   5                   6      
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                                            testadd                                                            │
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+`);
+  dtest.config.getOption("bit")?.setValue(32)
+  dtest.config.getOption("diagram-style")?.setValue("utf8-header")
+  expect(dtest.toString()).toBe(` 0                   1                   2                   3  
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+├───────────────────────────────────────────────────────────────┤
+│                                                               │
+│                            testadd                            │
+│                                                               │
+└───────────────────────────────────────────────────────────────┘
+`);
+  dtest.config.getOption("diagram-style")?.setValue("utf8-corner")
+  expect(dtest.toString()).toBe(` 0                   1                   2                   3  
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+┼───────────────────────────────────────────────────────────────┼
+│                                                               │
+│                            testadd                            │
+│                                                               │
+┼───────────────────────────────────────────────────────────────┼
+`);
+  dtest.config.getOption("diagram-style")?.setValue("ascii")
+  expect(dtest.toString()).toBe(` 0                   1                   2                   3  
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++---------------------------------------------------------------+
+|                                                               |
+|                            testadd                            |
+|                                                               |
++---------------------------------------------------------------+
+`);
+  dtest.config.getOption("diagram-style")?.setValue("ascii-verbose")
+  expect(dtest.toString()).toBe(` 0                   1                   2                   3  
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                                                               |
+|                            testadd                            |
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+`);
+  dtest.config.getOption("diagram-style")?.setValue("utf8")
+  dtest.config.getOption("header-style")?.setValue("none")
+  expect(dtest.toString()).toBe(`┌───────────────────────────────────────────────────────────────┐
+│                                                               │
+│                            testadd                            │
+│                                                               │
+└───────────────────────────────────────────────────────────────┘
+`)
+  dtest.config.getOption("header-style")?.setValue("full")
+  expect(dtest.toString()).toBe(` 0                   1                   2                   3  
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+┌───────────────────────────────────────────────────────────────┐
+│                                                               │
+│                            testadd                            │
+│                                                               │
+└───────────────────────────────────────────────────────────────┘
+`);
+  dtest.config.getOption("header-style")?.setValue("trim")
+  dtest.clear();
+  dtest.addField(new Field("testadd", 16));
+  dtest.config.getOption("left-space-placeholder")?.setValue(true);
+  expect(dtest.toString()).toBe(` 0                   1                   2                   3  
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+┌───────────────────────────────┐                                
+│            testadd            ├────────────Reserved───────────┤
+└───────────────────────────────┘                                
+`);
+  dtest.clear();
+  dtest.config.getOption("diagram-style")?.setValue("ascii")
+  dtest.addField(new Field("a", 16));
+  dtest.addField(new Field("a", 16));
+  dtest.addField(new Field("a", 16));
+  expect(dtest.toString()).toBe(` 0                   1                   2                   3  
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-------------------------------+-------------------------------+
+|               a               |               a               |
++-------------------------------+-------------------------------+
+|               a               +------------Reserved-----------+
++-------------------------------+                                
+`);
+  dtest.config.getOption("left-space-placeholder")?.setValue(false);
+  dtest.config.getOption("diagram-style")?.setValue("ascii-verbose")
+  expect(dtest.toString()).toBe(` 0                   1                   2                   3  
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|               a               |               a               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|               a               |                                
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                                
+`);
+});

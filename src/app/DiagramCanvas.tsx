@@ -238,11 +238,7 @@ export const DiagramCanvas = observer(() => {
   const stageRef = React.useRef<Konva.Stage>(null);
   const diagramEditor = app.diagramEditor;
 
-  const diagramText = ` 0                   1           
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 
-┌───────────────┬───────────────┐
-│      Type     │      Code     │
-└───────────────┴───────────────┘`;
+  const diagramText = app.diagram.toString();
 
   const canvasSize = controller.canvasSize;
 
