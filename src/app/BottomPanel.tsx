@@ -11,7 +11,8 @@ export const BottomPanel = observer(() => {
         maxWidth: "90vw",
         width: "600px",
         left: "50%",
-        transform: "translate(-50%, 0)"
+        transform: "translate(-50%, 0)",
+        backgroundColor: "white"
       }}>
       <CommandInputField />
     </Box>
