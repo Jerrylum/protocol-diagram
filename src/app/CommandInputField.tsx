@@ -4,7 +4,8 @@ import { CommandLine, CodePointBuffer } from "../token/Tokens";
 import { CancellableCommand, Command } from "../command/Commands";
 import { HandleResult } from "../command/HandleResult";
 import { getRootStore } from "../core/Root";
-import { DiagramModifier, isDiagramModifier } from "../diagram/Diagram";
+import { isDiagramModifier } from "../diagram/Diagram";
+import React from "react";
 
 export const CommandInputField = observer(() => {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -65,7 +66,13 @@ export const CommandInputField = observer(() => {
           alignItems: "center",
           gap: "4px"
         }}>
-        <Button>Export As Text</Button>
+        <Button
+          onClick={e => {
+            const { app } = getRootStore();
+            navigator.clipboard.writeText(app.diagram.toString());
+          }}>
+          Export As Text
+        </Button>
         {/* <Button>Share URL</Button> */}
       </Box>
     </Box>
