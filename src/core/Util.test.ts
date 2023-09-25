@@ -1,7 +1,13 @@
 import { render, screen } from "@testing-library/react";
-import { clamp, getWindowSize } from "./Util";
+import { clamp, getWindowSize, isMacOS } from "./Util";
 import { Vector } from "./Vector";
 import isEqual from "lodash.isequal";
+
+test("isMacOS", () => {
+  expect(isMacOS("Windows")).toBe(false);
+  expect(isMacOS("Mac")).toBe(true);
+  expect(isMacOS("Linux")).toBe(false);
+});
 
 test("getWindowSize", () => {
   expect(getWindowSize()); // Expect to have no error
