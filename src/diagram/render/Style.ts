@@ -1,5 +1,5 @@
-import { Connector, Element, NextLine } from "./Element";
-import { DividerSegment, RowSegment, RowTail, Segment } from "./Segment";
+import { Element } from "./Element";
+import { Connector, DividerSegment, NextLine, RowSegment, RowTail, Segment } from "./Segment";
 
 export function outputCenteredString(str: string, backgroundChar: string, bitLength: number): string {
   const length = bitLength * 2 - 1;

@@ -1,8 +1,7 @@
 import { convertFieldsToRow, displayNameAtTheCentralSegment, mergeRowsAndDividers, spliceDividers } from "../Diagram";
 import { Field } from "../Field";
-import { Connector, NextLine } from "./Element";
 import { Matrix } from "./Matrix";
-import { DividerSegment, RowSegment, RowTail } from "./Segment";
+import { Connector, DividerSegment, NextLine, RowSegment, RowTail } from "./Segment";
 
 test("Matrix", () => {
   new Matrix([]);

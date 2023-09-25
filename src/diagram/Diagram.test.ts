@@ -1,6 +1,6 @@
 import { convertFieldsToRow, Diagram, generateHeader, spliceDividers } from "./Diagram";
 import { Field } from "./Field";
-import { Element, VisibleSetting } from "./render/Element";
+import { Element, MatrixLike, VisibleSetting } from "./render/Element";
 import { Matrix } from "./render/Matrix";
 import { RowSegment, RowTail, Segment } from "./render/Segment";
 import { Divider, Row } from "./render/SegmentGroup";
@@ -233,7 +233,7 @@ class VisibleSettingTestStub extends Element implements VisibleSetting {
     super();
     this.isVisible = isVisible;
   }
-  process(m: Matrix, x: number, y: number): void {
+  process(m: MatrixLike, x: number, y: number): void {
     return;
   }
   isVisible: boolean;
