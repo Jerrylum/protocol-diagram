@@ -7,6 +7,7 @@ import { clamp, getWindowSize } from "../core/Util";
 import { useBetterMemo } from "../core/Hook";
 import React from "react";
 import Konva from "konva";
+import { getRootStore } from "../core/Root";
 
 export function isKonvaTouchEvent(event: Konva.KonvaEventObject<unknown>): event is Konva.KonvaEventObject<TouchEvent> {
   return !!window.TouchEvent && event.evt instanceof TouchEvent;
@@ -27,8 +28,6 @@ export function getClientXY(event: DragEvent | MouseEvent | TouchEvent): Vector 
 }
 
 export class DiagramCanvasController {
-  private _offset: Vector = new Vector(0, 0);
-  private _scale: number = 1; // 1 = 100%, [1..3]
   private offsetStart: Vector | undefined = undefined;
 
   diagramSize: Vector = new Vector(0, 0);
@@ -74,24 +73,31 @@ export class DiagramCanvasController {
   }
 
   panning(vec: Vector): boolean {
-    const newOffset = this.offset.subtract(vec);
+    const { app } = getRootStore();
+
+    const oldScale = app.diagramEditor.scale;
+    const oldOffset = app.diagramEditor.offset;
+
+    const newOffset = oldOffset.subtract(vec);
 
     const sizeNegX =
-      this.viewOffset.x + this.diagramSize.x / this.scale + (this.canvasSize.x + this.diagramSize.x) / -this.scale;
+      this.viewOffset.x + this.diagramSize.x / oldScale + (this.canvasSize.x + this.diagramSize.x) / -oldScale;
     const sizePosX = (this.canvasSize.x + this.diagramSize.x) / 2;
-    const sizeNegY = Math.min(this.canvasSize.y, Math.max(this.diagramSize.y, this.canvasSize.y)) / -this.scale;
+    const sizeNegY = Math.min(this.canvasSize.y, Math.max(this.diagramSize.y, this.canvasSize.y)) / -oldScale;
     const sizePosY = Math.max(this.diagramSize.y, Math.min(this.diagramSize.y, this.canvasSize.y));
 
     newOffset.x = clamp(newOffset.x, sizeNegX + 32, sizePosX - 32);
     newOffset.y = clamp(newOffset.y, sizeNegY + 32, sizePosY - 32);
-    this.offset = newOffset;
+    app.diagramEditor.offset = newOffset;
 
     return true;
   }
 
   zooming(variable: number, posInPx: Vector): boolean {
-    const oldScale = this.scale;
-    const oldOffset = this.offset;
+    const { app } = getRootStore();
+
+    const oldScale = app.diagramEditor.scale;
+    const oldOffset = app.diagramEditor.offset;
 
     const newScale = clamp(variable, 0.75, 2);
 
@@ -110,14 +116,16 @@ export class DiagramCanvasController {
     const newOffsetInCC = posInPx.subtract(newPos).add(offsetInCC);
     const newOffsetInKC = newOffsetInCC.multiply(-1).divide(newScale);
 
-    this.scale = newScale;
-    this.offset = newOffsetInKC;
+    app.diagramEditor.scale = newScale;
+    app.diagramEditor.offset = newOffsetInKC;
 
     return true;
   }
 
   onWheelStage(event: Konva.KonvaEventObject<WheelEvent>): void {
     const evt = event.evt;
+
+    const { app } = getRootStore();
 
     if (evt.ctrlKey === false && (evt.deltaX !== 0 || evt.deltaY !== 0) && this.isGrabAndMove === false) {
       // UX: Panning if: ctrl key up + wheel/mouse pad + no "Grab & Move" + not changing heading value with scroll wheel in the last 300ms
@@ -133,7 +141,7 @@ export class DiagramCanvasController {
       const pos = this.getUnboundedPxFromEvent(event, false, false);
       if (pos === undefined) return;
 
-      this.zooming(this.scale * (1 - evt.deltaY / 1000), pos);
+      this.zooming(app.diagramEditor.scale * (1 - evt.deltaY / 1000), pos);
     }
   }
 
@@ -166,12 +174,14 @@ export class DiagramCanvasController {
   }
 
   getUnboundedPx(clientXY: Vector, useOffset = true, useScale = true): Vector | undefined {
+    const { app } = getRootStore();
+
     const canvasPos = this.container?.getBoundingClientRect();
     if (canvasPos === undefined) return;
 
-    const offset = useOffset ? this.offset.subtract(this.viewOffset) : 0;
+    const offset = useOffset ? app.diagramEditor.offset.subtract(this.viewOffset) : 0;
 
-    const scale = useScale ? this.scale : 1;
+    const scale = useScale ? app.diagramEditor.scale : 1;
 
     const rtn = clientXY.subtract(new Vector(canvasPos.left, canvasPos.top));
 
@@ -193,22 +203,6 @@ export class DiagramCanvasController {
     useScale = true
   ): Vector | undefined {
     return this.getUnboundedPxFromNativeEvent(event.evt, useOffset, useScale);
-  }
-
-  get offset() {
-    return this._offset;
-  }
-
-  get scale() {
-    return this._scale;
-  }
-
-  set offset(offset: Vector) {
-    this._offset = offset;
-  }
-
-  set scale(scale: number) {
-    this._scale = clamp(scale, 0.75, 2);
   }
 
   get isGrabAndMove() {
@@ -238,8 +232,11 @@ export const DiagramTextLineElement = observer((props: { line: string; lineNumbe
 });
 
 export const DiagramCanvas = observer(() => {
+  const { app } = getRootStore();
+
   const controller = useBetterMemo(() => new DiagramCanvasController(), []);
   const stageRef = React.useRef<Konva.Stage>(null);
+  const diagramEditor = app.diagramEditor;
 
   const diagramText = ` 0                   1           
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 
@@ -307,8 +304,8 @@ export const DiagramCanvas = observer(() => {
         ref={stageRef}
         width={canvasSize.x}
         height={canvasSize.y}
-        scale={new Vector(controller.scale, controller.scale)}
-        offset={controller.offset.subtract(controller.viewOffset)}
+        scale={new Vector(diagramEditor.scale, diagramEditor.scale)}
+        offset={diagramEditor.offset.subtract(controller.viewOffset)}
         draggable
         onContextMenu={e => e.evt.preventDefault()}
         onWheel={event => controller.onWheelStage(event)}
@@ -326,3 +323,4 @@ export const DiagramCanvas = observer(() => {
     </Box>
   );
 });
+
