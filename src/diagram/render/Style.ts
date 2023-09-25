@@ -4,14 +4,15 @@ import { DividerSegment, RowSegment, RowTail, Segment } from "./Segment";
 export function outputCenteredString(str: string, backgroundChar: string, bitLength: number): string {
   const length = bitLength * 2 - 1;
   const strLength = str.length;
-  let strIndex = (length - strLength) / 2 + ((strLength + 1) % 2);
-  if (strIndex > length) {
+  let strIndex = Math.floor((length - strLength) / 2) + ((strLength + 1) % 2);
+  if (strLength > length) {
     str = str.substring(0, length);
     strIndex = 0;
   }
+
   let rtn = "";
   for (let i = 0; i < length; i++) {
-    if (i === strIndex) {
+    if (i === strIndex && strLength !== 0) {
       rtn += str;
       i += strLength - 1;
     } else {
