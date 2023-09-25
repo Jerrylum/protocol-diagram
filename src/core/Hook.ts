@@ -1,4 +1,8 @@
-import React from "react";
+import { runInAction } from "mobx";
+import React, { DependencyList } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
+import { HotkeyCallback, HotkeysEvent, Options, RefType, Trigger } from "react-hotkeys-hook/dist/types";
+import { IS_MAC_OS } from "./Util";
 
 export function useBetterMemo<T extends { destructor: () => void } | {}>(
   factory: () => T,
@@ -13,3 +17,89 @@ export function useBetterMemo<T extends { destructor: () => void } | {}>(
 
   return storage;
 }
+
+export interface CustomHotkeysOptions extends Options {
+  preventDefaultOnlyIfEnabled?: boolean;
+}
+
+export function useCustomHotkeys<T extends HTMLElement>(
+  keys: string,
+  callback: () => void,
+  options?: CustomHotkeysOptions,
+  dependencies?: DependencyList
+): React.MutableRefObject<RefType<T>> {
+  const timeRef = React.useRef<number | null>(null);
+  const enabledRef = React.useRef<boolean>(false);
+
+  function onKeydown(func: () => void): HotkeyCallback {
+    return function (kvEvt: KeyboardEvent, hkEvt: HotkeysEvent) {
+      if (enabledRef.current === false) return;
+
+      /*
+        UX: Debounce the keydown event to prevent the callback from being called multiple times.
+        If the user holds down the key, the callback will only be called once until the key is released.
+        However, it auto resets after 800ms of no keydown events to prevent the case where the keyup event is missed.
+        
+        Last but not least, do not debounce MacOS meta hotkeys.
+        See: https://stackoverflow.com/questions/11818637/why-does-javascript-drop-keyup-events-when-the-metakey-is-pressed-on-mac-browser
+        
+        The debounce times are randomly chosen.
+        */
+
+      const isMacMetaHotkey = IS_MAC_OS && kvEvt.metaKey;
+
+      if (kvEvt.type === "keyup") {
+        timeRef.current = null;
+      } else if (kvEvt.type === "keydown") {
+        if (timeRef.current === null || Date.now() - timeRef.current > (isMacMetaHotkey ? 200 : 800)) {
+          runInAction(func);
+          timeRef.current = Date.now();
+        } else if (isMacMetaHotkey === false) {
+          timeRef.current = Date.now();
+        }
+      }
+    };
+  }
+
+  return useHotkeys(
+    keys,
+    onKeydown(callback),
+    {
+      ...options,
+      keydown: true,
+      keyup: true,
+      preventDefault: false,
+      enabled: (kvEvt: KeyboardEvent, hkEvt: HotkeysEvent): boolean => {
+        let rtn: boolean;
+
+        const enabledOptions: Trigger | undefined = options?.enabled;
+        if (enabledOptions === undefined) {
+          rtn = true;
+        } else if (typeof enabledOptions === "function") {
+          rtn = enabledOptions(kvEvt, hkEvt);
+        } else {
+          rtn = enabledOptions;
+        }
+
+        enabledRef.current = rtn;
+
+        /*
+          ALGO:
+          If the hotkey is enabled: preventDefault
+          If the hotkey is not enabled, it is allowed to preventDefault: preventDefault
+          Else: do not preventDefault, but return true to prevent useHotkeys from calling preventDefault
+          */
+        if (rtn === true || options?.preventDefaultOnlyIfEnabled !== true) {
+          kvEvt.preventDefault();
+          kvEvt.stopPropagation();
+        } else {
+          rtn = true;
+        }
+
+        return rtn;
+      }
+    },
+    dependencies
+  );
+}
+

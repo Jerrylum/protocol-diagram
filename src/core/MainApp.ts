@@ -1,11 +1,14 @@
 import { CancellableCommand } from "../command/Commands";
 import { Diagram, Memento } from "../diagram/Diagram";
 import { Timeline } from "../diagram/Timeline";
+import { DiagramEditor } from "./DiagramEditor";
 
 export class MainApp extends Timeline<CancellableCommand> {
   // The current memento saved in the file or the first memento in the timeline
   private sourceCurrentMemento!: Memento | null;
   private isModifiedFlag!: boolean;
+
+  readonly diagramEditor = new DiagramEditor();
 
   constructor() {
     super(new Diagram());
@@ -56,3 +59,4 @@ export class MainApp extends Timeline<CancellableCommand> {
     this.isModifiedFlag = false;
   }
 }
+
