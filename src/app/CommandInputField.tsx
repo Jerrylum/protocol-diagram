@@ -24,7 +24,7 @@ export const CommandInputField = observer(() => {
       const { app } = getRootStore();
       for (const cmd of Command.getAvailableCommands()) {
         const result: HandleResult = cmd.handleLine(line);
-        if (result == HandleResult.NOT_HANDLED) {
+        if (result === HandleResult.NOT_HANDLED) {
           continue;
         }
         if (result.success) {

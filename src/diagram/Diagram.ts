@@ -7,7 +7,7 @@ import { hasVisibleSetting } from "./render/Element";
 import { RowSegment, Segment } from "./render/Segment";
 import { Matrix } from "./render/Matrix";
 import { AsciiStyle, AsciiVerboseStyle, UTF8CornerStyle, UTF8HeaderStyle, UTF8Style } from "./render/Style";
-import { action, computed, makeAutoObservable, makeObservable, observable } from "mobx";
+import { action, makeObservable, observable } from "mobx";
 
 /**
  * this interface is used to distinguish whether the command will manipulate the diagram instance
