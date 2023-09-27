@@ -1,7 +1,7 @@
 import { Card } from "@mui/material";
 import { observer } from "mobx-react-lite";
 import { Modal } from "../component/Modal";
-import { MarkdownOverwrittenComponents } from "./MarkdownComponents";
+import { MarkdownOverwrittenComponents } from "../component/MarkdownComponents";
 import MarkdownMDX from "./TestMarkdown.mdx";
 import { getRootStore } from "../core/Root";
 
