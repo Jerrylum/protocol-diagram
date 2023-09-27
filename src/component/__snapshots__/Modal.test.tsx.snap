@@ -1,0 +1,41 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Render Modal 1`] = `
+<div>
+  <div
+    id="root-container"
+  />
+</div>
+`;
+
+exports[`Render Modal 2`] = `
+<div>
+  <div
+    id="root-container"
+    style="overflow: hidden;"
+  >
+    <div
+      class="MuiModal-root css-79ws1d-MuiModal-root"
+      role="presentation"
+    >
+      <div
+        aria-hidden="true"
+        class="MuiBackdrop-root modal-backdrop MuiModal-backdrop modal-backdrop css-i9fmh8-MuiBackdrop-root-MuiModal-backdrop"
+        style="opacity: 1; webkit-transition: opacity 225ms cubic-bezier(0.4, 0, 0.2, 1) 0ms; transition: opacity 225ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;"
+      />
+      <div
+        data-testid="sentinelStart"
+        tabindex="0"
+      />
+      <div
+        class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 MuiCard-root modal-container css-1scpm8j-MuiPaper-root-MuiCard-root"
+        tabindex="-1"
+      />
+      <div
+        data-testid="sentinelEnd"
+        tabindex="0"
+      />
+    </div>
+  </div>
+</div>
+`;

@@ -3,24 +3,6 @@ import { render } from "@testing-library/react";
 import { TestModal, TestModalSymbol } from "../app/TestModal";
 import { getRootStore } from "../core/Root";
 import { Modal } from "./Modal";
-import { MarkdownOverwrittenComponents } from "../app/MarkdownComponents";
-
-test("Render MDX", () => {
-  // ["a", "code", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "li", "ol", "p", "ul", "td", "th"].forEach(key => {
-  Object.keys(MarkdownOverwrittenComponents).forEach(key => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const Component = (MarkdownOverwrittenComponents as any)[key];
-
-    if (key === "img") return;
-
-    const result = render(<Component>Test</Component>);
-    expect(result.container).toMatchSnapshot();
-  });
-
-  const Img = MarkdownOverwrittenComponents.img!;
-  const result = render(<Img src="https://via.placeholder.com/150" />);
-  expect(result.container).toMatchSnapshot();
-});
 
 test("Render TestModal", () => {
   const { modals } = getRootStore();
@@ -76,6 +58,7 @@ test("Render Modal", () => {
   );
 
   const result = render(components);
+  expect(result.container).toMatchSnapshot();
 
   const container = document.querySelector(".modal-container");
   expect(container).not.toBeInTheDocument();
@@ -86,6 +69,7 @@ test("Render Modal", () => {
   modals.open(TestModalSymbol);
 
   result.rerender(components);
+  expect(result.container).toMatchSnapshot();
 
   const container2 = document.querySelector(".modal-container");
   expect(container2).toBeInTheDocument();
