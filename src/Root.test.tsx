@@ -22,16 +22,36 @@ test("Add/Undo/Redo command integration test", () => {
   });
 
   result.rerender(<Root />);
-
-  act(() => {
     expect(app.diagram.toString()).toBe(` 0
  0
 ┌─┐                                                              
 │t│                                                              
 └─┘                                                              
 `);
+
+  act(() => {
+    commandInputField.value = "undo";
+    fireEvent.keyDown(commandInputField, { key: "Enter" });
   });
 
+  result.rerender(<Root />);
+  expect(app.diagram.toString()).toBe(``);
+
+  act(() => {
+    commandInputField.value = "redo";
+    fireEvent.keyDown(commandInputField, { key: "Enter" });
+  });
+  
+  result.rerender(<Root />);
+  expect(app.diagram.toString()).toBe(` 0
+ 0
+┌─┐                                                              
+│t│                                                              
+└─┘                                                              
+`);
+
 });
+
+
 
 test("Dummy", () => {});
