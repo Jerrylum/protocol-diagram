@@ -22,7 +22,7 @@ test("Add/Undo/Redo command integration test", () => {
   });
 
   result.rerender(<Root />);
-    expect(app.diagram.toString()).toBe(` 0
+  expect(app.diagram.toString()).toBe(` 0
  0
 ┌─┐                                                              
 │t│                                                              
@@ -41,7 +41,7 @@ test("Add/Undo/Redo command integration test", () => {
     commandInputField.value = "redo";
     fireEvent.keyDown(commandInputField, { key: "Enter" });
   });
-  
+
   result.rerender(<Root />);
   expect(app.diagram.toString()).toBe(` 0
  0
@@ -71,7 +71,5 @@ test("Add/Undo/Redo command integration test", () => {
   });
 
 });
-
-
 
 test("Dummy", () => {});
