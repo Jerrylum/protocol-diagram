@@ -50,6 +50,26 @@ test("Add/Undo/Redo command integration test", () => {
 └─┘                                                              
 `);
 
+  act(() => {
+    commandInputField.value = "test";
+    fireEvent.keyDown(commandInputField, { key: "Enter" });
+  });
+
+  act(() => {
+    commandInputField.value = "add aaa aaa";
+    fireEvent.keyDown(commandInputField, { key: "Enter" });
+  });
+
+  act(() => {
+    commandInputField.value = "add 1";
+    fireEvent.keyDown(commandInputField, { key: "Enter" });
+  });
+
+  act(() => {
+    commandInputField.value = "add 1 aaa aaa";
+    fireEvent.keyDown(commandInputField, { key: "Enter" });
+  });
+
 });
 
 
