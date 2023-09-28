@@ -61,7 +61,6 @@ export class Timeline<T extends Cancellable> {
    * @return T
    */
   undo(): T | null {
-    if (this.undoStack.length === 0) return null;
     const snapshot: Snapshot<T> | undefined = this.undoStack.pop();
     if (!snapshot) return null;
     this.redoStack.push(snapshot.modifier);
@@ -77,8 +76,6 @@ export class Timeline<T extends Cancellable> {
    * @return T
    */
   redo(): T | null {
-    if (this.redoStack.length === 0) return null;
-
     const modifier: T | undefined = this.redoStack.pop();
     if (!modifier) return null;
     modifier.execute();
