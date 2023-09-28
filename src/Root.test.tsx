@@ -1,5 +1,5 @@
 import React from "react";
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render } from "@testing-library/react";
 import Root from "./Root";
 import { getRootStore } from "./core/Root";
 import { Diagram } from "./diagram/Diagram";
@@ -32,8 +32,6 @@ test("Add/Undo/Redo command integration test", () => {
 `);
   });
 
-  // const linkElement = screen.getByText(/learn react/i);
-  // expect(linkElement).toBeInTheDocument();
 });
 
 test("Dummy", () => {});

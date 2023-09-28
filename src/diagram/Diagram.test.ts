@@ -1,7 +1,6 @@
 import { convertFieldsToRow, Diagram, generateHeader, spliceDividers } from "./Diagram";
 import { Field } from "./Field";
 import { Element, MatrixLike, VisibleSetting } from "./render/Element";
-import { Matrix } from "./render/Matrix";
 import { RowSegment, RowTail, Segment } from "./render/Segment";
 import { Divider, Row } from "./render/SegmentGroup";
 
