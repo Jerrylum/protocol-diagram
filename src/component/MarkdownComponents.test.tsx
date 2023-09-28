@@ -6,8 +6,23 @@ test("Render MDX", () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const Component = (MarkdownOverwrittenComponents as any)[key];
 
-    const result = render(key === "img" ? <Component /> : <Component>Test</Component>);
+    const result = (() => {
+      if (key === "img") {
+        return render(<Component />);
+      } else if (key === "td" || key === "th") {
+        return render(
+          <table>
+            <tbody>
+              <tr>
+                <Component>Test</Component>
+              </tr>
+            </tbody>
+          </table>
+        );
+      } else {
+        return render(<Component>Test</Component>);
+      }
+    })();
     expect(result.container).toMatchSnapshot();
   });
 });
-

@@ -1,8 +1,8 @@
 import { Card } from "@mui/material";
 import { observer } from "mobx-react-lite";
 import { Modal } from "../component/Modal";
-import { MarkdownOverwrittenComponents } from "../component/MarkdownComponents";
-import MarkdownMDX from "./TestMarkdown.mdx";
+// import { MarkdownOverwrittenComponents } from "../component/MarkdownComponents";
+// import MarkdownMDX from "./TestMarkdown.mdx";
 import { getRootStore } from "../core/Root";
 
 export const TestModalSymbol = Symbol("TestModalSymbol");
@@ -27,7 +27,7 @@ export const TestModal = observer(() => {
           height: "80%",
           overflowY: "auto"
         }}>
-        <MarkdownMDX components={MarkdownOverwrittenComponents} />
+        {/* <MarkdownMDX components={MarkdownOverwrittenComponents} /> */}
       </Card>
     </Modal>
   );

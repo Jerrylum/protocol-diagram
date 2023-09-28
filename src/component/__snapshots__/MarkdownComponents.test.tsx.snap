@@ -139,24 +139,36 @@ exports[`Render MDX 14`] = `
 
 exports[`Render MDX 15`] = `
 <div>
-  <td>
-    <span
-      class="MuiTypography-root MuiTypography-body1 css-ahj2mt-MuiTypography-root"
-    >
-      Test
-    </span>
-  </td>
+  <table>
+    <tbody>
+      <tr>
+        <td>
+          <span
+            class="MuiTypography-root MuiTypography-body1 css-ahj2mt-MuiTypography-root"
+          >
+            Test
+          </span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
 </div>
 `;
 
 exports[`Render MDX 16`] = `
 <div>
-  <th>
-    <span
-      class="MuiTypography-root MuiTypography-body1 css-ahj2mt-MuiTypography-root"
-    >
-      Test
-    </span>
-  </th>
+  <table>
+    <tbody>
+      <tr>
+        <th>
+          <span
+            class="MuiTypography-root MuiTypography-body1 css-ahj2mt-MuiTypography-root"
+          >
+            Test
+          </span>
+        </th>
+      </tr>
+    </tbody>
+  </table>
 </div>
 `;

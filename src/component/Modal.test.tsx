@@ -1,5 +1,5 @@
 import { Card } from "@mui/material";
-import { render } from "@testing-library/react";
+import { act, render } from "@testing-library/react";
 import { TestModal, TestModalSymbol } from "../app/TestModal";
 import { getRootStore } from "../core/Root";
 import { Modal } from "./Modal";
@@ -17,15 +17,19 @@ test("Render TestModal", () => {
   const container = document.querySelector(".modal-container");
   expect(container).not.toBeInTheDocument();
 
-  modals.close();
-  modals.open(TestModalSymbol);
+  act(() => {
+    modals.close();
+    modals.open(TestModalSymbol);
+  });
 
   result.rerender(components);
 
   const container2 = document.querySelector(".modal-container");
   expect(container2).toBeInTheDocument();
 
-  modals.close();
+  act(() => {
+    modals.close();
+  });
 
   result.rerender(components);
 
@@ -65,8 +69,10 @@ test("Render Modal", () => {
   expect(onOpen).not.toHaveBeenCalled();
   expect(onClose).not.toHaveBeenCalled();
 
-  modals.close();
-  modals.open(TestModalSymbol);
+  act(() => {
+    modals.close();
+    modals.open(TestModalSymbol);
+  });
 
   result.rerender(components);
   expect(result.container).toMatchSnapshot();
@@ -76,21 +82,26 @@ test("Render Modal", () => {
   expect(onOpen).toHaveBeenCalled();
   expect(onClose).not.toHaveBeenCalled();
 
-  modals.close();
+  act(() => {
+    modals.close();
+  });
 
   expect(onOpen).toBeCalledTimes(1);
   expect(onClose).toBeCalledTimes(1);
 
-  modals.open(TestModalSymbol);
+  act(() => {
+    modals.open(TestModalSymbol);
+  });
 
   result.rerender(components);
 
   expect(onOpen).toBeCalledTimes(2);
   expect(onClose).toBeCalledTimes(1);
 
-  (document.querySelector(".modal-backdrop") as HTMLElement).click();
+  act(() => {
+    (document.querySelector(".modal-backdrop") as HTMLElement).click();
+  });
 
   expect(onOpen).toBeCalledTimes(2);
   expect(onClose).toBeCalledTimes(2);
 });
-
