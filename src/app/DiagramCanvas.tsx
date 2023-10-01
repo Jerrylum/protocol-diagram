@@ -4,7 +4,7 @@ import { Box } from "@mui/material";
 import { Layer, Stage, Text } from "react-konva";
 import { Vector } from "../core/Vector";
 import { clamp, getWindowSize } from "../core/Util";
-import { useBetterMemo } from "../core/Hook";
+import { useBetterMemo, useEventListener } from "../core/Hook";
 import React from "react";
 import Konva from "konva";
 import { getRootStore } from "../core/Root";
@@ -122,9 +122,7 @@ export class DiagramCanvasController {
     return true;
   }
 
-  onWheelStage(event: Konva.KonvaEventObject<WheelEvent>): void {
-    const evt = event.evt;
-
+  onWheelStage(evt: WheelEvent): void {
     const { app } = getRootStore();
 
     if (evt.ctrlKey === false && (evt.deltaX !== 0 || evt.deltaY !== 0) && this.isGrabAndMove === false) {
@@ -138,36 +136,34 @@ export class DiagramCanvasController {
 
       evt.preventDefault();
 
-      const pos = this.getUnboundedPxFromEvent(event, false, false);
+      const pos = this.getUnboundedPxFromNativeEvent(evt, false, false);
       if (pos === undefined) return;
 
       this.zooming(app.diagramEditor.scale * (1 - evt.deltaY / 1000), pos);
     }
   }
 
-  onMouseDownStage(event: Konva.KonvaEventObject<MouseEvent>): void {
-    const evt = event.evt;
-
+  onMouseDownStage(evt: MouseEvent): void {
     if (evt.button === 1) {
       // middle click
       // UX: Start "Grab & Move" if: middle click at any position
       evt.preventDefault(); // UX: Prevent default action (scrolling)
 
-      const posWithoutOffsetInPx = this.getUnboundedPxFromEvent(event, false);
+      const posWithoutOffsetInPx = this.getUnboundedPxFromNativeEvent(evt, false);
       if (posWithoutOffsetInPx === undefined) return;
       this.startGrabAndMove(posWithoutOffsetInPx);
     }
   }
 
-  onMouseMoveOrDragStage(event: Konva.KonvaEventObject<DragEvent | MouseEvent>) {
-    const posWithoutOffsetInPx = this.getUnboundedPxFromEvent(event, false);
+  onMouseMoveOrDragStage(evt: DragEvent | MouseEvent) {
+    const posWithoutOffsetInPx = this.getUnboundedPxFromNativeEvent(evt, false);
     if (posWithoutOffsetInPx === undefined) return;
 
     this.grabAndMove(posWithoutOffsetInPx);
   }
 
-  onMouseUpStage(event: Konva.KonvaEventObject<MouseEvent>) {
-    if (event.evt.button === 1) {
+  onMouseUpStage(evt: MouseEvent) {
+    if (evt.button === 1) {
       // middle click
       this.endGrabAndMove();
     }
@@ -250,6 +246,8 @@ export const DiagramCanvas = observer(() => {
 
   controller.container = stageRef.current?.container() ?? null;
 
+  useEventListener(document, "mouseup", evt => controller.onMouseUpStage(evt));
+
   function onMouseMoveOrMouseDragOrTouchDragStage(event: Konva.KonvaEventObject<DragEvent | MouseEvent | TouchEvent>) {
     /*
     UX:
@@ -267,7 +265,7 @@ export const DiagramCanvas = observer(() => {
     if (event.target instanceof Konva.Stage) event.target.setPosition(new Vector(0, 0));
 
     if (isKonvaTouchEvent(event) === false) {
-      controller.onMouseMoveOrDragStage(event as any);
+      controller.onMouseMoveOrDragStage(event.evt as DragEvent | MouseEvent);
     }
   }
 
@@ -292,7 +290,7 @@ export const DiagramCanvas = observer(() => {
       controller.endGrabAndMove();
     }
   }
-  
+
   return (
     <Box sx={{ position: "fixed", top: 0, left: 0, bottom: 0, right: 0 }}>
       <Stage
@@ -304,10 +302,10 @@ export const DiagramCanvas = observer(() => {
         offset={diagramEditor.offset.subtract(controller.viewOffset)}
         draggable
         onContextMenu={e => e.evt.preventDefault()}
-        onWheel={event => controller.onWheelStage(event)}
-        onMouseDown={event => controller.onMouseDownStage(event)}
+        onWheel={event => controller.onWheelStage(event.evt)}
+        onMouseDown={event => controller.onMouseDownStage(event.evt)}
         onMouseMove={action(onMouseMoveOrMouseDragOrTouchDragStage)}
-        onMouseUp={event => controller.onMouseUpStage(event)}
+        // onMouseUp={event => controller.onMouseUpStage(event)}
         onDragMove={action(onMouseMoveOrMouseDragOrTouchDragStage)}
         onDragEnd={action(onDragEndStage)}>
         <Layer>
@@ -319,4 +317,3 @@ export const DiagramCanvas = observer(() => {
     </Box>
   );
 });
-
