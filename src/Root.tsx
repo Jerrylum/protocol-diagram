@@ -1,4 +1,5 @@
 import "./Root.scss";
+import "@fontsource/ubuntu-mono";
 import { observer } from "mobx-react-lite";
 import { DiagramCanvas } from "./app/DiagramCanvas";
 import { Box } from "@mui/material";
