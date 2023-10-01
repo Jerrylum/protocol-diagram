@@ -1,0 +1,174 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Render MDX 1`] = `
+<div>
+  <a
+    rel="noreferrer"
+    target="_blank"
+  >
+    Test
+  </a>
+</div>
+`;
+
+exports[`Render MDX 2`] = `
+<div>
+  <code
+    class="MuiTypography-root MuiTypography-body1 css-ahj2mt-MuiTypography-root"
+  >
+    Test
+  </code>
+</div>
+`;
+
+exports[`Render MDX 3`] = `
+<div>
+  <h1
+    class="MuiTypography-root MuiTypography-h1 MuiTypography-gutterBottom css-a4d0r7-MuiTypography-root"
+  >
+    Test
+  </h1>
+</div>
+`;
+
+exports[`Render MDX 4`] = `
+<div>
+  <h2
+    class="MuiTypography-root MuiTypography-h2 MuiTypography-gutterBottom css-i1hrn3-MuiTypography-root"
+  >
+    Test
+  </h2>
+</div>
+`;
+
+exports[`Render MDX 5`] = `
+<div>
+  <h3
+    class="MuiTypography-root MuiTypography-h3 MuiTypography-gutterBottom css-1mktp8m-MuiTypography-root"
+  >
+    Test
+  </h3>
+</div>
+`;
+
+exports[`Render MDX 6`] = `
+<div>
+  <h4
+    class="MuiTypography-root MuiTypography-h4 MuiTypography-gutterBottom css-1vw6mcs-MuiTypography-root"
+  >
+    Test
+  </h4>
+</div>
+`;
+
+exports[`Render MDX 7`] = `
+<div>
+  <h5
+    class="MuiTypography-root MuiTypography-h5 MuiTypography-gutterBottom css-h93ljk-MuiTypography-root"
+  >
+    Test
+  </h5>
+</div>
+`;
+
+exports[`Render MDX 8`] = `
+<div>
+  <h6
+    class="MuiTypography-root MuiTypography-h6 MuiTypography-gutterBottom css-18k87ye-MuiTypography-root"
+  >
+    Test
+  </h6>
+</div>
+`;
+
+exports[`Render MDX 9`] = `
+<div>
+  <hr
+    class="MuiDivider-root MuiDivider-fullWidth css-1bg1d1a-MuiDivider-root"
+  />
+</div>
+`;
+
+exports[`Render MDX 10`] = `
+<div>
+  <img
+    class="markdown-style"
+  />
+</div>
+`;
+
+exports[`Render MDX 11`] = `
+<div>
+  <li
+    class="MuiTypography-root MuiTypography-body1 css-ahj2mt-MuiTypography-root"
+  >
+    Test
+  </li>
+</div>
+`;
+
+exports[`Render MDX 12`] = `
+<div>
+  <ol
+    class="MuiTypography-root MuiTypography-body1 markdown-style css-ahj2mt-MuiTypography-root"
+  >
+    Test
+  </ol>
+</div>
+`;
+
+exports[`Render MDX 13`] = `
+<div>
+  <p
+    class="MuiTypography-root MuiTypography-body1 MuiTypography-paragraph css-z2eky3-MuiTypography-root"
+  >
+    Test
+  </p>
+</div>
+`;
+
+exports[`Render MDX 14`] = `
+<div>
+  <ul
+    class="MuiTypography-root MuiTypography-body1 markdown-style css-ahj2mt-MuiTypography-root"
+  >
+    Test
+  </ul>
+</div>
+`;
+
+exports[`Render MDX 15`] = `
+<div>
+  <table>
+    <tbody>
+      <tr>
+        <td>
+          <span
+            class="MuiTypography-root MuiTypography-body1 css-ahj2mt-MuiTypography-root"
+          >
+            Test
+          </span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+`;
+
+exports[`Render MDX 16`] = `
+<div>
+  <table>
+    <tbody>
+      <tr>
+        <th>
+          <span
+            class="MuiTypography-root MuiTypography-body1 css-ahj2mt-MuiTypography-root"
+          >
+            Test
+          </span>
+        </th>
+      </tr>
+    </tbody>
+  </table>
+</div>
+`;
