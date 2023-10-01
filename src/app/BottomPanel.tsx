@@ -1,6 +1,7 @@
 import { Box } from "@mui/material";
 import { observer } from "mobx-react-lite";
 import { CommandInputField } from "./CommandInputField";
+import { ExportPanel } from "./ExportPanel";
 
 export const BottomPanel = observer(() => {
   return (
@@ -14,7 +15,10 @@ export const BottomPanel = observer(() => {
         transform: "translate(-50%, 0)",
         backgroundColor: "white"
       }}>
-      <CommandInputField />
+      <Box sx={{ position: "relative" }}>
+        <CommandInputField />
+        <ExportPanel />
+      </Box>
     </Box>
   );
 });

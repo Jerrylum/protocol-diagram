@@ -50,29 +50,5 @@ export const CommandInputField = observer(() => {
     }
   };
 
-  return (
-    <Box sx={{ position: "relative" }}>
-      <TextField fullWidth size="small" spellCheck={false} onKeyDown={handleKeyDown} />
-      <Box
-        sx={{
-          position: "absolute",
-          top: "0",
-          bottom: "0",
-          left: "calc(100% + 4px)",
-          width: "300px",
-          display: "flex",
-          alignItems: "center",
-          gap: "4px"
-        }}>
-        <Button
-          onClick={e => {
-            const { app } = getRootStore();
-            navigator.clipboard.writeText(app.diagram.toString());
-          }}>
-          Export As Text
-        </Button>
-        {/* <Button>Share URL</Button> */}
-      </Box>
-    </Box>
-  );
+  return <TextField fullWidth size="small" spellCheck={false} onKeyDown={handleKeyDown} />;
 });
