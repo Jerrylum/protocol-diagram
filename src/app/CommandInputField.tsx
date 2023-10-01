@@ -8,6 +8,8 @@ import { isDiagramModifier } from "../diagram/Diagram";
 import React from "react";
 
 export const CommandInputField = observer(() => {
+  const { logger } = getRootStore();
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       const input = e.target as HTMLInputElement;
@@ -16,7 +18,7 @@ export const CommandInputField = observer(() => {
       const line: CommandLine | null = CommandLine.parse(buffer);
 
       if (line == null) {
-        console.log('Usage: <command> [arguments]\nPlease type "help" for more information.');
+        logger.error('Usage: <command> [arguments]\nPlease type "help" for more information.');
         input.value = "";
         return;
       }
@@ -40,11 +42,11 @@ export const CommandInputField = observer(() => {
             app.setModified(true);
           }
         }
-        console.log(result.message);
+        if (result.message) logger.info(result.message);
         input.value = "";
         return;
       }
-      console.log('Unknown command "' + line.name + '". Please type "help" for more information.');
+      logger.error('Unknown command "' + line.name + '". Please type "help" for more information.');
       input.value = "";
       return;
     }

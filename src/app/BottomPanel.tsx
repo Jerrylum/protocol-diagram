@@ -2,6 +2,7 @@ import { Box } from "@mui/material";
 import { observer } from "mobx-react-lite";
 import { CommandInputField } from "./CommandInputField";
 import { ExportPanel } from "./ExportPanel";
+import { LogPanel } from "./LogPanel";
 
 export const BottomPanel = observer(() => {
   return (
@@ -17,6 +18,7 @@ export const BottomPanel = observer(() => {
       }}>
       <Box sx={{ position: "relative" }}>
         <CommandInputField />
+        <LogPanel />
         <ExportPanel />
       </Box>
     </Box>
