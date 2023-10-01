@@ -42,12 +42,10 @@ export const CommandInputField = observer(() => {
         }
         console.log(result.message);
         input.value = "";
-        console.log(app.diagram);
         return;
       }
       console.log('Unknown command "' + line.name + '". Please type "help" for more information.');
       input.value = "";
-      console.log(app.diagram);
       return;
     }
   };

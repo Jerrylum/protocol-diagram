@@ -22,4 +22,10 @@ test("DiagramEditor", () => {
   editor.scale = 2.01;
 
   expect(editor.scale).toBe(2);
+
+  editor.resetOffsetAndScale();
+
+  expect(editor.offset.x).toBe(0);
+  expect(editor.offset.y).toBe(0);
+  expect(editor.scale).toBe(1);
 });

@@ -1,7 +1,6 @@
 import { convertFieldsToRow, Diagram, generateHeader, spliceDividers } from "./Diagram";
 import { Field } from "./Field";
 import { Element, MatrixLike, VisibleSetting } from "./render/Element";
-import { Matrix } from "./render/Matrix";
 import { RowSegment, RowTail, Segment } from "./render/Segment";
 import { Divider, Row } from "./render/SegmentGroup";
 
@@ -263,16 +262,14 @@ test("generateHeader", () => {
 test("Diagram render", () => {
   const dtest = new Diagram();
   dtest.addField(new Field("testadd", 1));
-  expect(dtest.toString()).toBe(
-` 0
+  expect(dtest.toString()).toBe(` 0
  0
 ┌─┐                                                              
 │t│                                                              
 └─┘                                                              
 `);
   dtest.addField(new Field("testadd2", 2));
-  expect(dtest.toString()).toBe(
-` 0    
+  expect(dtest.toString()).toBe(` 0    
  0 1 2
 ┌─┬───┐                                                          
 │t│tes│                                                          
@@ -295,15 +292,16 @@ test("Diagram render", () => {
 │                                                               │
 └───────────────────────────────────────────────────────────────┘
 `);
-  dtest.config.getOption("bit")?.setValue(64)
-  expect(dtest.toString()).toBe(` 0                   1                   2                   3                   4                   5                   6      
+  dtest.config.getOption("bit")?.setValue(64);
+  expect(dtest.toString())
+    .toBe(` 0                   1                   2                   3                   4                   5                   6      
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3
 ┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │                                                            testadd                                                            │
 └───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 `);
-  dtest.config.getOption("bit")?.setValue(32)
-  dtest.config.getOption("diagram-style")?.setValue("utf8-header")
+  dtest.config.getOption("bit")?.setValue(32);
+  dtest.config.getOption("diagram-style")?.setValue("utf8-header");
   expect(dtest.toString()).toBe(` 0                   1                   2                   3  
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 ├───────────────────────────────────────────────────────────────┤
@@ -312,7 +310,7 @@ test("Diagram render", () => {
 │                                                               │
 └───────────────────────────────────────────────────────────────┘
 `);
-  dtest.config.getOption("diagram-style")?.setValue("utf8-corner")
+  dtest.config.getOption("diagram-style")?.setValue("utf8-corner");
   expect(dtest.toString()).toBe(` 0                   1                   2                   3  
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 ┼───────────────────────────────────────────────────────────────┼
@@ -321,7 +319,7 @@ test("Diagram render", () => {
 │                                                               │
 ┼───────────────────────────────────────────────────────────────┼
 `);
-  dtest.config.getOption("diagram-style")?.setValue("ascii")
+  dtest.config.getOption("diagram-style")?.setValue("ascii");
   expect(dtest.toString()).toBe(` 0                   1                   2                   3  
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +---------------------------------------------------------------+
@@ -330,7 +328,7 @@ test("Diagram render", () => {
 |                                                               |
 +---------------------------------------------------------------+
 `);
-  dtest.config.getOption("diagram-style")?.setValue("ascii-verbose")
+  dtest.config.getOption("diagram-style")?.setValue("ascii-verbose");
   expect(dtest.toString()).toBe(` 0                   1                   2                   3  
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -339,15 +337,15 @@ test("Diagram render", () => {
 |                                                               |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 `);
-  dtest.config.getOption("diagram-style")?.setValue("utf8")
-  dtest.config.getOption("header-style")?.setValue("none")
+  dtest.config.getOption("diagram-style")?.setValue("utf8");
+  dtest.config.getOption("header-style")?.setValue("none");
   expect(dtest.toString()).toBe(`┌───────────────────────────────────────────────────────────────┐
 │                                                               │
 │                            testadd                            │
 │                                                               │
 └───────────────────────────────────────────────────────────────┘
-`)
-  dtest.config.getOption("header-style")?.setValue("full")
+`);
+  dtest.config.getOption("header-style")?.setValue("full");
   expect(dtest.toString()).toBe(` 0                   1                   2                   3  
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 ┌───────────────────────────────────────────────────────────────┐
@@ -356,7 +354,7 @@ test("Diagram render", () => {
 │                                                               │
 └───────────────────────────────────────────────────────────────┘
 `);
-  dtest.config.getOption("header-style")?.setValue("trim")
+  dtest.config.getOption("header-style")?.setValue("trim");
   dtest.clear();
   dtest.addField(new Field("testadd", 16));
   dtest.config.getOption("left-space-placeholder")?.setValue(true);
@@ -367,7 +365,7 @@ test("Diagram render", () => {
 └───────────────────────────────┘                                
 `);
   dtest.clear();
-  dtest.config.getOption("diagram-style")?.setValue("ascii")
+  dtest.config.getOption("diagram-style")?.setValue("ascii");
   dtest.addField(new Field("a", 16));
   dtest.addField(new Field("a", 16));
   dtest.addField(new Field("a", 16));
@@ -380,7 +378,7 @@ test("Diagram render", () => {
 +-------------------------------+                                
 `);
   dtest.config.getOption("left-space-placeholder")?.setValue(false);
-  dtest.config.getOption("diagram-style")?.setValue("ascii-verbose")
+  dtest.config.getOption("diagram-style")?.setValue("ascii-verbose");
   expect(dtest.toString()).toBe(` 0                   1                   2                   3  
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
