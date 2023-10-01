@@ -4,6 +4,15 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { HotkeyCallback, HotkeysEvent, Options, RefType, Trigger } from "react-hotkeys-hook/dist/types";
 import { IS_MAC_OS } from "./Util";
 
+export function useTimeout(callback: () => void, delay: number | null, dependencies: DependencyList = []) {
+  React.useEffect(() => {
+    if (delay === null) return;
+
+    const id = setTimeout(callback, delay);
+    return () => clearTimeout(id);
+  }, [delay, ...dependencies]); // eslint-disable-line react-hooks/exhaustive-deps
+}
+
 export function useBetterMemo<T extends { destructor: () => void } | {}>(
   factory: () => T,
   deps: React.DependencyList = []
