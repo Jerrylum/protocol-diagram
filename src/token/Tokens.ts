@@ -574,11 +574,11 @@ export class Parameter<T extends ParameterType> extends Token {
   // private bool: BooleanT | null = null;
   // private number: NumberT | null = null;
   // private string: StringT | null = null;
-  private value: T;
+  private _value: T;
 
   constructor(value: T) {
     super();
-    this.value = value;
+    this._value = value;
   }
 
   static parse(buffer: CodePointBuffer): Parameter<ParameterType> | null {
@@ -606,35 +606,39 @@ export class Parameter<T extends ParameterType> extends Token {
   }
 
   getBoolean(): boolean {
-    return this.isBoolean() ? this.value.bool : false;
+    return this.isBoolean() ? this._value.bool : false;
   }
 
   getInt(): number {
-    return this.isNumber() ? this.value.toInt() : 0;
+    return this.isNumber() ? this._value.toInt() : 0;
   }
 
   getDouble(): number {
-    return this.isNumber() ? this.value.toDouble() : 0;
+    return this.isNumber() ? this._value.toDouble() : 0;
   }
 
   getString(): string {
-    return this.isString() ? this.value.content : "";
+    return this.isString() ? this._value.content : "";
+  }
+
+  get value(): T {
+    return this._value;
   }
 
   isBoolean(): this is Parameter<BooleanT> {
-    return this.value instanceof BooleanT;
+    return this._value instanceof BooleanT;
   }
 
   isNumber(): this is Parameter<NumberT> {
-    return this.value instanceof NumberT;
+    return this._value instanceof NumberT;
   }
 
   isDouble(): this is Parameter<NumberT> & boolean {
-    return this.isNumber() && this.value.isDouble;
+    return this.isNumber() && this._value.isDouble;
   }
 
   isString(): this is Parameter<StringT> {
-    return this.value instanceof StringT;
+    return this._value instanceof StringT;
   }
 
   toString(): string {
@@ -654,7 +658,7 @@ export class Parameter<T extends ParameterType> extends Token {
 
     const other = obj as Parameter<ParameterType>;
 
-    return isEqual(other.value, this.value);
+    return isEqual(other._value, this._value);
   }
 }
 

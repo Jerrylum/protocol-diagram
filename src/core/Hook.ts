@@ -1,8 +1,17 @@
-import { runInAction } from "mobx";
+import { action, runInAction } from "mobx";
 import React, { DependencyList } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { HotkeyCallback, HotkeysEvent, Options, RefType, Trigger } from "react-hotkeys-hook/dist/types";
 import { IS_MAC_OS } from "./Util";
+
+export function useTimeout(callback: () => void, delay: number | null, dependencies: DependencyList = []) {
+  React.useEffect(() => {
+    if (delay === null) return;
+
+    const id = setTimeout(callback, delay);
+    return () => clearTimeout(id);
+  }, [delay, ...dependencies]); // eslint-disable-line react-hooks/exhaustive-deps
+}
 
 export function useBetterMemo<T extends { destructor: () => void } | {}>(
   factory: () => T,
@@ -16,6 +25,41 @@ export function useBetterMemo<T extends { destructor: () => void } | {}>(
   }, deps); // eslint-disable-line react-hooks/exhaustive-deps
 
   return storage;
+}
+
+export namespace Custom {
+  // See: https://github.com/microsoft/TypeScript/issues/33047
+
+  export type EventMap<T extends EventTarget> = T extends MediaQueryList
+    ? MediaQueryListEventMap
+    : T extends Document
+    ? DocumentEventMap
+    : T extends Window
+    ? WindowEventMap
+    : HTMLElementEventMap & { [key: string]: Event };
+
+  export type EventType<T extends EventTarget> = keyof EventMap<T> & string;
+
+  export type EventListener<
+    TEventTarget extends EventTarget,
+    TEventType extends keyof Custom.EventMap<TEventTarget>
+  > = (this: TEventTarget, ev: Custom.EventMap<TEventTarget>[TEventType]) => any;
+}
+
+export function useEventListener<TEventTarget extends EventTarget, TEventType extends Custom.EventType<TEventTarget>>(
+  eventTarget: TEventTarget | null,
+  eventType: TEventType,
+  listener: Custom.EventListener<TEventTarget, TEventType>,
+  options?: boolean | AddEventListenerOptions
+) {
+  React.useEffect(() => {
+    const eventListener = action(listener);
+    eventTarget?.addEventListener(eventType, eventListener as any, options);
+
+    return () => {
+      eventTarget?.removeEventListener(eventType, eventListener as any, options);
+    };
+  }, [eventTarget, eventType, listener, options]);
 }
 
 export interface CustomHotkeysOptions extends Options {
@@ -102,4 +146,3 @@ export function useCustomHotkeys<T extends HTMLElement>(
     dependencies
   );
 }
-

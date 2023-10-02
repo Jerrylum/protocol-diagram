@@ -8,6 +8,8 @@ import { isDiagramModifier } from "../diagram/Diagram";
 import React from "react";
 
 export const CommandInputField = observer(() => {
+  const { logger } = getRootStore();
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       const input = e.target as HTMLInputElement;
@@ -16,7 +18,7 @@ export const CommandInputField = observer(() => {
       const line: CommandLine | null = CommandLine.parse(buffer);
 
       if (line == null) {
-        console.log('Usage: <command> [arguments]\nPlease type "help" for more information.');
+        logger.error('Usage: <command> [arguments]\nPlease type "help" for more information.');
         input.value = "";
         return;
       }
@@ -39,40 +41,19 @@ export const CommandInputField = observer(() => {
             // modification, so the diagram should be marked as modified.
             app.setModified(true);
           }
+          if (result.message) logger.info(result.message);
+        } else {
+          if (result.message) logger.error(result.message);
         }
-        console.log(result.message);
         input.value = "";
         return;
       }
-      console.log('Unknown command "' + line.name + '". Please type "help" for more information.');
+      logger.error('Unknown command "' + line.name + '". Please type "help" for more information.');
       input.value = "";
       return;
     }
   };
 
-  return (
-    <Box sx={{ position: "relative" }}>
-      <TextField fullWidth size="small" spellCheck={false} onKeyDown={handleKeyDown} />
-      <Box
-        sx={{
-          position: "absolute",
-          top: "0",
-          bottom: "0",
-          left: "calc(100% + 4px)",
-          width: "300px",
-          display: "flex",
-          alignItems: "center",
-          gap: "4px"
-        }}>
-        <Button
-          onClick={e => {
-            const { app } = getRootStore();
-            navigator.clipboard.writeText(app.diagram.toString());
-          }}>
-          Export As Text
-        </Button>
-        {/* <Button>Share URL</Button> */}
-      </Box>
-    </Box>
-  );
+  return <TextField fullWidth size="small" spellCheck={false} onKeyDown={handleKeyDown} />;
 });
+
