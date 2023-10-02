@@ -31,24 +31,6 @@ export interface InputSpec<T extends ParameterTypeClass> {
   next: InputSpec<ParameterTypeClass> | null;
 }
 
-export function validateParameterUsage(param: Parameter<ParameterType>, usage: UsageSpec): HandleResult {
-  if (param.value instanceof usage.paramType) {
-    if (usage.check) {
-      const result = usage.check(param);
-      if (!result.success) return result;
-    }
-    return success("");
-  } else {
-    return fail(
-      `The ${usage.name} must be a ${(() => {
-        if (usage.paramType === BooleanT) return "boolean";
-        if (usage.paramType === NumberT) return "number";
-        return "string";
-      })()}.`
-    );
-  }
-}
-
 export abstract class Command {
   /**
    * a constructor that takes three values, name, usage, and description and
@@ -237,6 +219,67 @@ export function checkCommandParameters(
   if (i < params.length) return [HandleResult.TOO_MANY_ARGUMENTS, null];
 
   return [success(""), null];
+}
+
+export type ParameterAndInputSpecMapping = {
+  startIndex: number;
+  endIndex: number;
+} & (
+  | {
+      param: CommandParameter<ParameterType>;
+      spec: InputSpec<ParameterTypeClass>;
+    }
+  | {
+      param: CommandParameter<ParameterType>;
+      spec: InputSpec<ParameterTypeClass> | null;
+    }
+  | {
+      param: null;
+      spec: InputSpec<ParameterTypeClass>;
+    }
+);
+
+export function mapCommandParameterWithInputSpec(
+  params: CommandParameter<ParameterType>[],
+  spec: InputSpec<ParameterTypeClass> | null
+): ParameterAndInputSpecMapping[] {
+  const result: ParameterAndInputSpecMapping[] = [];
+
+  let i = 0;
+  let curr = spec;
+
+  for (; i < params.length; i++) {
+    const param = params[i];
+    if (curr === null) {
+      result.push({ startIndex: param.startIndex, endIndex: param.endIndex, param, spec: curr });
+    } else {
+      if (param.value instanceof curr.paramType) {
+        if (curr.check) {
+          const checkResult = curr.check(param);
+          if (checkResult.success) {
+            result.push({ startIndex: param.startIndex, endIndex: param.endIndex, param, spec: curr });
+            curr = curr.next;
+          } else {
+            result.push({ startIndex: param.startIndex, endIndex: param.endIndex, param, spec: curr });
+            curr = null;
+          }
+        } else {
+          result.push({ startIndex: param.startIndex, endIndex: param.endIndex, param, spec: curr });
+          curr = curr.next;
+        }
+      } else {
+        result.push({ startIndex: param.startIndex, endIndex: param.endIndex, param, spec: curr });
+        curr = null;
+      }
+    }
+  }
+
+  if (curr != null) {
+    const endIndex = params.length > 0 ? params[params.length - 1].endIndex : -1;
+    result.push({ startIndex: endIndex + 1, endIndex: endIndex + 1, param: null, spec: curr });
+  }
+
+  return result;
 }
 
 export type CommandOption = BooleanOption | EnumOption<readonly string[]> | RangeOption;

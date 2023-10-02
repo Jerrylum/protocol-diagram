@@ -1,7 +1,12 @@
-import { Box, Button, TextField } from "@mui/material";
+import { TextField } from "@mui/material";
 import { observer } from "mobx-react-lite";
-import { CommandLine, CodePointBuffer, Parameter, StringT, CommandParameterList } from "../token/Tokens";
-import { buildInputSpecByCommands, CancellableCommand, checkCommandParameters, Command } from "../command/Commands";
+import { CommandLine, CodePointBuffer, CommandParameterList } from "../token/Tokens";
+import {
+  buildInputSpecByCommands,
+  CancellableCommand,
+  Command,
+  mapCommandParameterWithInputSpec
+} from "../command/Commands";
 import { HandleResult } from "../command/HandleResult";
 import { getRootStore } from "../core/Root";
 import { isDiagramModifier } from "../diagram/Diagram";
@@ -9,6 +14,25 @@ import React from "react";
 
 export const CommandInputField = observer(() => {
   const { app, logger } = getRootStore();
+
+  const handleSpecUpdate = (inputValue: string, cursorPos: number) => {
+    const buffer: CodePointBuffer = new CodePointBuffer(inputValue);
+    const list: CommandParameterList | null = CommandParameterList.parse(buffer);
+    const allCommands = Command.getAvailableCommands();
+
+    if (list == null) return;
+    const spec = buildInputSpecByCommands(allCommands)!;
+    const mappingList = mapCommandParameterWithInputSpec(list.params, spec);
+    const mapping = mappingList.find(m => m.startIndex <= cursorPos && cursorPos <= m.endIndex);
+
+    if (mapping === undefined) {
+      console.log("no mapping");
+    } else if (mapping.spec === null) {
+      console.log("no spec");
+    } else {
+      console.log(mapping.spec);
+    }
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const input = e.target as HTMLInputElement;
@@ -52,19 +76,13 @@ export const CommandInputField = observer(() => {
       input.value = "";
       return;
     }
+
+    handleSpecUpdate(input.value, input.selectionStart ?? 0);
   };
 
   const handleKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const input = e.target as HTMLInputElement;
-    const inputValue = input.value;
-    const buffer: CodePointBuffer = new CodePointBuffer("" + inputValue);
-    const list: CommandParameterList | null = CommandParameterList.parse(buffer);
-    const allCommands = Command.getAvailableCommands();
-
-    if (list == null) return;
-    const spec = buildInputSpecByCommands(allCommands)!;
-    const result = checkCommandParameters(spec, list.params);
-    console.log(result[1]);
+    handleSpecUpdate(input.value, input.selectionStart ?? 0);
   };
 
   return <TextField fullWidth size="small" spellCheck={false} onKeyDown={handleKeyDown} onKeyUp={handleKeyUp} />;
