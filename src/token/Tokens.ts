@@ -568,7 +568,15 @@ export class Zero extends Token {
   }
 }
 
+export type ParameterTypeClass = typeof NumberT | typeof BooleanT | typeof StringT;
 export type ParameterType = BooleanT | NumberT | StringT;
+export type ParameterTypeByClass<T extends ParameterTypeClass> = T extends typeof NumberT
+  ? NumberT
+  : T extends typeof BooleanT
+  ? BooleanT
+  : T extends typeof StringT
+  ? StringT
+  : never;
 
 export class Parameter<T extends ParameterType> extends Token {
   // private bool: BooleanT | null = null;
@@ -662,11 +670,69 @@ export class Parameter<T extends ParameterType> extends Token {
   }
 }
 
+export class CommandParameter<T extends ParameterType> extends Parameter<T> {
+  constructor(value: T, readonly startIndex: number, readonly endIndex: number) {
+    super(value);
+  }
+
+  static parse(buffer: CodePointBuffer): CommandParameter<ParameterType> | null {
+    buffer.savepoint();
+
+    const startIndex = buffer.getIndex();
+
+    let chunkLen = 0;
+    while (!isDelimiter(buffer.peek(chunkLen))) chunkLen++;
+
+    const chunkEndIdx = buffer.getIndex() + chunkLen;
+    const bool = BooleanT.parse(buffer);
+    if (bool !== null) return buffer.commitAndReturn(new CommandParameter(bool, startIndex, buffer.getIndex()));
+
+    const number = NumberT.parse(buffer);
+    if (number !== null) {
+      if (buffer.getIndex() === chunkEndIdx)
+        return buffer.commitAndReturn(new CommandParameter(number, startIndex, buffer.getIndex()));
+      else {
+        buffer.rollback();
+        buffer.savepoint();
+      }
+    }
+
+    const string = StringT.parse(buffer);
+    if (string !== null) return buffer.commitAndReturn(new CommandParameter(string, startIndex, buffer.getIndex()));
+    else return buffer.rollbackAndReturn(null);
+  }
+}
+
+export class CommandParameterList extends Token {
+  constructor(public params: CommandParameter<ParameterType>[]) {
+    super();
+  }
+
+  static parse(buffer: CodePointBuffer): CommandParameterList | null {
+    buffer.savepoint();
+
+    const parameters: CommandParameter<ParameterType>[] = [];
+    while (true) {
+      buffer.readDelimiter();
+      const p: CommandParameter<ParameterType> | null = CommandParameter.parse(buffer);
+      if (p === null) {
+        break;
+      }
+      parameters.push(p);
+    }
+    if (buffer.hasNext()) {
+      return null;
+    } else {
+      return new CommandParameterList(parameters);
+    }
+  }
+}
+
 /**
  * this record is a data class that contains the prefix and the parameters of a
  * command line
  */
-export class CommandLine extends Token {
+export class CommandLine extends CommandParameterList {
   /**
    * a static utility function that parses the CodePointBuffer, which is a wrapper
    * of a string, and returns a CommandLine object, which is a wrapper that
@@ -679,9 +745,8 @@ export class CommandLine extends Token {
    * @param buffer the CodePointBuffer to be parsed
    * @return the parsed CommandLine object, or null if the parse failed
    */
-
-  constructor(public name: String, public params: Parameter<ParameterType>[]) {
-    super();
+  constructor(public name: string, params: CommandParameter<ParameterType>[]) {
+    super(params);
   }
 
   static parse(buffer: CodePointBuffer): CommandLine | null {
@@ -692,10 +757,10 @@ export class CommandLine extends Token {
       return null;
     }
 
-    let params: Parameter<ParameterType>[] = [];
+    let params: CommandParameter<ParameterType>[] = [];
     while (true) {
       buffer.readDelimiter();
-      const p: Parameter<ParameterType> | null = Parameter.parse(buffer);
+      const p: CommandParameter<ParameterType> | null = CommandParameter.parse(buffer);
       if (p === null) {
         break;
       }

@@ -1,5 +1,5 @@
 import { HandleResult, success, fail } from "../command/HandleResult";
-import { Parameter, ParameterType } from "../token/Tokens";
+import { BooleanT, NumberT, Parameter, ParameterType } from "../token/Tokens";
 
 export type OptionType = boolean | number | string;
 
@@ -38,6 +38,11 @@ export abstract class Option<T extends OptionType> {
    * @return the usage description of this option
    */
   public abstract getUsageDescription(): string;
+
+  /**
+   * a method that returns a clone of this option
+   */
+  public abstract clone(): Option<T>;
 }
 
 export class BooleanOption extends Option<boolean> {
@@ -45,12 +50,6 @@ export class BooleanOption extends Option<boolean> {
     super(key, defaultValue);
   }
 
-  /**
-   * a wrapper method that sets the value of this boolean option, the value of the
-   * parameter is required to be an boolean
-   *
-   * @return whether the value is set successfully
-   */
   setValue(value: Parameter<ParameterType> | boolean): HandleResult {
     if (value instanceof Parameter) {
       if (value.isBoolean()) {
@@ -69,13 +68,12 @@ export class BooleanOption extends Option<boolean> {
     }
   }
 
-  /**
-   * a method that returns a manual statement
-   *
-   * @return the usage description of this option
-   */
   getUsageDescription(): string {
     return this.defaultValue ? "TRUE | false" : "true | FALSE";
+  }
+
+  clone(): BooleanOption {
+    return new BooleanOption(this.key, this.defaultValue);
   }
 }
 
@@ -88,13 +86,6 @@ export class EnumOption<TAccepts extends readonly string[]> extends Option<TAcce
     super(key, defaultValue);
   }
 
-  /**
-   * a wrapper method that sets the value of the parameters, the value of the
-   * parameter is required to be string
-   *
-   * @param value the value of this option
-   * @return whether the value is set successfully
-   */
   setValue(value: Parameter<ParameterType> | string): HandleResult {
     if (value instanceof Parameter) {
       if (value.isString()) {
@@ -131,13 +122,12 @@ export class EnumOption<TAccepts extends readonly string[]> extends Option<TAcce
     }
   }
 
-  /**
-   * a method that retrieves a manual statement for this enum option
-   *
-   * @return the manual statement for this enum option
-   */
   getUsageDescription(): string {
     return this.acceptedValues.map(v => (v === this.defaultValue ? v.toUpperCase() : v)).join(" | ");
+  }
+
+  clone() {
+    return new EnumOption(this.key, this.defaultValue, this.acceptedValues);
   }
 }
 
@@ -146,12 +136,6 @@ export class RangeOption extends Option<number> {
     super(key, defaultValue);
   }
 
-  /**
-   * a wrapper method that sets the value of this range option, the value of the
-   * parameter is required to be an integer
-   *
-   * @return whether the value is set successfully
-   */
   setValue(value: Parameter<ParameterType> | number): HandleResult {
     if (value instanceof Parameter) {
       if (value.isNumber() && !value.isDouble()) {
@@ -175,15 +159,12 @@ export class RangeOption extends Option<number> {
     }
   }
 
-  /**
-   * a method that return a manual statement.
-   *
-   * @return the manual statement
-   */
   getUsageDescription(): string {
     return "min:" + this.min + " max:" + this.max + " default:" + this.defaultValue;
   }
+
+  clone() {
+    return new RangeOption(this.key, this.defaultValue, this.min, this.max);
+  }
 }
-
-
 

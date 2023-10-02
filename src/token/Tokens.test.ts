@@ -20,11 +20,14 @@ import {
   Parameter,
   CommandLine,
   ParameterType,
-  Token
+  Token,
+  CommandParameter
 } from "./Tokens";
 
-export function cpb(s: string): CodePointBuffer {
-  return new CodePointBuffer(s);
+export function cpb(s: string, index: number = 0): CodePointBuffer {
+  const rtn = new CodePointBuffer(s);;
+  (rtn as any).index = index;
+  return rtn;
 }
 
 test("Test token delimiter methods", () => {
@@ -433,32 +436,41 @@ test("Parameter Methods", () => {
 });
 
 test("CommandLine Valid", () => {
-  let params: Parameter<ParameterType>[] = [];
+  let params: CommandParameter<ParameterType>[] = [];
   expect(CommandLine.parse(cpb("target"))!.name).toBe("target");
   expect(CommandLine.parse(cpb("target "))!.name).toBe("target");
   expect(CommandLine.parse(cpb("  target   "))!.name).toBe("target");
   expect(CommandLine.parse(cpb("target"))!.params).toStrictEqual(params);
-  params.push(Parameter.parse(cpb("value1"))!);
+  // params.push(CommandParameter.parse(cpb("value1", 6))!);
+  params.push(new CommandParameter(new StringT("value1"), 7, 13));
   expect(CommandLine.parse(cpb("target value1"))!.params).toStrictEqual(params);
-  params.push(Parameter.parse(cpb("'value2'"))!);
+  // params.push(CommandParameter.parse(cpb("'value2'"))!);
+  params.push(new CommandParameter(new StringT("value2"), 14, 22));
   expect(CommandLine.parse(cpb("target value1 'value2'"))!.params).toStrictEqual(params);
-  params.push(Parameter.parse(cpb('"value3"'))!);
+  // params.push(CommandParameter.parse(cpb('"value3"'))!);
+  params.push(new CommandParameter(new StringT("value3"), 23, 31));
   expect(CommandLine.parse(cpb("target value1 'value2' \"value3\""))!.params).toStrictEqual(params);
-  params.push(Parameter.parse(cpb("True"))!);
+  // params.push(CommandParameter.parse(cpb("True"))!);
+  params.push(new CommandParameter(new BooleanT("True", true), 32, 36));
   expect(CommandLine.parse(cpb("target value1 'value2' \"value3\" True"))!.params).toStrictEqual(params);
-  params.push(Parameter.parse(cpb("False"))!);
+  // params.push(CommandParameter.parse(cpb("False"))!);
+  params.push(new CommandParameter(new BooleanT("False", false), 37, 42));
   expect(CommandLine.parse(cpb("target value1 'value2' \"value3\" True False"))!.params).toStrictEqual(params);
-  params.push(Parameter.parse(cpb("123"))!);
+  // params.push(CommandParameter.parse(cpb("123"))!);
+  params.push(new CommandParameter(new NumberT("123", true, false), 43, 46));
   expect(CommandLine.parse(cpb("target value1 'value2' \"value3\" True False 123"))!.params).toStrictEqual(params);
-  params.push(Parameter.parse(cpb("123.456"))!);
+  // params.push(CommandParameter.parse(cpb("123.456"))!);
+  params.push(new CommandParameter(new NumberT("123.456", true, true), 47, 54));
   expect(CommandLine.parse(cpb("target value1 'value2' \"value3\" True False 123 123.456"))!.params).toStrictEqual(
     params
   );
-  params.push(Parameter.parse(cpb("-123.456"))!);
+  // params.push(CommandParameter.parse(cpb("-123.456"))!);
+  params.push(new CommandParameter(new NumberT("-123.456", false, true), 55, 63));
   expect(
     CommandLine.parse(cpb("target value1 'value2' \"value3\" True False 123 123.456 -123.456"))!.params
   ).toStrictEqual(params);
-  params.push(Parameter.parse(cpb("-123"))!);
+  // params.push(CommandParameter.parse(cpb("-123"))!);
+  params.push(new CommandParameter(new NumberT("-123", false, false), 64, 68));
   expect(
     CommandLine.parse(cpb("target value1 'value2' \"value3\" True False 123 123.456 -123.456 -123"))!.params
   ).toStrictEqual(params);

@@ -1,30 +1,30 @@
 import { Box, Button, TextField } from "@mui/material";
 import { observer } from "mobx-react-lite";
-import { CommandLine, CodePointBuffer } from "../token/Tokens";
-import { CancellableCommand, Command } from "../command/Commands";
+import { CommandLine, CodePointBuffer, Parameter, StringT, CommandParameterList } from "../token/Tokens";
+import { buildInputSpecByCommands, CancellableCommand, checkCommandParameters, Command } from "../command/Commands";
 import { HandleResult } from "../command/HandleResult";
 import { getRootStore } from "../core/Root";
 import { isDiagramModifier } from "../diagram/Diagram";
 import React from "react";
 
 export const CommandInputField = observer(() => {
-  const { logger } = getRootStore();
+  const { app, logger } = getRootStore();
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      const input = e.target as HTMLInputElement;
-      const command = input.value;
-      const buffer: CodePointBuffer = new CodePointBuffer(command);
-      const line: CommandLine | null = CommandLine.parse(buffer);
+    const input = e.target as HTMLInputElement;
+    const inputValue = input.value;
+    const buffer: CodePointBuffer = new CodePointBuffer(inputValue);
+    const line: CommandLine | null = CommandLine.parse(buffer);
+    const allCommands = Command.getAvailableCommands();
 
+    if (e.key === "Enter") {
       if (line == null) {
         logger.error('Usage: <command> [arguments]\nPlease type "help" for more information.');
         input.value = "";
         return;
       }
 
-      const { app } = getRootStore();
-      for (const cmd of Command.getAvailableCommands()) {
+      for (const cmd of allCommands) {
         const result: HandleResult = cmd.handleLine(line);
         if (result === HandleResult.NOT_HANDLED) {
           continue;
@@ -54,6 +54,19 @@ export const CommandInputField = observer(() => {
     }
   };
 
-  return <TextField fullWidth size="small" spellCheck={false} onKeyDown={handleKeyDown} />;
+  const handleKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const input = e.target as HTMLInputElement;
+    const inputValue = input.value;
+    const buffer: CodePointBuffer = new CodePointBuffer("" + inputValue);
+    const list: CommandParameterList | null = CommandParameterList.parse(buffer);
+    const allCommands = Command.getAvailableCommands();
+
+    if (list == null) return;
+    const spec = buildInputSpecByCommands(allCommands)!;
+    const result = checkCommandParameters(spec, list.params);
+    console.log(result[1]);
+  };
+
+  return <TextField fullWidth size="small" spellCheck={false} onKeyDown={handleKeyDown} onKeyUp={handleKeyUp} />;
 });
 

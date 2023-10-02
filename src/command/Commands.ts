@@ -1,14 +1,34 @@
+import { BooleanOption, EnumOption, Option, OptionType, RangeOption } from "../config/Option";
 import { getRootStore } from "../core/Root";
 import { Cancellable } from "../diagram/Diagram";
 import { Field } from "../diagram/Field";
-import { BooleanT, CommandLine, NumberT, Parameter, ParameterType, StringT } from "../token/Tokens";
+import {
+  BooleanT,
+  CommandLine,
+  CommandParameter,
+  NumberT,
+  Parameter,
+  ParameterType,
+  ParameterTypeByClass,
+  ParameterTypeClass,
+  StringT
+} from "../token/Tokens";
 import { HandleResult, fail, success } from "./HandleResult";
 
 export interface UsageSpec {
   name: string;
-  paramType: typeof NumberT | typeof BooleanT | typeof StringT;
+  paramType: ParameterTypeClass;
   description: string;
   check?: (param: Parameter<ParameterType>) => HandleResult;
+}
+
+export interface InputSpec<T extends ParameterTypeClass> {
+  name: string;
+  description: string;
+  acceptedValues: readonly string[];
+  paramType: T;
+  check?: (param: Parameter<ParameterTypeByClass<T>>) => HandleResult;
+  next: InputSpec<ParameterTypeClass> | null;
 }
 
 export function validateParameterUsage(param: Parameter<ParameterType>, usage: UsageSpec): HandleResult {
@@ -16,17 +36,16 @@ export function validateParameterUsage(param: Parameter<ParameterType>, usage: U
     if (usage.check) {
       const result = usage.check(param);
       if (!result.success) return result;
-    } 
+    }
     return success("");
   } else {
-    // if (usage.paramType === BooleanT) return fail(`The ${usage.name} must be a boolean.`);
-    // if (usage.paramType === NumberT) return fail(`The ${usage.name} must be a number.`);
-    // return fail(`The ${usage.name} must be a string.`);
-    return fail(`The ${usage.name} must be a ${(() => {
-      if (usage.paramType === BooleanT) return "boolean";
-      if (usage.paramType === NumberT) return "number";
-      return "string";
-    })()}.`);
+    return fail(
+      `The ${usage.name} must be a ${(() => {
+        if (usage.paramType === BooleanT) return "boolean";
+        if (usage.paramType === NumberT) return "number";
+        return "string";
+      })()}.`
+    );
   }
 }
 
@@ -39,7 +58,11 @@ export abstract class Command {
    * @param usage       the usage of the command
    * @param description the description of the command
    */
-  constructor(readonly name: string, readonly usage: UsageSpec[], readonly description: string) {}
+  constructor(
+    readonly name: string,
+    readonly usage: InputSpec<ParameterTypeClass> | null,
+    readonly description: string
+  ) {}
 
   /**
    * a method that determines whether the current command instance matches the
@@ -53,18 +76,11 @@ export abstract class Command {
    * @return HandleResult
    */
   handleLine(line: CommandLine): HandleResult {
-    if (this.name.toUpperCase() === line.name.toUpperCase()) {
-      if (line.params.length < this.usage.length) return HandleResult.TOO_FEW_ARGUMENTS;
-      if (line.params.length > this.usage.length) return HandleResult.TOO_MANY_ARGUMENTS;
-      for (let i = 0; i < line.params.length; i++) {
-        const usage = this.usage[i];
-        const param = line.params[i];
-        const result = validateParameterUsage(param, usage);
-        if (!result.success) return result;
-      }
-      return this.handle(line.params);
-    }
-    return HandleResult.NOT_HANDLED;
+    if (this.name.toUpperCase() !== line.name.toUpperCase()) return HandleResult.NOT_HANDLED;
+
+    const checkResult = checkCommandParameters(this.usage, line.params);
+    if (checkResult[0].success) return this.handle(line.params);
+    else return checkResult[0];
   }
 
   /**
@@ -91,7 +107,7 @@ export abstract class Command {
  * every commands extends upon this will be recognized as cancellable command
  */
 export abstract class CancellableCommand extends Command implements Cancellable {
-  constructor(name: string, usage: UsageSpec[], description: string) {
+  constructor(name: string, usage: InputSpec<ParameterTypeClass> | null, description: string) {
     super(name, usage, description);
   }
   readonly discriminator = "DiagramModifier";
@@ -119,7 +135,7 @@ export class AddCommand extends CancellableCommand {
   constructor() {
     super(
       "add",
-      [
+      buildInputSpecByUsages([
         {
           name: "length",
           paramType: NumberT,
@@ -134,7 +150,7 @@ export class AddCommand extends CancellableCommand {
           paramType: StringT,
           description: "the name of the field"
         }
-      ],
+      ]),
       "Add a field to the end of the diagram"
     );
   }
@@ -160,7 +176,7 @@ export class AddCommand extends CancellableCommand {
  */
 export class UndoCommand extends Command {
   constructor() {
-    super("undo", [], "Undo the last action");
+    super("undo", null, "Undo the last action");
   }
 
   handle(params: Parameter<ParameterType>[]): HandleResult {
@@ -177,7 +193,7 @@ export class UndoCommand extends Command {
  */
 export class RedoCommand extends Command {
   constructor() {
-    super("redo", [], "Redo the last action");
+    super("redo", null, "Redo the last action");
   }
 
   handle(params: Parameter<ParameterType>[]): HandleResult {
@@ -187,3 +203,164 @@ export class RedoCommand extends Command {
     else return success("Redo " + command.name);
   }
 }
+
+export function checkCommandParameters(
+  spec: InputSpec<ParameterTypeClass> | null,
+  params: CommandParameter<ParameterType>[]
+): [HandleResult, InputSpec<ParameterTypeClass> | null] {
+  let curr = spec;
+  let i = 0;
+  while (curr != null) {
+    if (i >= params.length) return [HandleResult.TOO_FEW_ARGUMENTS, curr];
+    const param = params[i];
+    if (param.value instanceof curr.paramType) {
+      if (curr.check) {
+        const result = curr.check(param);
+        if (!result.success) return [result, curr];
+      }
+    } else {
+      return [
+        fail(
+          `The ${curr.name} must be a ${(() => {
+            if (curr.paramType === BooleanT) return "boolean";
+            if (curr.paramType === NumberT) return "number";
+            return "string";
+          })()}.`
+        ),
+        curr
+      ];
+    }
+    curr = curr.next;
+    i++;
+  }
+
+  if (i < params.length) return [HandleResult.TOO_MANY_ARGUMENTS, null];
+
+  return [success(""), null];
+}
+
+export type CommandOption = BooleanOption | EnumOption<readonly string[]> | RangeOption;
+
+export function buildInputSpecByUsages(usages: UsageSpec[]): InputSpec<ParameterTypeClass> | null {
+  let head: InputSpec<ParameterTypeClass> | null = null;
+  let tail: InputSpec<ParameterTypeClass> | null = null;
+  for (const usage of usages) {
+    const spec: InputSpec<ParameterTypeClass> = {
+      name: usage.name,
+      description: usage.description,
+      acceptedValues: [],
+      paramType: usage.paramType,
+      check: usage.check,
+      next: null
+    };
+    if (head == null) {
+      head = spec;
+      tail = spec;
+    } else {
+      tail!.next = spec;
+      tail = spec;
+    }
+  }
+  return head;
+}
+
+class OptionSpec implements InputSpec<typeof StringT> {
+  constructor(readonly options: ReadonlyArray<CommandOption>) {}
+
+  readonly name = "key";
+
+  readonly description = "the key of the option";
+
+  get acceptedValues() {
+    return this.options.map(o => o.key);
+  }
+
+  readonly paramType = StringT;
+
+  private lastRequest: CommandOption | null = null;
+
+  check(param: Parameter<StringT>): HandleResult {
+    const key = param.getString();
+    for (const option of this.options) {
+      if (option.key === key) {
+        this.lastRequest = option;
+        return success("");
+      }
+    }
+    this.lastRequest = null;
+    return fail("Invalid option key.");
+  }
+
+  get next(): InputSpec<ParameterTypeClass> | null {
+    return this.lastRequest
+      ? new (class implements InputSpec<ParameterTypeClass> {
+          constructor(readonly option: CommandOption) {}
+
+          readonly name = "value";
+
+          get description() {
+            return this.option.getUsageDescription();
+          }
+
+          get acceptedValues() {
+            if (this.option instanceof BooleanOption) return ["true", "false"];
+            if (this.option instanceof RangeOption) return [];
+            return this.option.acceptedValues;
+          }
+
+          get paramType() {
+            if (this.option instanceof BooleanOption) return BooleanT;
+            if (this.option instanceof RangeOption) return NumberT;
+            return StringT;
+          }
+
+          check(param: Parameter<ParameterType>): HandleResult {
+            return this.option.clone().setValue(param);
+          }
+
+          next = null;
+        })(this.lastRequest)
+      : null;
+  }
+}
+
+export function buildInputSpecByOptions(options: ReadonlyArray<CommandOption>): InputSpec<typeof StringT> | null {
+  return new OptionSpec(options);
+}
+
+class CommandLineSpec implements InputSpec<typeof StringT> {
+  constructor(readonly commands: ReadonlyArray<Command>) {}
+
+  readonly name = "command";
+
+  readonly description = "the command to execute";
+
+  get acceptedValues() {
+    return this.commands.map(c => c.name);
+  }
+
+  readonly paramType = StringT;
+
+  private lastRequest: Command | null = null;
+
+  check(param: Parameter<StringT>): HandleResult {
+    const key = param.getString();
+    for (const command of this.commands) {
+      if (command.name === key) {
+        this.lastRequest = command;
+        return success("");
+      }
+    }
+    this.lastRequest = null;
+    return fail("Invalid command.");
+  }
+
+  get next(): InputSpec<ParameterTypeClass> | null {
+    return this.lastRequest ? this.lastRequest.usage : null;
+  }
+}
+
+export function buildInputSpecByCommands(commands: Command[]): InputSpec<typeof StringT> | null {
+  return new CommandLineSpec(commands);
+}
+
