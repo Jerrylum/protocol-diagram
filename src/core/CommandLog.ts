@@ -3,6 +3,7 @@ import { makeAutoObservable } from "mobx";
 export type LogLevel = "info" | "error";
 
 export interface CommandLog {
+  uid: number;
   level: LogLevel;
   message: string;
 }
@@ -24,9 +25,8 @@ export class CommandLogger {
   }
 
   add(level: LogLevel, message: string) {
-    this._logs.push({ level, message });
+    this._logs.push({ uid: this._logCount++, level, message });
     this._logs = this._logs.slice(-this._maxLogs);
-    this._logCount++;
   }
 
   info(message: string) {

@@ -41,8 +41,10 @@ export const CommandInputField = observer(() => {
             // modification, so the diagram should be marked as modified.
             app.setModified(true);
           }
+          if (result.message) logger.info(result.message);
+        } else {
+          if (result.message) logger.error(result.message);
         }
-        if (result.message) logger.info(result.message);
         input.value = "";
         return;
       }
@@ -54,3 +56,4 @@ export const CommandInputField = observer(() => {
 
   return <TextField fullWidth size="small" spellCheck={false} onKeyDown={handleKeyDown} />;
 });
+

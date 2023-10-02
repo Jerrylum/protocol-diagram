@@ -67,12 +67,12 @@ export const LogPanel = observer(() => {
         right: "0",
         bottom: "calc(100% + 4px)",
         maxHeight: "60px",
-        backgroundColor: "rgba(255, 255, 255, 0.6)",
         overflowY: "auto"
       }}>
       {logs.map((log, i) => (
-        <CommandLogComponent key={i} log={log} focused={focused} />
+        <CommandLogComponent key={log.uid} log={log} focused={focused} />
       ))}
     </Box>
   );
 });
+
