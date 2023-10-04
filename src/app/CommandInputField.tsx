@@ -87,4 +87,3 @@ export const CommandInputField = observer(() => {
 
   return <TextField fullWidth size="small" spellCheck={false} onKeyDown={handleKeyDown} onKeyUp={handleKeyUp} />;
 });
-
