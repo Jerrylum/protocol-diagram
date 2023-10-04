@@ -424,17 +424,21 @@ export class ConfigCommand extends Command implements DiagramModifier {
   paramValue!: Parameter<ParameterType>;
 
   constructor() {
-    const {app} = getRootStore()
-    super("config", buildInputSpecByOptions(app.diagram.config.options as readonly CommandOption[]), "Change options' value");
+    const { app } = getRootStore();
+    super(
+      "config",
+      buildInputSpecByOptions(app.diagram.config.options as readonly CommandOption[]),
+      "Change options' value"
+    );
   }
 
   handle(params: Parameter<ParameterType>[]): HandleResult {
-      const paramKey: string = params[0].getString();
-      const {app} = getRootStore()
-      const option: Option<OptionType> = app.diagram.config.getOption(paramKey)!;
-      this.paramKey = paramKey;
-      this.paramValue = params[1];
+    const paramKey: string = params[0].getString();
+    const { app } = getRootStore();
+    const option: Option<OptionType> = app.diagram.config.getOption(paramKey)!;
+    this.paramKey = paramKey;
+    this.paramValue = params[1];
 
-      return option.setValue(this.paramValue);
+    return option.setValue(this.paramValue);
   }
 }

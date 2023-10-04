@@ -5,7 +5,7 @@ export class Field {
   public length: number;
   public uid: number;
 
-  constructor (name: string, length: number, uid?: number) {
+  constructor(name: string, length: number, uid?: number) {
     this.name = name;
     this.length = length;
     this.uid = uid ?? Field.uidCount++;
