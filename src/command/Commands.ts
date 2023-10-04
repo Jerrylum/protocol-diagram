@@ -1,6 +1,6 @@
 import { BooleanOption, EnumOption, Option, OptionType, RangeOption } from "../config/Option";
 import { getRootStore } from "../core/Root";
-import { Cancellable } from "../diagram/Diagram";
+import { Cancellable, DiagramModifier } from "../diagram/Diagram";
 import { Field } from "../diagram/Field";
 import {
   BooleanT,
@@ -80,7 +80,7 @@ export abstract class Command {
   abstract handle(params: Parameter<ParameterType>[]): HandleResult;
 
   static getAvailableCommands(): Command[] {
-    return [new UndoCommand(), new RedoCommand(), new AddCommand()];
+    return [new UndoCommand(), new RedoCommand(), new AddCommand(), new ConfigCommand()];
   }
 }
 
@@ -407,3 +407,40 @@ export function buildInputSpecByCommands(commands: Command[]): InputSpec<typeof 
   return new CommandLineSpec(commands);
 }
 
+/**
+ * this command is responsible in setting the value of the specified option by its key name
+ */
+export class ConfigCommand extends Command implements DiagramModifier {
+  discriminator!: "DiagramModifier";
+
+  /**
+   * the key of the specified option
+   */
+  paramKey!: string;
+
+  /**
+   * the value will be applied after the execution
+   */
+  paramValue!: Parameter<ParameterType>;
+
+  constructor() {
+    const {app} = getRootStore()
+    super("config", buildInputSpecByOptions(app.diagram.config.options as readonly CommandOption[]), "Change options' value");
+  }
+
+  handle(params: Parameter<ParameterType>[]): HandleResult {
+      const paramKey: string = params[0].getString();
+      const {app} = getRootStore()
+      const option: Option<OptionType> | null = app.diagram.config.getOption(paramKey);
+      if (option === null)
+          return fail("Unknown or ambiguous option \"" + paramKey + "\".");
+
+      if (params.length != 2)
+          return fail("Usage: config " + option.key + " <" + option.getUsageDescription() + ">");
+
+      this.paramKey = paramKey;
+      this.paramValue = params[1];
+
+      return option.setValue(this.paramValue);
+  }
+}

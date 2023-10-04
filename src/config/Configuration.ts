@@ -1,3 +1,4 @@
+import { makeAutoObservable } from "mobx";
 import { HandleResult, fail } from "../command/HandleResult";
 import { Parameter, ParameterType } from "../token/Tokens";
 import { Option, OptionType } from "./Option";
@@ -12,6 +13,7 @@ export class Configuration {
   readonly options: ReadonlyArray<Option<OptionType>>;
 
   constructor(...options: Option<OptionType>[]) {
+    makeAutoObservable(this);
     this.options = options;
   }
 
