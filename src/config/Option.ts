@@ -1,3 +1,4 @@
+import { makeAutoObservable, makeObservable, observable } from "mobx";
 import { HandleResult, success, fail } from "../command/HandleResult";
 import { BooleanT, NumberT, Parameter, ParameterType } from "../token/Tokens";
 
@@ -48,6 +49,7 @@ export abstract class Option<T extends OptionType> {
 export class BooleanOption extends Option<boolean> {
   public constructor(key: string, defaultValue: boolean) {
     super(key, defaultValue);
+    makeObservable<BooleanOption, "value">(this, {value: observable});
   }
 
   setValue(value: Parameter<ParameterType> | boolean): HandleResult {
@@ -84,6 +86,7 @@ export class BooleanOption extends Option<boolean> {
 export class EnumOption<TAccepts extends readonly string[]> extends Option<TAccepts[number]> {
   constructor(key: string, defaultValue: TAccepts[number], readonly acceptedValues: TAccepts) {
     super(key, defaultValue);
+    makeObservable<EnumOption<TAccepts>, "value">(this, {value: observable});
   }
 
   setValue(value: Parameter<ParameterType> | string): HandleResult {
@@ -134,6 +137,7 @@ export class EnumOption<TAccepts extends readonly string[]> extends Option<TAcce
 export class RangeOption extends Option<number> {
   constructor(key: string, defaultValue: number, readonly min: number, readonly max: number) {
     super(key, defaultValue);
+    makeObservable<RangeOption, "value">(this, {value: observable});
   }
 
   setValue(value: Parameter<ParameterType> | number): HandleResult {
