@@ -44,4 +44,3 @@ const Root = observer(() => {
 });
 
 export default Root;
-
