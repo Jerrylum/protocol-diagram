@@ -431,13 +431,7 @@ export class ConfigCommand extends Command implements DiagramModifier {
   handle(params: Parameter<ParameterType>[]): HandleResult {
       const paramKey: string = params[0].getString();
       const {app} = getRootStore()
-      const option: Option<OptionType> | null = app.diagram.config.getOption(paramKey);
-      if (option === null)
-          return fail("Unknown or ambiguous option \"" + paramKey + "\".");
-
-      if (params.length != 2)
-          return fail("Usage: config " + option.key + " <" + option.getUsageDescription() + ">");
-
+      const option: Option<OptionType> = app.diagram.config.getOption(paramKey)!;
       this.paramKey = paramKey;
       this.paramValue = params[1];
 

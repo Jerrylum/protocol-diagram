@@ -14,7 +14,7 @@ export class Field {
   equals(obj: unknown): boolean {
     // Especially for the uid comparison, ignore name and length
     if (obj instanceof Field) {
-      return obj.uid == this.uid;
+      return obj.uid === this.uid;
     }
 
     return false;
