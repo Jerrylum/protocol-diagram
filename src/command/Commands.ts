@@ -34,16 +34,14 @@ export interface InputSpec<T extends ParameterTypeClass> {
 
 export function getCommandUsage(cmd: Command): string {
   let line = "";
-  if (cmd.name) {
-    line += `${cmd.name}`;
-  }
+  line += `${cmd.name}`;
   if (!cmd.usage) return line;
   line += " <";
-  let first = cmd.usage;
-  while (first) {
-    line += first.name;
-    first = first.next!;
-    if (first) {
+  let curr: InputSpec<ParameterTypeClass> | null = cmd.usage;
+  while (curr) {
+    line += curr.name;
+    curr = curr.next;
+    if (curr) {
       line += "> <";
     }
   }

@@ -1,5 +1,5 @@
-import { CommandLine } from "../token/Tokens";
-import { AddCommand, RedoCommand, UndoCommand } from "./Commands";
+import { CommandLine, NumberT } from "../token/Tokens";
+import { AddCommand, ConfigCommand, HelpCommand, RedoCommand, UndoCommand } from "./Commands";
 import { cpb } from "../token/Tokens.test";
 import { getRootStore } from "../core/Root";
 
@@ -63,4 +63,34 @@ test("RedoCommand handle fail", () => {
   const rc = new RedoCommand();
   expect(rc.handleLine(CommandLine.parse(cpb("redo test"))!).success).toBe(false);
   expect(rc.handleLine(CommandLine.parse(cpb("redo"))!).success).toBe(false);
+});
+
+test("ConfigCommand handle success", () => {
+  const cc = new ConfigCommand();
+  expect(cc.handleLine(CommandLine.parse(cpb("config bit 12"))!).success).toBe(true);
+  expect(cc.paramKey).toBe("bit");
+});
+
+test("ConfigCommand handle fail", () => {
+  const cc = new ConfigCommand();
+  expect(cc.handleLine(CommandLine.parse(cpb("config"))!).success).toBe(false);
+  expect(cc.handleLine(CommandLine.parse(cpb("config bit"))!).success).toBe(false);
+});
+
+test("HelpCommand handle success", () => {
+  const hc = new HelpCommand();
+  expect(hc.handleLine(CommandLine.parse(cpb("help"))!).success).toBe(true);
+});
+
+test("getCommandUsage", () => {
+  const ac = new AddCommand();
+  expect(ac.getCommandUsage()).toBe("add <length> <name>");
+  const uc = new UndoCommand();
+  expect(uc.getCommandUsage()).toBe("undo");
+  const rc = new RedoCommand();
+  expect(rc.getCommandUsage()).toBe("redo");
+  const cc = new ConfigCommand();
+  expect(cc.getCommandUsage()).toBe("config <key> <value>");
+  const hc = new HelpCommand();
+  expect(hc.getCommandUsage()).toBe("help");
 });
