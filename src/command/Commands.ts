@@ -296,7 +296,7 @@ export function mapCommandParameterWithInputSpec(
     }
   }
 
-  if (curr != null) {
+  if (curr !== null) {
     const endIndex = params.length > 0 ? params[params.length - 1].endIndex : -1;
     result.push({ startIndex: endIndex + 1, endIndex: endIndex + 1, param: null, spec: curr });
   }

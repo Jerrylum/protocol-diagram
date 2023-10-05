@@ -1,4 +1,4 @@
-import { BooleanT, CommandLine, CommandParameter, NumberT, StringT } from "../token/Tokens";
+import { BooleanT, CommandLine, CommandParameter, NumberT, ParameterType, StringT } from "../token/Tokens";
 import {
   AddCommand,
   ConfigCommand,
@@ -6,11 +6,13 @@ import {
   RedoCommand,
   UndoCommand,
   buildInputSpecByUsages,
-  checkCommandParameters
+  checkCommandParameters,
+  mapCommandParameterWithInputSpec
 } from "./Commands";
 import { cpb } from "../token/Tokens.test";
 import { getRootStore } from "../core/Root";
 import { HandleResult, success, fail } from "./HandleResult";
+import exp from "constants";
 
 let { app } = getRootStore();
 
@@ -192,4 +194,99 @@ test("checkCommandParameters", () => {
   ]);
   expect(hr7.success).toBe(true);
   expect(problemspec7).toBe(null);
+});
+
+test("mapCommandParameterWithInputSpec", () => {
+  const inspec = buildInputSpecByUsages([
+    {
+      name: "testbool",
+      paramType: BooleanT,
+      description: "test description"
+    },
+    {
+      name: "testnum",
+      paramType: NumberT,
+      description: "test description",
+      check: param => {
+        if (param.getInt() < 0) {
+          return fail("test error num");
+        }
+        return success("");
+      }
+    },
+    {
+      name: "teststr",
+      paramType: StringT,
+      description: "test description",
+      check: param => {
+        if (param.getString() === "testerror") {
+          return fail("test error str");
+        }
+        return success("");
+      }
+    }
+  ]);
+
+  const commandParameters = [
+    CommandParameter.parse(cpb("true"))!,
+    CommandParameter.parse(cpb("123"))!,
+    CommandParameter.parse(cpb("test"))!
+  ];
+  const map = mapCommandParameterWithInputSpec(commandParameters, inspec!);
+  expect(map.length).toBe(3);
+  expect(map[0].spec).toBe(inspec!);
+  expect(map[1].spec).toBe(inspec!.next);
+  expect(map[2].spec).toBe(inspec!.next!.next);
+  expect(map[0].param).toBe(commandParameters[0]);
+  expect(map[1].param).toBe(commandParameters[1]);
+  expect(map[2].param).toBe(commandParameters[2]);
+
+  const commandParameters2 = [
+    CommandParameter.parse(cpb("true"))!,
+    CommandParameter.parse(cpb("123"))!,
+    CommandParameter.parse(cpb("test"))!,
+    CommandParameter.parse(cpb("test"))!
+  ];
+  const map2 = mapCommandParameterWithInputSpec(commandParameters2, inspec!);
+  expect(map2.length).toBe(4);
+  expect(map2[3].spec).toBe(null);
+  expect(map2[3].param).toBe(commandParameters2[3]);
+
+  const commandParameters3 = [
+    CommandParameter.parse(cpb("123"))!,
+    CommandParameter.parse(cpb("123"))!,
+    CommandParameter.parse(cpb("test"))!
+  ];
+  const map3 = mapCommandParameterWithInputSpec(commandParameters3, inspec!);
+  expect(map3.length).toBe(3);
+  expect(map3[0].spec).toBe(inspec!);
+  expect(map3[1].spec).toBe(null);
+  expect(map3[2].spec).toBe(null);
+
+  const commandParameters4 = [
+    CommandParameter.parse(cpb("true"))!,
+    CommandParameter.parse(cpb("-1"))!,
+    CommandParameter.parse(cpb("test"))!
+  ];
+  const map4 = mapCommandParameterWithInputSpec(commandParameters4, inspec!);
+  expect(map4.length).toBe(3);
+  expect(map4[0].spec).toBe(inspec!);
+  expect(map4[1].spec).toBe(inspec!.next);
+  expect(map4[2].spec).toBe(null);
+
+  const commandParameters5 = [CommandParameter.parse(cpb("true"))!, CommandParameter.parse(cpb("123"))!];
+  const map5 = mapCommandParameterWithInputSpec(commandParameters5, inspec!);
+  expect(map5.length).toBe(3);
+  expect(map5[0].spec).toBe(inspec!);
+  expect(map5[1].spec).toBe(inspec!.next);
+  expect(map5[2].spec).toBe(inspec!.next!.next);
+  expect(map5[0].param).toBe(commandParameters5[0]);
+  expect(map5[1].param).toBe(commandParameters5[1]);
+  expect(map5[2].param).toBe(null);
+
+  const commandParameters6: typeof commandParameters = [];
+  const map6 = mapCommandParameterWithInputSpec(commandParameters6, inspec!);
+  expect(map6.length).toBe(1);
+  expect(map6[0].spec).toBe(inspec!);
+  expect(map6[0].param).toBe(null);
 });
