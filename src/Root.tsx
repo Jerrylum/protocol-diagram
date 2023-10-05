@@ -5,15 +5,14 @@ import { DiagramCanvas } from "./app/DiagramCanvas";
 import { Box } from "@mui/material";
 import { BottomPanel } from "./app/BottomPanel";
 import { useCustomHotkeys } from "./core/Hook";
-// import { TestModal, TestModalSymbol } from "./app/TestModal";
-// import React from "react";
+import { HelpModal } from "./app/HelpModal";
 import { getRootStore } from "./core/Root";
 
 const Root = observer(() => {
   const { app, modals } = getRootStore();
 
   // React.useEffect(() => {
-  //   getRootStore().modals.open(TestModalSymbol);
+  //   getRootStore().modals.open(HelpModalSymbol);
   // }, []);
 
   const isUsingEditor = !modals.isOpen;
@@ -38,7 +37,7 @@ const Root = observer(() => {
     <Box id="root-container">
       <DiagramCanvas />
       <BottomPanel />
-      {/* <TestModal /> */}
+      <HelpModal />
     </Box>
   );
 });

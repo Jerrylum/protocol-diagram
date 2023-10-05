@@ -10,7 +10,7 @@ import { AsciiStyle, AsciiVerboseStyle, UTF8CornerStyle, UTF8HeaderStyle, UTF8St
 import { action, makeObservable, observable } from "mobx";
 
 /**
- * this interface is used to distinguish whether the command will manipulate the diagram instance
+ * Distinguish whether the command will manipulate the diagram instance
  */
 export interface DiagramModifier {
   readonly discriminator: "DiagramModifier";
@@ -21,11 +21,11 @@ export function isDiagramModifier(o: unknown): o is DiagramModifier {
 }
 
 /**
- * this interface is used to distinguish whether the descendant command is allowed to be undo/redo
+ * Distinguish whether the descendant command is allowed to be undo/redo
  */
 export interface Cancellable extends DiagramModifier {
   /**
-   * the method for invoking cancellable command
+   * Invoking cancellable command
    */
   execute(): void;
 }
@@ -36,8 +36,8 @@ export interface MementoFieldPair {
 }
 
 /**
- * a class that used to record the state of the diagram, will be helpful
- * for restoring diagram via store a list of this object
+ * Record the state of the diagram, will be helpful for restoring diagram
+ * via storing a list of this object
  */
 export class Memento {
   readonly fields: ReadonlyArray<MementoFieldPair>;
@@ -53,8 +53,8 @@ export const HEADER_STYLES = ["none", "trim", "full"] as const;
 export type HeaderStyle = (typeof HEADER_STYLES)[number];
 
 /**
- * this class holds the information of what requires to render a diagram on
- * screen, such as the list of fields and the configuration of setting.
+ * Holds the information of what requires to render a diagram on screen,
+ * such as the list of fields and the configuration of setting
  */
 export class Diagram {
   /**
@@ -86,8 +86,7 @@ export class Diagram {
   }
 
   /**
-   * a getter method that returns a readonly clone of the list of fields of the
-   * diagram
+   * Returns a read-only clone of the list of fields of the diagram
    *
    * @return Collection
    */
@@ -96,7 +95,7 @@ export class Diagram {
   }
 
   /**
-   * a getter method that returns the field by specified index
+   * Returns the field by specified index
    *
    * @param index the index of the field
    * @return Field
@@ -106,14 +105,14 @@ export class Diagram {
   }
 
   /**
-   * a method that clears all of the fields of the diagram
+   * Clears all of the fields of the diagram
    */
   clear() {
     this._fields.splice(0, this._fields.length);
   }
 
   /**
-   * a getter method that returns the amount of fields of the diagram
+   * Returns the amount of fields of the diagram
    *
    * @return int
    */
@@ -122,7 +121,7 @@ export class Diagram {
   }
 
   /**
-   * a method that appends the field to the diagram
+   * Appends the field to the diagram
    *
    * @param field the field to be appended
    */
@@ -131,7 +130,7 @@ export class Diagram {
   }
 
   /**
-   * a method that inserts the field into specified location to the diagram
+   * Inserts the field into specified location to the diagram
    *
    * @param index the location to insert
    * @param field the field to be inserted
@@ -141,7 +140,7 @@ export class Diagram {
   }
 
   /**
-   * a method that removes the field via given index
+   * Removes the field via given index
    *
    * @param index the index of the field to be removed
    */
@@ -150,7 +149,7 @@ export class Diagram {
   }
 
   /**
-   * a method that moves the field from the `from` index to the `to` index
+   * Moves the field from one position to another by index
    *
    * @param from the index of the field to be moved
    * @param to   the index of the field to be moved to
@@ -161,7 +160,7 @@ export class Diagram {
   }
 
   /**
-   * a factory pattern that creates the `Memento` typed instance
+   * Creates the `Memento` typed instance
    *
    * @return Memento
    */
@@ -170,7 +169,7 @@ export class Diagram {
   }
 
   /**
-   * a method that restores the diagram to the memento recorded state
+   * Restores the diagram to the state memento recorded
    *
    * @param m the memento to be restored
    */
@@ -195,10 +194,14 @@ export class Diagram {
 
     const matrix = new Matrix(segments);
     matrix.process();
-    matrix.process(); // process twice to make sure all the connector are processed
+    matrix.process(); // Process twice to make sure all the connector are processed
 
     const elements = matrix.elements;
 
+    /**
+     * Replaces the object element with the characters defined in style configrations
+     * such as connectors, vertical borders, and the next lines into the diagram
+     */
     return (
       generateHeader(elements, bit, headerStyle) +
       new {
@@ -212,6 +215,11 @@ export class Diagram {
   }
 }
 
+/**
+ * Converts Field objects into rows
+ * If the rows exceed the maximum length, then split the crossed-over fields into multiple rows
+ * If the last row is not filled, then use an optional tail to fill it
+ */
 export function convertFieldsToRow(bit: number, fields: readonly Field[], hasTail: boolean): Row[] {
   const rows: Row[] = [];
 
@@ -235,6 +243,9 @@ export function convertFieldsToRow(bit: number, fields: readonly Field[], hasTai
   return rows;
 }
 
+/* *
+ * Generates dividers based on the segments in the rows
+ */
 export function spliceDividers(bit: number, rows: Row[]): Divider[] {
   let index = 0;
   let topSegmentIndex = 0;
@@ -242,26 +253,45 @@ export function spliceDividers(bit: number, rows: Row[]): Divider[] {
 
   rows = rows.slice();
 
-  // ALGO: Create two rows, one for the top and one for the bottom
+  /**
+   * ALGO: Inserts two additional rows at the beginning and end respectively
+   * to guarantee that all contentful has top adjacent row and bottom adjacent row
+   * Uses two pointers to determine the length of a divider segment
+   * */
   rows.splice(0, 0, new Row(bit).addField(new Field("", bit)));
   rows.push(new Row(bit).addField(new Field("", bit)));
 
+  /**
+   * Returns the top segment
+   */
   function getTopSegment(): RowSegment {
     return getTopRow()?.get(topSegmentIndex)!;
   }
 
+  /**
+   * Returns the bottom segment
+   */
   function getBottomSegment(): RowSegment {
     return getBottomRow()?.get(bottomSegmentIndex)!;
   }
 
+  /**
+   * Returns the top row
+   */
   function getTopRow(): Row {
     return rows[index];
   }
 
+  /**
+   * Returns the bottom row
+   */
   function getBottomRow(): Row {
     return rows[index + 1];
   }
 
+  /**
+   * Checks whether there are segments left in the top row
+   */
   function topRowHasNext(): boolean {
     return topSegmentIndex < getTopRow()!.count;
   }
@@ -293,6 +323,9 @@ export function spliceDividers(bit: number, rows: Row[]): Divider[] {
   return dividers;
 }
 
+/**
+ * Combines the segments from the rows and dividers into a single array
+ */
 export function mergeRowsAndDividers(rows: Row[], dividers: Divider[]) {
   const segments: Segment[] = [];
 
@@ -306,9 +339,11 @@ export function mergeRowsAndDividers(rows: Row[], dividers: Divider[]) {
   return segments;
 }
 
+/**
+ * Identifies the segments that represent a specific field with the greatest length
+ * Sets display name of the center item of the greatest represented segments to true
+ */
 export function displayNameAtTheCentralSegment(field: Field, segments: Segment[]): void {
-  // ALGO: Set display name of the center item Of the greatest represented segments to true
-
   let greatestLength: number = 0;
   let greatestSegments: Segment[] = [];
 
@@ -326,6 +361,10 @@ export function displayNameAtTheCentralSegment(field: Field, segments: Segment[]
   greatestSegments[Math.floor(greatestSegments.length / 2) - ((greatestSegments.length + 1) % 2)].displayName = true;
 }
 
+/**
+ * Generates a header string on the top of the diagram, which includes numbers representing the indices,
+ * with the style determined by the headerStyle
+ */
 export function generateHeader(elements: Element[], bit: number, headerStyle: HeaderStyle): string {
   let rtn = "";
   let maximumEndIndex = headerStyle === "full" ? bit : 0; // visible item only

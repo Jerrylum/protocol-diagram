@@ -75,4 +75,3 @@ export const LogPanel = observer(() => {
     </Box>
   );
 });
-
