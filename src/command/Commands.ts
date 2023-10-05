@@ -253,7 +253,7 @@ export type ParameterAndInputSpecMapping = {
     }
   | {
       param: CommandParameter<ParameterType>;
-      spec: InputSpec<ParameterTypeClass> | null;
+      spec: null;
     }
   | {
       param: null;

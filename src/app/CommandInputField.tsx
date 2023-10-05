@@ -105,22 +105,21 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
     handleSpecUpdate(input.value, getCaretPosition(input));
   };
 
-  const handleKeyUp = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    if (e.key === "Escape") {
-      controller.mapping = null;
-      return;
-    }
-    // if (e.ctrlKey || e.metaKey || e.altKey) {
-    //   return;
-    // }
-
-    const input = e.target as HTMLInputElement;
-    handleSpecUpdate(input.value, getCaretPosition(input));
-  };
+  // const handleKeyUp = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  //   if (e.key === "Escape") {
+  //     controller.mapping = null;
+  //     return;
+  //   }
+  //
+  //   const input = e.target as HTMLInputElement;
+  //   handleSpecUpdate(input.value, getCaretPosition(input));
+  // };
 
   const handleTextFieldCaretChange = (e: React.SyntheticEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const input = e.target as HTMLInputElement;
-    handleSpecUpdate(input.value, getCaretPosition(input));
+
+    // UX: Do not show the popup if the text field is empty.
+    handleSpecUpdate(input.value, input.value === "" ? null : getCaretPosition(input));
   };
 
   return (
@@ -130,7 +129,7 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
       inputProps={{
         sx: { fontFamily: "Ubuntu Mono" },
         onKeyDown: handleKeyDown,
-        onKeyUp: handleKeyUp,
+        // onKeyUp: handleKeyUp,
         onMouseDown: handleTextFieldCaretChange,
         onTouchStart: handleTextFieldCaretChange,
         onInput: handleTextFieldCaretChange,
