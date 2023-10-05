@@ -1,7 +1,16 @@
-import { CommandLine, NumberT } from "../token/Tokens";
-import { AddCommand, ConfigCommand, HelpCommand, RedoCommand, UndoCommand } from "./Commands";
+import { BooleanT, CommandLine, CommandParameter, NumberT, StringT } from "../token/Tokens";
+import {
+  AddCommand,
+  ConfigCommand,
+  HelpCommand,
+  RedoCommand,
+  UndoCommand,
+  buildInputSpecByUsages,
+  checkCommandParameters
+} from "./Commands";
 import { cpb } from "../token/Tokens.test";
 import { getRootStore } from "../core/Root";
+import { HandleResult, success, fail } from "./HandleResult";
 
 let { app } = getRootStore();
 
@@ -93,4 +102,94 @@ test("getCommandUsage", () => {
   expect(cc.getCommandUsage()).toBe("config <key> <value>");
   const hc = new HelpCommand();
   expect(hc.getCommandUsage()).toBe("help");
+});
+
+test("checkCommandParameters", () => {
+  const inspec = buildInputSpecByUsages([
+    {
+      name: "testbool",
+      paramType: BooleanT,
+      description: "test description",
+      check: param => {
+        return success("");
+      }
+    },
+    {
+      name: "testnum",
+      paramType: NumberT,
+      description: "test description",
+      check: param => {
+        if (param.getInt() < 0) {
+          return fail("test error num");
+        }
+        return success("");
+      }
+    },
+    {
+      name: "teststr",
+      paramType: StringT,
+      description: "test description",
+      check: param => {
+        if (param.getString() === "testerror") {
+          return fail("test error str");
+        }
+        return success("");
+      }
+    }
+  ]);
+  const [hr, problemspec] = checkCommandParameters(inspec, [CommandParameter.parse(cpb("true"))!]);
+  expect(hr).toBe(HandleResult.TOO_FEW_ARGUMENTS);
+  expect(problemspec).toBe(inspec!.next);
+
+  const [hr2, problemspec2] = checkCommandParameters(inspec, [
+    CommandParameter.parse(cpb("123"))!,
+    CommandParameter.parse(cpb("123"))!,
+    CommandParameter.parse(cpb("123"))!
+  ]);
+  expect(hr2.success).toBe(false);
+  expect(hr2.message).toBe("The testbool must be a boolean.");
+  expect(problemspec2).toBe(inspec);
+
+  const [hr3, problemspec3] = checkCommandParameters(inspec, [
+    CommandParameter.parse(cpb("true"))!,
+    CommandParameter.parse(cpb("-1"))!,
+    CommandParameter.parse(cpb("123"))!
+  ]);
+  expect(hr3.success).toBe(false);
+  expect(hr3.message).toBe("test error num");
+  expect(problemspec3).toBe(inspec!.next);
+
+  const [hr4, problemspec4] = checkCommandParameters(inspec, [
+    CommandParameter.parse(cpb("true"))!,
+    CommandParameter.parse(cpb("str"))!,
+    CommandParameter.parse(cpb("testerror"))!
+  ]);
+  expect(hr4.success).toBe(false);
+  expect(hr4.message).toBe("The testnum must be a number.");
+  expect(problemspec4).toBe(inspec!.next);
+
+  const [hr5, problemspec5] = checkCommandParameters(inspec, [
+    CommandParameter.parse(cpb("true"))!,
+    CommandParameter.parse(cpb("123"))!,
+    CommandParameter.parse(cpb("testerror"))!
+  ]);
+  expect(hr5.success).toBe(false);
+  expect(hr5.message).toBe("test error str");
+  expect(problemspec5).toBe(inspec!.next!.next);
+
+  const [hr6, problemspec6] = checkCommandParameters(inspec, [
+    CommandParameter.parse(cpb("true"))!,
+    CommandParameter.parse(cpb("123"))!,
+    CommandParameter.parse(cpb("test"))!
+  ]);
+  expect(hr6.success).toBe(true);
+  expect(problemspec6).toBe(null);
+
+  const [hr7, problemspec7] = checkCommandParameters(inspec, [
+    CommandParameter.parse(cpb("true"))!,
+    CommandParameter.parse(cpb("123"))!,
+    CommandParameter.parse(cpb("123a"))!
+  ]);
+  expect(hr7.success).toBe(true);
+  expect(problemspec7).toBe(null);
 });
