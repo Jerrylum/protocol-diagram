@@ -5,6 +5,7 @@ import {
   CommandLineSpec,
   ConfigCommand,
   HelpCommand,
+  OptionSpec,
   RedoCommand,
   UndoCommand,
   buildInputSpecByCommands,
@@ -15,6 +16,7 @@ import {
 import { cpb } from "../token/Tokens.test";
 import { getRootStore } from "../core/Root";
 import { HandleResult, success, fail } from "./HandleResult";
+import { BooleanOption, EnumOption, RangeOption } from "../config/Option";
 
 let { app } = getRootStore();
 
@@ -323,4 +325,41 @@ test("CommandLineSpec", () => {
   expect(hr.success).toBe(true);
   expect(cspec?.next).toBe(mc.usage);
   expect(cspec?.acceptedValues).toStrictEqual([mc.name]);
+});
+
+test("OptionSpec", () => {
+  const eo = new EnumOption("EO", "test1", ["test1", "test2", "test3"]);
+  const bo = new BooleanOption("BO", false);
+  const ro = new RangeOption("RO", 1, 1, 10);
+  const os = new OptionSpec([eo, bo, ro]);
+
+  let hr = os.check!(Parameter.parse(cpb("test")) as Parameter<StringT>);
+  expect(hr.success).toBe(false);
+  expect(hr.message).toBe("Invalid option key.");
+  expect(os.next).toBe(null);
+  expect(os.acceptedValues).toStrictEqual(["EO", "BO", "RO"]);
+
+  hr = os.check!(Parameter.parse(cpb("EO")) as Parameter<StringT>);
+  expect(hr.success).toBe(true);
+  const madeInputSpect = os.next;
+  expect(madeInputSpect?.description).toBe(eo.getUsageDescription());
+  expect(madeInputSpect?.acceptedValues).toStrictEqual(eo.acceptedValues);
+  expect(madeInputSpect?.paramType).toBe(StringT);
+  expect(madeInputSpect?.check).not.toBe(null);
+
+  hr = os.check!(Parameter.parse(cpb("BO")) as Parameter<StringT>);
+  expect(hr.success).toBe(true);
+  const madeInputSpect2 = os.next;
+  expect(madeInputSpect2?.description).toBe(bo.getUsageDescription());
+  expect(madeInputSpect2?.acceptedValues).toStrictEqual(["true", "false"]);
+  expect(madeInputSpect2?.paramType).toBe(BooleanT);
+  expect(madeInputSpect2?.check).not.toBe(null);
+
+  hr = os.check!(Parameter.parse(cpb("RO")) as Parameter<StringT>);
+  expect(hr.success).toBe(true);
+  const madeInputSpect3 = os.next;
+  expect(madeInputSpect3?.description).toBe(ro.getUsageDescription());
+  expect(madeInputSpect3?.acceptedValues).toStrictEqual([]);
+  expect(madeInputSpect3?.paramType).toBe(NumberT);
+  expect(madeInputSpect3?.check).not.toBe(null);
 });
