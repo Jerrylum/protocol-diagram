@@ -1,4 +1,4 @@
-import { Box } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { observer } from "mobx-react-lite";
 import { Vector } from "../core/Vector";
 import { BottomPanelController } from "./BottomPanel";
@@ -105,6 +105,47 @@ export function getCaretCoordinates(reference: HTMLInputElement | HTMLTextAreaEl
   return coordinates;
 }
 
+export const AcceptedValue = observer((props: { value: string; current: string; selected: boolean }) => {
+  const head = props.value.substring(0, props.current.length);
+  const tail = props.value.substring(props.current.length);
+
+  return (
+    <Box
+      sx={{
+        padding: "0 4px",
+        backgroundColor: props.selected ? "rgba(0, 0, 0, 0.12)" : "transparent"
+      }}>
+      {head !== "" && (
+        <Typography
+          variant="body2"
+          sx={{
+            fontFamily: "Ubuntu Mono",
+            color: "text.primary",
+            minHeight: "20px",
+            lineHeight: "20px",
+            display: "inline-block",
+            fontWeight: 700
+          }}>
+          {head}
+        </Typography>
+      )}
+      {tail !== "" && (
+        <Typography
+          variant="body2"
+          sx={{
+            fontFamily: "Ubuntu Mono",
+            color: "text.primary",
+            minHeight: "20px",
+            lineHeight: "20px",
+            display: "inline-block"
+          }}>
+          {tail}
+        </Typography>
+      )}
+    </Box>
+  );
+});
+
 export const InputHintsPopup = observer((props: { controller: BottomPanelController }) => {
   const controller = props.controller;
 
@@ -114,6 +155,9 @@ export const InputHintsPopup = observer((props: { controller: BottomPanelControl
   const spec = mapping.spec;
   if (spec === null) return null;
 
+  const currentParamValue = mapping.param?.value.value ?? "";
+  const autoCompletionValues = controller.autoCompletionValues;
+
   const caretOffset = controller.inputElement ? getCaretCoordinates(controller.inputElement, mapping.startIndex).x : 0;
 
   return (
@@ -121,14 +165,38 @@ export const InputHintsPopup = observer((props: { controller: BottomPanelControl
       sx={{
         position: "absolute",
         left: caretOffset + "px",
-        // right: "0",
-        bottom: "calc(100% + 4px)",
-        maxHeight: "60px",
-        overflowY: "auto",
+        bottom: "calc(100% - 8px)",
         minWidth: "100px",
-        height: "150px",
-        backgroundColor: "red"
-      }}></Box>
+        backgroundColor: "rgb(250, 250, 250)"
+      }}>
+      {autoCompletionValues.length > 0 ? (
+        <Box
+          sx={{
+            bottom: "calc(100% - 8px)",
+            maxHeight: "120px",
+            overflowY: "auto",
+            minWidth: "100px",
+            border: "1px solid rgba(0, 0, 0, 0.23)",
+            borderBottom: "none"
+          }}>
+          {autoCompletionValues.map((val, i) => (
+            <AcceptedValue key={i} value={val} current={currentParamValue} selected={false} />
+          ))}
+        </Box>
+      ) : null}
+
+      <Typography
+        variant="body2"
+        sx={{
+          fontFamily: "Ubuntu Mono",
+          color: "text.primary",
+          minHeight: "20px",
+          lineHeight: "20px",
+          padding: "0 4px",
+          border: "1px solid rgba(0, 0, 0, 0.23)"
+        }}>
+        {spec.description}
+      </Typography>
+    </Box>
   );
 });
-

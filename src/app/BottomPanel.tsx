@@ -28,6 +28,19 @@ export class BottomPanelController {
     this._inputElement = inputElement;
   }
 
+  get autoCompletionValues(): string[] {
+    if (this.mapping === null) return [];
+    const spec = this.mapping.spec;
+    if (spec === null) return [];
+    const param = this.mapping.param;
+    const currentParamValue = param?.value.value ?? "";
+    const acceptedValues = spec.acceptedValues;
+    const filtered = acceptedValues.filter(
+      v => v.startsWith(currentParamValue) && v.length >= currentParamValue.length
+    );
+    return filtered;
+  }
+
   constructor() {
     makeAutoObservable(this);
   }
@@ -56,4 +69,3 @@ export const BottomPanel = observer(() => {
     </Box>
   );
 });
-

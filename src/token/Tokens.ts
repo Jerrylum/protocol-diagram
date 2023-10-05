@@ -530,8 +530,15 @@ export class SingleQuoteString extends Token {
 }
 
 export class StringT extends Token {
-  constructor(public content: string) {
+  public value: string;
+  public content: string;
+
+  constructor(content: string);
+  constructor(value: string, content: string);
+  constructor(a: string, b?: string) {
     super();
+    this.value = a;
+    this.content = b ?? a;
   }
 
   public static parse(buffer: CodePointBuffer): StringT | null {
@@ -544,13 +551,13 @@ export class StringT extends Token {
       if (!d) {
         return null;
       }
-      return new StringT(d.content);
+      return new StringT(d.value, d.content);
     } else if (c === "'") {
       const s = SingleQuoteString.parse(buffer);
       if (!s) {
         return null;
       }
-      return new StringT(s.content);
+      return new StringT(s.value, s.content);
     } else {
       const content = buffer.readChunk();
       return new StringT(content);
@@ -773,4 +780,3 @@ export class CommandLine extends CommandParameterList {
     }
   }
 }
-
