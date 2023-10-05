@@ -17,7 +17,19 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
   const { app, logger } = getRootStore();
   const controller = props.controller;
 
-  const handleSpecUpdate = (inputValue: string, cursorPos: number) => {
+  const getCaretPosition = (inputOrTextField: HTMLInputElement | HTMLTextAreaElement): number | null => {
+    const start = inputOrTextField.selectionStart;
+    const end = inputOrTextField.selectionEnd;
+
+    return start !== end ? null : start;
+  };
+
+  const handleSpecUpdate = (inputValue: string, caretPos: number | null) => {
+    if (caretPos === null) {
+      controller.mapping = null;
+      return;
+    }
+
     const buffer: CodePointBuffer = new CodePointBuffer(inputValue);
     const list: CommandParameterList | null = CommandParameterList.parse(buffer);
     const allCommands = Command.getAvailableCommands();
@@ -28,7 +40,7 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
     }
     const spec = buildInputSpecByCommands(allCommands)!;
     const mappingList = mapCommandParameterWithInputSpec(list.params, spec);
-    const mapping = mappingList.find(m => m.startIndex <= cursorPos && cursorPos <= m.endIndex);
+    const mapping = mappingList.find(m => m.startIndex <= caretPos && caretPos <= m.endIndex);
     controller.mapping = mapping ?? null;
 
     if (mapping === undefined) {
@@ -40,7 +52,7 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const input = e.target as HTMLInputElement;
     const inputValue = input.value;
     const buffer: CodePointBuffer = new CodePointBuffer(inputValue);
@@ -86,24 +98,29 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
       controller.mapping = null;
       return;
     }
-    if (e.ctrlKey || e.metaKey || e.altKey) {
-      return;
-    }
+    // if (e.ctrlKey || e.metaKey || e.altKey) {
+    //   return;
+    // }
 
-    handleSpecUpdate(input.value, input.selectionStart ?? 0);
+    handleSpecUpdate(input.value, getCaretPosition(input));
   };
 
-  const handleKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyUp = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     if (e.key === "Escape") {
       controller.mapping = null;
       return;
     }
-    if (e.ctrlKey || e.metaKey || e.altKey) {
-      return;
-    }
+    // if (e.ctrlKey || e.metaKey || e.altKey) {
+    //   return;
+    // }
 
     const input = e.target as HTMLInputElement;
-    handleSpecUpdate(input.value, input.selectionStart ?? 0);
+    handleSpecUpdate(input.value, getCaretPosition(input));
+  };
+
+  const handleTextFieldCaretChange = (e: React.SyntheticEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const input = e.target as HTMLInputElement;
+    handleSpecUpdate(input.value, getCaretPosition(input));
   };
 
   return (
@@ -111,12 +128,19 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
       fullWidth
       size="small"
       inputProps={{
-        sx: { fontFamily: "Ubuntu Mono" }
+        sx: { fontFamily: "Ubuntu Mono" },
+        onKeyDown: handleKeyDown,
+        onKeyUp: handleKeyUp,
+        onMouseDown: handleTextFieldCaretChange,
+        onTouchStart: handleTextFieldCaretChange,
+        onInput: handleTextFieldCaretChange,
+        onPaste: handleTextFieldCaretChange,
+        onCut: handleTextFieldCaretChange,
+        onMouseMove: handleTextFieldCaretChange,
+        onSelect: handleTextFieldCaretChange
       }}
       inputRef={ref => (controller.inputElement = ref)}
       spellCheck={false}
-      onKeyDown={handleKeyDown}
-      onKeyUp={handleKeyUp}
     />
   );
 });
