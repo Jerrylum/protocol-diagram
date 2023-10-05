@@ -464,7 +464,7 @@ export function buildInputSpecByAppDiagramOptions(): InputSpec<typeof StringT> |
   return new AppDiagramOptionSpec();
 }
 
-class CommandLineSpec implements InputSpec<typeof StringT> {
+export class CommandLineSpec implements InputSpec<typeof StringT> {
   constructor(readonly commands: ReadonlyArray<Command>) {}
 
   readonly name = "command";

@@ -440,7 +440,6 @@ test("Parameter Methods", () => {
   expect(p4.toString()).toBe("Hello");
 });
 
-
 test("CommandParameter Valid", () => {
   expect(CommandParameter.parse(cpb("True"))?.getBoolean()).toBe(true);
   expect(CommandParameter.parse(cpb("False"))?.getBoolean()).toBe(false);
@@ -481,10 +480,10 @@ test("CommandParameterList Valid", () => {
   params.push(new CommandParameter(new StringT("value1"), 7, 13));
   expect(CommandParameterList.parse(cpb("target value1"))!.params).toStrictEqual(params);
 
-  params.push(new CommandParameter(new StringT("value2"), 14, 22));
+  params.push(new CommandParameter(new StringT("'value2'", "value2"), 14, 22));
   expect(CommandParameterList.parse(cpb("target value1 'value2'"))!.params).toStrictEqual(params);
 
-  params.push(new CommandParameter(new StringT("value3"), 23, 31));
+  params.push(new CommandParameter(new StringT('"value3"', "value3"), 23, 31));
   expect(CommandParameterList.parse(cpb("target value1 'value2' \"value3\""))!.params).toStrictEqual(params);
   // params.push(CommandParameter.parse(cpb("True"))!);
   params.push(new CommandParameter(new BooleanT("True", true), 32, 36));
@@ -494,12 +493,14 @@ test("CommandParameterList Valid", () => {
   expect(CommandParameterList.parse(cpb("target value1 'value2' \"value3\" True False"))!.params).toStrictEqual(params);
   // params.push(CommandParameter.parse(cpb("123"))!);
   params.push(new CommandParameter(new NumberT("123", true, false), 43, 46));
-  expect(CommandParameterList.parse(cpb("target value1 'value2' \"value3\" True False 123"))!.params).toStrictEqual(params);
-  // params.push(CommandParameter.parse(cpb("123.456"))!);
-  params.push(new CommandParameter(new NumberT("123.456", true, true), 47, 54));
-  expect(CommandParameterList.parse(cpb("target value1 'value2' \"value3\" True False 123 123.456"))!.params).toStrictEqual(
+  expect(CommandParameterList.parse(cpb("target value1 'value2' \"value3\" True False 123"))!.params).toStrictEqual(
     params
   );
+  // params.push(CommandParameter.parse(cpb("123.456"))!);
+  params.push(new CommandParameter(new NumberT("123.456", true, true), 47, 54));
+  expect(
+    CommandParameterList.parse(cpb("target value1 'value2' \"value3\" True False 123 123.456"))!.params
+  ).toStrictEqual(params);
   // params.push(CommandParameter.parse(cpb("-123.456"))!);
   params.push(new CommandParameter(new NumberT("-123.456", false, true), 55, 63));
   expect(
@@ -512,7 +513,7 @@ test("CommandParameterList Valid", () => {
   ).toStrictEqual(params);
 });
 
-test("CommandParameterList Null",()=> {
+test("CommandParameterList Null", () => {
   expect(CommandParameterList.parse(cpb("target '"))).toBeNull();
 });
 
