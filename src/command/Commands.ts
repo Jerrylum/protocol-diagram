@@ -79,6 +79,7 @@ export abstract class Command {
     if (this.name.toUpperCase() !== line.name.toUpperCase()) return HandleResult.NOT_HANDLED;
 
     const checkResult = checkCommandParameters(this.usage, line.params);
+
     if (checkResult[0].success) return this.handle(line.params);
     else return checkResult[0];
   }
@@ -208,6 +209,56 @@ export class RedoCommand extends Command {
   }
 }
 
+/**
+ * this command is responsible in setting the value of the specified option by its key name
+ */
+export class ConfigCommand extends Command implements DiagramModifier {
+  discriminator!: "DiagramModifier";
+
+  /**
+   * the key of the specified option
+   */
+  paramKey!: string;
+
+  /**
+   * the value will be applied after the execution
+   */
+  paramValue!: Parameter<ParameterType>;
+
+  constructor() {
+    super("config", buildInputSpecByAppDiagramOptions(), "Change options' value");
+  }
+
+  handle(params: Parameter<ParameterType>[]): HandleResult {
+    const paramKey: string = params[0].getString();
+    const { app } = getRootStore();
+    const option: Option<OptionType> = app.diagram.config.getOption(paramKey)!;
+    this.paramKey = paramKey;
+    this.paramValue = params[1];
+
+    return option.setValue(this.paramValue);
+  }
+
+  getCommandUsage(): string {
+    return this.name + " <key> <value>";
+  }
+}
+
+/**
+ * this command is responsible in showing a user manual on screen
+ */
+export class HelpCommand extends Command {
+  public constructor() {
+    super("help", null, "Show help message");
+  }
+
+  handle(params: Parameter<ParameterType>[]): HandleResult {
+    const { modals } = getRootStore();
+    modals.open(HelpModalSymbol);
+    return success("Help message");
+  }
+}
+
 export function checkCommandParameters(
   spec: InputSpec<ParameterTypeClass> | null,
   params: CommandParameter<ParameterType>[]
@@ -330,14 +381,14 @@ export function buildInputSpecByUsages(usages: UsageSpec[]): InputSpec<Parameter
 }
 
 class OptionSpec implements InputSpec<typeof StringT> {
-  constructor(readonly options: ReadonlyArray<CommandOption>) {}
+  constructor(private readonly _options: ReadonlyArray<CommandOption>) {}
 
   readonly name = "key";
 
   readonly description = "the key of the option";
 
   get acceptedValues() {
-    return this.options.map(o => o.key);
+    return this.getOptions().map(o => o.key);
   }
 
   readonly paramType = StringT;
@@ -346,7 +397,7 @@ class OptionSpec implements InputSpec<typeof StringT> {
 
   check(param: Parameter<StringT>): HandleResult {
     const key = param.getString();
-    for (const option of this.options) {
+    for (const option of this.getOptions()) {
       if (option.key === key) {
         this.lastRequest = option;
         return success("");
@@ -387,10 +438,30 @@ class OptionSpec implements InputSpec<typeof StringT> {
         })(this.lastRequest)
       : null;
   }
+
+  protected getOptions(): ReadonlyArray<CommandOption> {
+    return this._options;
+  }
 }
 
 export function buildInputSpecByOptions(options: ReadonlyArray<CommandOption>): InputSpec<typeof StringT> | null {
   return new OptionSpec(options);
+}
+
+export class AppDiagramOptionSpec extends OptionSpec {
+  constructor() {
+    super([]);
+  }
+
+  protected getOptions(): ReadonlyArray<CommandOption> {
+    const { app } = getRootStore();
+
+    return app.diagram.config.options as CommandOption[];
+  }
+}
+
+export function buildInputSpecByAppDiagramOptions(): InputSpec<typeof StringT> | null {
+  return new AppDiagramOptionSpec();
 }
 
 class CommandLineSpec implements InputSpec<typeof StringT> {
@@ -427,59 +498,4 @@ class CommandLineSpec implements InputSpec<typeof StringT> {
 
 export function buildInputSpecByCommands(commands: Command[]): InputSpec<typeof StringT> | null {
   return new CommandLineSpec(commands);
-}
-
-/**
- * this command is responsible in setting the value of the specified option by its key name
- */
-export class ConfigCommand extends Command implements DiagramModifier {
-  discriminator!: "DiagramModifier";
-
-  /**
-   * the key of the specified option
-   */
-  paramKey!: string;
-
-  /**
-   * the value will be applied after the execution
-   */
-  paramValue!: Parameter<ParameterType>;
-
-  constructor() {
-    const { app } = getRootStore();
-    super(
-      "config",
-      buildInputSpecByOptions(app.diagram.config.options as readonly CommandOption[]),
-      "Change options' value"
-    );
-  }
-
-  handle(params: Parameter<ParameterType>[]): HandleResult {
-    const paramKey: string = params[0].getString();
-    const { app } = getRootStore();
-    const option: Option<OptionType> = app.diagram.config.getOption(paramKey)!;
-    this.paramKey = paramKey;
-    this.paramValue = params[1];
-
-    return option.setValue(this.paramValue);
-  }
-
-  getCommandUsage(): string {
-    return this.name + " <key> <value>";
-  }
-}
-
-/**
- * this command is responsible in showing a user manual on screen
- */
-export class HelpCommand extends Command {
-  public constructor() {
-    super("help", null, "Show help message");
-  }
-
-  handle(params: Parameter<ParameterType>[]): HandleResult {
-    const { modals } = getRootStore();
-    modals.open(HelpModalSymbol);
-    return success("Help message");
-  }
 }
