@@ -12,6 +12,7 @@ import { getRootStore } from "../core/Root";
 import { isDiagramModifier } from "../diagram/Diagram";
 import React from "react";
 import { BottomPanelController } from "./BottomPanel";
+import { action } from "mobx";
 
 export const CommandInputField = observer((props: { controller: BottomPanelController }) => {
   const { app, logger } = getRootStore();
@@ -128,14 +129,14 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
       size="small"
       inputProps={{
         sx: { fontFamily: "Ubuntu Mono" },
-        onKeyDown: handleKeyDown,
+        onKeyDown: action(handleKeyDown),
         // onKeyUp: handleKeyUp,
         onMouseDown: handleTextFieldCaretChange,
         onTouchStart: handleTextFieldCaretChange,
         onInput: handleTextFieldCaretChange,
         onPaste: handleTextFieldCaretChange,
         onCut: handleTextFieldCaretChange,
-        onMouseMove: handleTextFieldCaretChange,
+        // onMouseMove: handleTextFieldCaretChange,
         onSelect: handleTextFieldCaretChange
       }}
       inputRef={ref => (controller.inputElement = ref)}
