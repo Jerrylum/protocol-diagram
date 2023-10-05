@@ -116,7 +116,7 @@ export abstract class CancellableCommand extends Command implements Cancellable 
   }
   readonly discriminator = "DiagramModifier";
 
-  execute(): void {}
+  abstract execute(): void
 }
 
 /**
