@@ -120,4 +120,3 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
     />
   );
 });
-

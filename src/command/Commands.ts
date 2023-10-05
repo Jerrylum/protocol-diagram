@@ -1,3 +1,4 @@
+import { HelpModalSymbol } from "../app/HelpModal";
 import { BooleanOption, EnumOption, Option, OptionType, RangeOption } from "../config/Option";
 import { getRootStore } from "../core/Root";
 import { Cancellable, DiagramModifier } from "../diagram/Diagram";
@@ -29,6 +30,23 @@ export interface InputSpec<T extends ParameterTypeClass> {
   paramType: T;
   check?: (param: Parameter<ParameterTypeByClass<T>>) => HandleResult;
   next: InputSpec<ParameterTypeClass> | null;
+}
+
+export function getCommandUsage(cmd: Command): string {
+  let line = "";
+  line += `${cmd.name}`;
+  if (!cmd.usage) return line;
+  line += " <";
+  let curr: InputSpec<ParameterTypeClass> | null = cmd.usage;
+  while (curr) {
+    line += curr.name;
+    curr = curr.next;
+    if (curr) {
+      line += "> <";
+    }
+  }
+  line += ">";
+  return line;
 }
 
 export abstract class Command {
@@ -80,7 +98,11 @@ export abstract class Command {
   abstract handle(params: Parameter<ParameterType>[]): HandleResult;
 
   static getAvailableCommands(): Command[] {
-    return [new UndoCommand(), new RedoCommand(), new AddCommand(), new ConfigCommand()];
+    return [new UndoCommand(), new RedoCommand(), new AddCommand(), new ConfigCommand(), new HelpCommand()];
+  }
+
+  getCommandUsage(): string {
+    return getCommandUsage(this);
   }
 }
 
@@ -440,5 +462,24 @@ export class ConfigCommand extends Command implements DiagramModifier {
     this.paramValue = params[1];
 
     return option.setValue(this.paramValue);
+  }
+
+  getCommandUsage(): string {
+    return this.name + " <key> <value>";
+  }
+}
+
+/**
+ * this command is responsible in showing a user manual on screen
+ */
+export class HelpCommand extends Command {
+  public constructor() {
+    super("help", null, "Show help message");
+  }
+
+  handle(params: Parameter<ParameterType>[]): HandleResult {
+    const { modals } = getRootStore();
+    modals.open(HelpModalSymbol);
+    return success("Help message");
   }
 }
