@@ -1,6 +1,6 @@
-import { makeAutoObservable, makeObservable, observable } from "mobx";
+import { makeObservable, observable } from "mobx";
 import { HandleResult, success, fail } from "../command/HandleResult";
-import { BooleanT, NumberT, Parameter, ParameterType } from "../token/Tokens";
+import { Parameter, ParameterType } from "../token/Tokens";
 
 export type OptionType = boolean | number | string;
 
@@ -10,11 +10,7 @@ export type OptionType = boolean | number | string;
  * changed afterward
  */
 export abstract class Option<T extends OptionType> {
-  protected value: T;
-
-  constructor(readonly key: string, readonly defaultValue: T) {
-    this.value = defaultValue;
-  }
+  constructor(readonly key: string, readonly defaultValue: T, protected value: T = defaultValue) {}
 
   /**
    * a setter method that sets the value of this option
@@ -47,9 +43,9 @@ export abstract class Option<T extends OptionType> {
 }
 
 export class BooleanOption extends Option<boolean> {
-  public constructor(key: string, defaultValue: boolean) {
-    super(key, defaultValue);
-    makeObservable<BooleanOption, "value">(this, {value: observable});
+  public constructor(key: string, defaultValue: boolean, value: boolean = defaultValue) {
+    super(key, defaultValue, value);
+    makeObservable<BooleanOption, "value">(this, { value: observable });
   }
 
   setValue(value: Parameter<ParameterType> | boolean): HandleResult {
@@ -75,7 +71,7 @@ export class BooleanOption extends Option<boolean> {
   }
 
   clone(): BooleanOption {
-    return new BooleanOption(this.key, this.defaultValue);
+    return new BooleanOption(this.key, this.defaultValue, this.value);
   }
 }
 
@@ -84,9 +80,14 @@ export class BooleanOption extends Option<boolean> {
  * possible values of string literals
  */
 export class EnumOption<TAccepts extends readonly string[]> extends Option<TAccepts[number]> {
-  constructor(key: string, defaultValue: TAccepts[number], readonly acceptedValues: TAccepts) {
-    super(key, defaultValue);
-    makeObservable<EnumOption<TAccepts>, "value">(this, {value: observable});
+  constructor(
+    key: string,
+    defaultValue: TAccepts[number],
+    readonly acceptedValues: TAccepts,
+    value: TAccepts[number] = defaultValue
+  ) {
+    super(key, defaultValue, value);
+    makeObservable<EnumOption<TAccepts>, "value">(this, { value: observable });
   }
 
   setValue(value: Parameter<ParameterType> | string): HandleResult {
@@ -130,14 +131,20 @@ export class EnumOption<TAccepts extends readonly string[]> extends Option<TAcce
   }
 
   clone() {
-    return new EnumOption(this.key, this.defaultValue, this.acceptedValues);
+    return new EnumOption(this.key, this.defaultValue, this.acceptedValues, this.value);
   }
 }
 
 export class RangeOption extends Option<number> {
-  constructor(key: string, defaultValue: number, readonly min: number, readonly max: number) {
-    super(key, defaultValue);
-    makeObservable<RangeOption, "value">(this, {value: observable});
+  constructor(
+    key: string,
+    defaultValue: number,
+    readonly min: number,
+    readonly max: number,
+    value: number = defaultValue
+  ) {
+    super(key, defaultValue, value);
+    makeObservable<RangeOption, "value">(this, { value: observable });
   }
 
   setValue(value: Parameter<ParameterType> | number): HandleResult {
@@ -168,7 +175,6 @@ export class RangeOption extends Option<number> {
   }
 
   clone() {
-    return new RangeOption(this.key, this.defaultValue, this.min, this.max);
+    return new RangeOption(this.key, this.defaultValue, this.min, this.max, this.value);
   }
 }
-
