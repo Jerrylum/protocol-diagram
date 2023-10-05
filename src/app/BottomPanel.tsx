@@ -10,6 +10,7 @@ import { LogPanel } from "./LogPanel";
 
 export class BottomPanelController {
   private _mapping: ParameterAndInputSpecMapping | null = null;
+  private _selected: string | null = null;
   private _inputElement: HTMLInputElement | null = null;
 
   get mapping() {
@@ -18,6 +19,8 @@ export class BottomPanelController {
 
   set mapping(mapping: ParameterAndInputSpecMapping | null) {
     this._mapping = mapping;
+    if (this.selected === null || this.autoCompletionValues.includes(this.selected) === false)
+      this.selected = this.autoCompletionValues[0] ?? null;
   }
 
   get inputElement() {
@@ -26,6 +29,14 @@ export class BottomPanelController {
 
   set inputElement(inputElement: HTMLInputElement | null) {
     this._inputElement = inputElement;
+  }
+
+  get selected() {
+    return this._selected;
+  }
+
+  set selected(selected: string | null) {
+    this._selected = selected && this.autoCompletionValues.includes(selected) ? selected : null;
   }
 
   get autoCompletionValues(): string[] {

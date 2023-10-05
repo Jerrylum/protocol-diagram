@@ -113,7 +113,7 @@ export const AcceptedValue = observer((props: { value: string; current: string; 
     <Box
       sx={{
         padding: "0 4px",
-        backgroundColor: props.selected ? "rgba(0, 0, 0, 0.12)" : "transparent"
+        backgroundColor: props.selected ? "rgb(25 118 210 / 60%)" : "transparent"
       }}>
       {head !== "" && (
         <Typography
@@ -173,14 +173,14 @@ export const InputHintsPopup = observer((props: { controller: BottomPanelControl
         <Box
           sx={{
             bottom: "calc(100% - 8px)",
-            maxHeight: "120px",
-            overflowY: "auto",
+            // maxHeight: "120px",
+            // overflowY: "auto",
             minWidth: "100px",
             border: "1px solid rgba(0, 0, 0, 0.23)",
             borderBottom: "none"
           }}>
           {autoCompletionValues.map((val, i) => (
-            <AcceptedValue key={i} value={val} current={currentParamValue} selected={false} />
+            <AcceptedValue key={i} value={val} current={currentParamValue} selected={controller.selected === val} />
           ))}
         </Box>
       ) : null}
