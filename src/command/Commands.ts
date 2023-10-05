@@ -117,7 +117,7 @@ export abstract class CancellableCommand extends Command implements Cancellable 
   }
   readonly discriminator = "DiagramModifier";
 
-  execute(): void {}
+  abstract execute(): void;
 }
 
 /**
@@ -347,7 +347,7 @@ export function mapCommandParameterWithInputSpec(
     }
   }
 
-  if (curr != null) {
+  if (curr !== null) {
     const endIndex = params.length > 0 ? params[params.length - 1].endIndex : -1;
     result.push({ startIndex: endIndex + 1, endIndex: endIndex + 1, param: null, spec: curr });
   }
@@ -380,7 +380,7 @@ export function buildInputSpecByUsages(usages: UsageSpec[]): InputSpec<Parameter
   return head;
 }
 
-class OptionSpec implements InputSpec<typeof StringT> {
+export class OptionSpec implements InputSpec<typeof StringT> {
   constructor(private readonly _options: ReadonlyArray<CommandOption>) {}
 
   readonly name = "key";
@@ -464,7 +464,7 @@ export function buildInputSpecByAppDiagramOptions(): InputSpec<typeof StringT> |
   return new AppDiagramOptionSpec();
 }
 
-class CommandLineSpec implements InputSpec<typeof StringT> {
+export class CommandLineSpec implements InputSpec<typeof StringT> {
   constructor(readonly commands: ReadonlyArray<Command>) {}
 
   readonly name = "command";

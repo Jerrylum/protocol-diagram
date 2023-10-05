@@ -43,7 +43,7 @@ export const HelpModal = observer(() => {
           overflowY: "auto"
         }}>
         {allCommands.map(cmd => (
-          <CommandUsage cmd={cmd} />
+          <CommandUsage cmd={cmd} key={cmd.name} />
         ))}
       </Card>
     </Modal>
