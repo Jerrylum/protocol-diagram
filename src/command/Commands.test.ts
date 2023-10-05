@@ -1,10 +1,13 @@
-import { BooleanT, CommandLine, CommandParameter, NumberT, ParameterType, StringT } from "../token/Tokens";
+import { BooleanT, CommandLine, CommandParameter, NumberT, Parameter, ParameterType, StringT } from "../token/Tokens";
 import {
   AddCommand,
+  Command,
+  CommandLineSpec,
   ConfigCommand,
   HelpCommand,
   RedoCommand,
   UndoCommand,
+  buildInputSpecByCommands,
   buildInputSpecByUsages,
   checkCommandParameters,
   mapCommandParameterWithInputSpec
@@ -12,7 +15,6 @@ import {
 import { cpb } from "../token/Tokens.test";
 import { getRootStore } from "../core/Root";
 import { HandleResult, success, fail } from "./HandleResult";
-import exp from "constants";
 
 let { app } = getRootStore();
 
@@ -289,4 +291,36 @@ test("mapCommandParameterWithInputSpec", () => {
   expect(map6.length).toBe(1);
   expect(map6[0].spec).toBe(inspec!);
   expect(map6[0].param).toBe(null);
+});
+
+class mockCommand extends Command {
+  handle(params: Parameter<ParameterType>[]): HandleResult {
+    return success("test");
+  }
+}
+
+test("CommandLineSpec", () => {
+  const mc = new mockCommand(
+    "test",
+    buildInputSpecByUsages([
+      {
+        name: "length",
+        paramType: NumberT,
+        description: "the length of the field",
+        check: param => {
+          return success("");
+        }
+      }
+    ]),
+    "test description"
+  );
+  const cspec = buildInputSpecByCommands([mc]) as CommandLineSpec;
+  let hr = cspec!.check!(Parameter.parse(cpb("error")) as Parameter<StringT>);
+  expect(hr.success).toBe(false);
+  expect(cspec?.next).toBe(null);
+  expect(cspec?.acceptedValues).toStrictEqual([mc.name]);
+  hr = cspec!.check!(Parameter.parse(cpb("test")) as Parameter<StringT>);
+  expect(hr.success).toBe(true);
+  expect(cspec?.next).toBe(mc.usage);
+  expect(cspec?.acceptedValues).toStrictEqual([mc.name]);
 });

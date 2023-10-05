@@ -116,7 +116,7 @@ export abstract class CancellableCommand extends Command implements Cancellable 
   }
   readonly discriminator = "DiagramModifier";
 
-  abstract execute(): void
+  abstract execute(): void;
 }
 
 /**
@@ -329,7 +329,7 @@ export function buildInputSpecByUsages(usages: UsageSpec[]): InputSpec<Parameter
   return head;
 }
 
-class OptionSpec implements InputSpec<typeof StringT> {
+export class OptionSpec implements InputSpec<typeof StringT> {
   constructor(readonly options: ReadonlyArray<CommandOption>) {}
 
   readonly name = "key";
@@ -393,7 +393,7 @@ export function buildInputSpecByOptions(options: ReadonlyArray<CommandOption>): 
   return new OptionSpec(options);
 }
 
-class CommandLineSpec implements InputSpec<typeof StringT> {
+export class CommandLineSpec implements InputSpec<typeof StringT> {
   constructor(readonly commands: ReadonlyArray<Command>) {}
 
   readonly name = "command";
