@@ -25,7 +25,7 @@ import {
 } from "./Tokens";
 
 export function cpb(s: string, index: number = 0): CodePointBuffer {
-  const rtn = new CodePointBuffer(s);;
+  const rtn = new CodePointBuffer(s);
   (rtn as any).index = index;
   return rtn;
 }
@@ -317,14 +317,14 @@ test("StringT valid case", () => {
   expect(new StringT("test")).toStrictEqual(StringT.parse(cpb("test"))); // test
   expect(new StringT("")).toStrictEqual(StringT.parse(cpb(" "))); // empty
   expect(new StringT("test")).toStrictEqual(StringT.parse(cpb("test test"))); // test
-  expect(new StringT("test")).toStrictEqual(StringT.parse(cpb("'test'"))); // 'test'
-  expect(new StringT("test")).toStrictEqual(StringT.parse(cpb('"test"'))); // "test"
-  expect(new StringT("\\")).toStrictEqual(StringT.parse(cpb("'\\\\'"))); // '\\'
-  expect(new StringT("'")).toStrictEqual(StringT.parse(cpb("'\\''"))); // '\''
-  expect(new StringT("\\")).toStrictEqual(StringT.parse(cpb('"\\\\"'))); // "\\"
-  expect(new StringT('"')).toStrictEqual(StringT.parse(cpb("'\\\"'"))); // '\"'
-  expect(new StringT("\\test")).toStrictEqual(StringT.parse(cpb("'\\\\test'"))); // '\\test'
-  expect(new StringT("\\test")).toStrictEqual(StringT.parse(cpb('"\\\\test"'))); // "\\test"
+  expect(new StringT("'test'", "test")).toStrictEqual(StringT.parse(cpb("'test'"))); // 'test'
+  expect(new StringT('"test"', "test")).toStrictEqual(StringT.parse(cpb('"test"'))); // "test"
+  expect(new StringT("'\\\\'", "\\")).toStrictEqual(StringT.parse(cpb("'\\\\'"))); // '\\'
+  expect(new StringT("'\\''", "'")).toStrictEqual(StringT.parse(cpb("'\\''"))); // '\''
+  expect(new StringT('"\\\\"', "\\")).toStrictEqual(StringT.parse(cpb('"\\\\"'))); // "\\"
+  expect(new StringT("'\\\"'", '"')).toStrictEqual(StringT.parse(cpb("'\\\"'"))); // '\"'
+  expect(new StringT("'\\\\test'", "\\test")).toStrictEqual(StringT.parse(cpb("'\\\\test'"))); // '\\test'
+  expect(new StringT('"\\\\test"', "\\test")).toStrictEqual(StringT.parse(cpb('"\\\\test"'))); // "\\test"
 });
 
 test("StringT invalid case", () => {
@@ -445,10 +445,10 @@ test("CommandLine Valid", () => {
   params.push(new CommandParameter(new StringT("value1"), 7, 13));
   expect(CommandLine.parse(cpb("target value1"))!.params).toStrictEqual(params);
   // params.push(CommandParameter.parse(cpb("'value2'"))!);
-  params.push(new CommandParameter(new StringT("value2"), 14, 22));
+  params.push(new CommandParameter(new StringT("'value2'", "value2"), 14, 22));
   expect(CommandLine.parse(cpb("target value1 'value2'"))!.params).toStrictEqual(params);
   // params.push(CommandParameter.parse(cpb('"value3"'))!);
-  params.push(new CommandParameter(new StringT("value3"), 23, 31));
+  params.push(new CommandParameter(new StringT('"value3"', "value3"), 23, 31));
   expect(CommandLine.parse(cpb("target value1 'value2' \"value3\""))!.params).toStrictEqual(params);
   // params.push(CommandParameter.parse(cpb("True"))!);
   params.push(new CommandParameter(new BooleanT("True", true), 32, 36));
@@ -482,13 +482,13 @@ test("CommandLine Null", () => {
 });
 
 test("Read Safe Chunk", () => {
-  expect(cpb("target").readSafeChunk()).toStrictEqual(("target"));
-  expect(cpb("target ").readSafeChunk()).toStrictEqual(("target"));
-  expect(cpb(" target ").readSafeChunk()).toStrictEqual((""));
-  expect(cpb("target:").readSafeChunk()).toStrictEqual(("target"));
-  expect(cpb(":target").readSafeChunk()).toStrictEqual((""));
-  expect(cpb("target,").readSafeChunk()).toStrictEqual(("target"));
-  expect(cpb(",target").readSafeChunk()).toStrictEqual((""));
+  expect(cpb("target").readSafeChunk()).toStrictEqual("target");
+  expect(cpb("target ").readSafeChunk()).toStrictEqual("target");
+  expect(cpb(" target ").readSafeChunk()).toStrictEqual("");
+  expect(cpb("target:").readSafeChunk()).toStrictEqual("target");
+  expect(cpb(":target").readSafeChunk()).toStrictEqual("");
+  expect(cpb("target,").readSafeChunk()).toStrictEqual("target");
+  expect(cpb(",target").readSafeChunk()).toStrictEqual("");
 });
 
 test("Token", () => {
