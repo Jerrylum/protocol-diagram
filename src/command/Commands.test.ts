@@ -9,6 +9,7 @@ import {
   RedoCommand,
   UndoCommand,
   buildInputSpecByCommands,
+  buildInputSpecByOptions,
   buildInputSpecByUsages,
   checkCommandParameters,
   mapCommandParameterWithInputSpec
@@ -295,14 +296,14 @@ test("mapCommandParameterWithInputSpec", () => {
   expect(map6[0].param).toBe(null);
 });
 
-class mockCommand extends Command {
+class MockCommand extends Command {
   handle(params: Parameter<ParameterType>[]): HandleResult {
     return success("test");
   }
 }
 
 test("CommandLineSpec", () => {
-  const mc = new mockCommand(
+  const mc = new MockCommand(
     "test",
     buildInputSpecByUsages([
       {
@@ -331,7 +332,7 @@ test("OptionSpec", () => {
   const eo = new EnumOption("EO", "test1", ["test1", "test2", "test3"]);
   const bo = new BooleanOption("BO", false);
   const ro = new RangeOption("RO", 1, 1, 10);
-  const os = new OptionSpec([eo, bo, ro]);
+  const os = buildInputSpecByOptions([eo, bo, ro]) as OptionSpec;
 
   let hr = os.check!(Parameter.parse(cpb("test")) as Parameter<StringT>);
   expect(hr.success).toBe(false);

@@ -43,14 +43,6 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
     const mappingList = mapCommandParameterWithInputSpec(list.params, spec);
     const mapping = mappingList.find(m => m.startIndex <= caretPos && caretPos <= m.endIndex);
     controller.mapping = mapping ?? null;
-
-    if (mapping === undefined) {
-      console.log("no mapping");
-    } else if (mapping.spec === null) {
-      console.log("no spec");
-    } else {
-      console.log(mapping.spec);
-    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -61,6 +53,8 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
     const allCommands = Command.getAvailableCommands();
 
     if (e.key === "Enter") {
+      e.preventDefault();
+
       if (line == null) {
         logger.error('Usage: <command> [arguments]\nPlease type "help" for more information.');
         input.value = "";
@@ -93,6 +87,53 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
       }
       logger.error('Unknown command "' + line.name + '". Please type "help" for more information.');
       input.value = "";
+      return;
+    }
+    if (e.key === "Tab") {
+      const selected = controller.selected;
+      const mapping = controller.mapping;
+
+      if (selected !== null && mapping !== null) {
+        e.preventDefault();
+
+        const head = inputValue.slice(0, mapping.startIndex);
+        const tail = inputValue.slice(mapping.endIndex);
+        const updatedCaretPos = mapping.startIndex + selected.length + 1;
+        const updateInputValue = head + selected + tail + (tail === "" ? " " : "");
+
+        input.value = updateInputValue;
+        input.selectionStart = updatedCaretPos;
+        input.selectionEnd = updatedCaretPos;
+      }
+
+      return;
+    }
+    if (e.key === "ArrowUp") {
+      const selected = controller.selected;
+      const autoCompletionValues = controller.autoCompletionValues;
+
+      if (selected !== null && autoCompletionValues.length > 0) {
+        e.preventDefault();
+
+        const selectedIndex = autoCompletionValues.indexOf(selected);
+        const nextIndex = selectedIndex === 0 ? autoCompletionValues.length - 1 : selectedIndex - 1;
+
+        controller.selected = autoCompletionValues[nextIndex];
+      }
+      return;
+    }
+    if (e.key === "ArrowDown") {
+      const selected = controller.selected;
+      const autoCompletionValues = controller.autoCompletionValues;
+
+      if (selected !== null && autoCompletionValues.length > 0) {
+        e.preventDefault();
+
+        const selectedIndex = autoCompletionValues.indexOf(selected);
+        const nextIndex = selectedIndex === autoCompletionValues.length - 1 ? 0 : selectedIndex + 1;
+
+        controller.selected = autoCompletionValues[nextIndex];
+      }
       return;
     }
     if (e.key === "Escape") {
