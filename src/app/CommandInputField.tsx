@@ -18,33 +18,6 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
   const { app, logger } = getRootStore();
   const controller = props.controller;
 
-  const getCaretPosition = (inputOrTextField: HTMLInputElement | HTMLTextAreaElement): number | null => {
-    const start = inputOrTextField.selectionStart;
-    const end = inputOrTextField.selectionEnd;
-
-    return start !== end ? null : start;
-  };
-
-  const handleSpecUpdate = (inputValue: string, caretPos: number | null) => {
-    if (caretPos === null) {
-      controller.mapping = null;
-      return;
-    }
-
-    const buffer: CodePointBuffer = new CodePointBuffer(inputValue);
-    const list: CommandParameterList | null = CommandParameterList.parse(buffer);
-    const allCommands = Command.getAvailableCommands();
-
-    if (list == null) {
-      controller.mapping = null;
-      return;
-    }
-    const spec = buildInputSpecByCommands(allCommands)!;
-    const mappingList = mapCommandParameterWithInputSpec(list.params, spec);
-    const mapping = mappingList.find(m => m.startIndex <= caretPos && caretPos <= m.endIndex);
-    controller.mapping = mapping ?? null;
-  };
-
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const input = e.target as HTMLInputElement;
     const inputValue = input.value;
@@ -91,19 +64,8 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
     }
     if (e.key === "Tab") {
       const selected = controller.selected;
-      const mapping = controller.mapping;
-
-      if (selected !== null && mapping !== null) {
+      if (selected && controller.insertAutoCompletionValue(selected)) {
         e.preventDefault();
-
-        const head = inputValue.slice(0, mapping.startIndex);
-        const tail = inputValue.slice(mapping.endIndex);
-        const updatedCaretPos = mapping.startIndex + selected.length + 1;
-        const updateInputValue = head + selected + tail + (tail === "" ? " " : "");
-
-        input.value = updateInputValue;
-        input.selectionStart = updatedCaretPos;
-        input.selectionEnd = updatedCaretPos;
       }
 
       return;
@@ -144,7 +106,7 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
     //   return;
     // }
 
-    handleSpecUpdate(input.value, getCaretPosition(input));
+    controller.updateMapping();
   };
 
   // const handleKeyUp = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -161,7 +123,8 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
     const input = e.target as HTMLInputElement;
 
     // UX: Do not show the popup if the text field is empty.
-    handleSpecUpdate(input.value, input.value === "" ? null : getCaretPosition(input));
+    if (input.value === "") controller.mapping = null;
+    else controller.updateMapping();
   };
 
   return (
@@ -185,3 +148,4 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
     />
   );
 });
+
