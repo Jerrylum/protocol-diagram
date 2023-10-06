@@ -184,6 +184,8 @@ export const InputHintsPopup = observer((props: { controller: BottomPanelControl
 
   return (
     <Box
+      onMouseDown={() => (controller.isFocusedPopup = true)}
+      onMouseUp={() => (controller.isFocusedPopup = false)}
       sx={{
         position: "absolute",
         left: caretOffset + "px",

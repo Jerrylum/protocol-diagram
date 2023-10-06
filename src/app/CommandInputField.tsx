@@ -127,6 +127,10 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
     else controller.updateMapping();
   };
 
+  const handleOnBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    if (!controller.isFocusedPopup) controller.mapping = null;
+  };
+
   return (
     <TextField
       fullWidth
@@ -141,7 +145,8 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
         onPaste: handleTextFieldCaretChange,
         onCut: handleTextFieldCaretChange,
         // onMouseMove: handleTextFieldCaretChange,
-        onSelect: handleTextFieldCaretChange
+        onSelect: handleTextFieldCaretChange,
+        onBlur: handleOnBlur
       }}
       inputRef={ref => (controller.inputElement = ref)}
       spellCheck={false}

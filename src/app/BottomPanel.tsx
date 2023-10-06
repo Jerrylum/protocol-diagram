@@ -18,6 +18,7 @@ export class BottomPanelController {
   private _mapping: ParameterAndInputSpecMapping | null = null;
   private _selected: string | null = null;
   private _inputElement: HTMLInputElement | null = null;
+  private _isFocusedPopup: boolean = false;
 
   get mapping() {
     return this._mapping;
@@ -43,6 +44,14 @@ export class BottomPanelController {
 
   set selected(selected: string | null) {
     this._selected = selected && this.autoCompletionValues.includes(selected) ? selected : null;
+  }
+
+  get isFocusedPopup() {
+    return this._isFocusedPopup;
+  }
+
+  set isFocusedPopup(isFocusedPopup: boolean) {
+    this._isFocusedPopup = isFocusedPopup;
   }
 
   get autoCompletionValues(): string[] {
