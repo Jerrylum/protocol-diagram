@@ -1,3 +1,5 @@
+import { makeAutoObservable } from "mobx";
+
 export class Field {
   static uidCount: number = 0;
 
@@ -9,6 +11,7 @@ export class Field {
     this.name = name;
     this.length = length;
     this.uid = uid ?? Field.uidCount++;
+    makeAutoObservable(this);
   }
 
   equals(obj: unknown): boolean {

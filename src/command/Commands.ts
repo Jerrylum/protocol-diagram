@@ -107,7 +107,8 @@ export abstract class Command {
       new HelpCommand(),
       new DeleteCommand(),
       new InsertCommand(),
-      new MoveCommand()
+      new MoveCommand(),
+      new RenameCommand()
     ];
   }
 
@@ -702,5 +703,63 @@ export class MoveCommand extends CancellableCommand {
   execute() {
     const { app } = getRootStore();
     app.diagram.moveField(this.paramIndex, this.paramTargetIndex);
+  }
+}
+
+/**
+ * this command responsible in renaming a specific field with a new name
+ */
+export class RenameCommand extends CancellableCommand {
+  /**
+   * the index of the affecting field
+   */
+  paramIndex!: number;
+  /**
+   * the new name will be applied after the execution
+   */
+  paramNewName!: string;
+
+  constructor() {
+    super(
+      "rename",
+      buildInputSpecByUsages([
+        {
+          name: "index",
+          paramType: NumberT,
+          description: "the index of the field",
+          check: param => {
+            if (param.isDouble()) return fail("Index must be a integer.");
+            if (param.getInt() < 0) return fail("Index must be a positive integer or zero.");
+            const { app } = getRootStore();
+            if (param.getInt() >= app.diagram.size()) return fail("Index out of range.");
+            return success("");
+          }
+        },
+        {
+          name: "new_name",
+          paramType: StringT,
+          description: "the new name of the field"
+        }
+      ]),
+      "Rename the specified field"
+    );
+  }
+
+  handle(params: Parameter<ParameterType>[]): HandleResult {
+    this.paramIndex = params[0].getInt();
+    this.paramNewName = params[1].getString();
+
+    const { app } = getRootStore();
+    const f = app.diagram.getField(this.paramIndex);
+    const oldName = f.name;
+
+    this.execute();
+
+    return success('Renamed field from "' + oldName + '" to "' + f.name + ".");
+  }
+
+  execute() {
+    const { app } = getRootStore();
+    app.diagram.getField(this.paramIndex).name = this.paramNewName;
   }
 }
