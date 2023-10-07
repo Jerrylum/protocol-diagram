@@ -105,7 +105,8 @@ export abstract class Command {
       new AddCommand(),
       new ConfigCommand(),
       new HelpCommand(),
-      new DeleteCommand()
+      new DeleteCommand(),
+      new InsertCommand()
     ];
   }
 
@@ -153,6 +154,7 @@ export class AddCommand extends CancellableCommand {
           paramType: NumberT,
           description: "the length of the field",
           check: param => {
+            if (param.isDouble()) return fail("Length must be a integer.");
             if (param.getInt() <= 0) return fail("Length must be a positive integer.");
             return success("");
           }
@@ -525,6 +527,7 @@ export class DeleteCommand extends CancellableCommand {
           paramType: NumberT,
           description: "the index of the field",
           check: param => {
+            if (param.isDouble()) return fail("Index must be a integer.");
             if (param.getInt() < 0) return fail("Index must be a positive integer or zero.");
             const { app } = getRootStore();
             if (param.getInt() >= app.diagram.size()) return fail("Index out of range.");
@@ -537,8 +540,7 @@ export class DeleteCommand extends CancellableCommand {
   }
 
   handle(params: Parameter<ParameterType>[]): HandleResult {
-    const paramIndex: Parameter<ParameterType> = params[0];
-    this.paramIndex = paramIndex.getInt();
+    this.paramIndex = params[0].getInt();
     const { app } = getRootStore();
     const f: Field = app.diagram.getField(this.paramIndex);
 
@@ -550,5 +552,82 @@ export class DeleteCommand extends CancellableCommand {
   execute() {
     const { app } = getRootStore();
     app.diagram.removeField(this.paramIndex);
+  }
+}
+
+/**
+ * this command responsible in adding new field in to the diagram with specified index
+ */
+export class InsertCommand extends CancellableCommand {
+  /**
+   * the index of position that will be injected the new field
+   */
+  paramIndex!: number;
+  /**
+   * the length of the to-be created field
+   */
+  paramLength!: number;
+  /**
+   * the name of the to-be created field
+   */
+  paramName!: string;
+
+  constructor() {
+    super(
+      "insert",
+      buildInputSpecByUsages([
+        {
+          name: "index",
+          paramType: NumberT,
+          description: "the index of the field",
+          check: param => {
+            if (param.isDouble()) return fail("Index must be a integer.");
+            if (param.getInt() < 0) return fail("Index must be a positive integer or zero.");
+            const { app } = getRootStore();
+            if (param.getInt() >= app.diagram.size()) return fail("Index out of range.");
+            return success("");
+          }
+        },
+        {
+          name: "length",
+          paramType: NumberT,
+          description: "the length of the field",
+          check: param => {
+            if (param.isDouble()) return fail("Length must be a integer.");
+            if (param.getInt() <= 0) return fail("Length must be a positive integer.");
+            return success("");
+          }
+        },
+        {
+          name: "name",
+          paramType: StringT,
+          description: "the name of the field"
+        }
+      ]),
+      "Insert a field at the given index"
+    );
+  }
+
+  handle(params: Parameter<ParameterType>[]): HandleResult {
+    this.paramIndex = params[0].getInt();
+    this.paramLength = params[1].getInt();
+    this.paramName = params[2].getString();
+
+    const { app } = getRootStore();
+
+    this.execute();
+
+    let msg: string;
+
+    if (this.paramIndex == 0) msg = 'Inserted field "' + this.paramName + '" to the beginning.';
+    else
+      msg = 'Inserted field "' + this.paramName + '" after "' + app.diagram.getField(this.paramIndex - 1).name + '".';
+
+    return success(msg);
+  }
+
+  execute() {
+    const { app } = getRootStore();
+    app.diagram.insertField(this.paramIndex, new Field(this.paramName, this.paramLength));
   }
 }
