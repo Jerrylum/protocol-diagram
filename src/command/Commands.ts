@@ -99,7 +99,14 @@ export abstract class Command {
   abstract handle(params: Parameter<ParameterType>[]): HandleResult;
 
   static getAvailableCommands(): Command[] {
-    return [new UndoCommand(), new RedoCommand(), new AddCommand(), new ConfigCommand(), new HelpCommand()];
+    return [
+      new UndoCommand(),
+      new RedoCommand(),
+      new AddCommand(),
+      new ConfigCommand(),
+      new HelpCommand(),
+      new DeleteCommand()
+    ];
   }
 
   getCommandUsage(): string {
@@ -498,4 +505,50 @@ export class CommandLineSpec implements InputSpec<typeof StringT> {
 
 export function buildInputSpecByCommands(commands: Command[]): InputSpec<typeof StringT> | null {
   return new CommandLineSpec(commands);
+}
+
+/**
+ * this command is responsible in deleting undesired field from the diagram by specified index
+ */
+export class DeleteCommand extends CancellableCommand {
+  /**
+   * the index of the position of the undesired field
+   */
+  paramIndex!: number;
+
+  public constructor() {
+    super(
+      "delete",
+      buildInputSpecByUsages([
+        {
+          name: "index",
+          paramType: NumberT,
+          description: "the index of the field",
+          check: param => {
+            if (param.getInt() < 0) return fail("Index must be a positive integer or zero.");
+            const { app } = getRootStore();
+            if (param.getInt() >= app.diagram.size()) return fail("Index out of range.");
+            return success("");
+          }
+        }
+      ]),
+      "Remove the specified field from the diagram"
+    );
+  }
+
+  handle(params: Parameter<ParameterType>[]): HandleResult {
+    const paramIndex: Parameter<ParameterType> = params[0];
+    this.paramIndex = paramIndex.getInt();
+    const { app } = getRootStore();
+    const f: Field = app.diagram.getField(this.paramIndex);
+
+    this.execute();
+
+    return success('Deleted field "' + f.name + ".");
+  }
+
+  execute() {
+    const { app } = getRootStore();
+    app.diagram.removeField(this.paramIndex);
+  }
 }
