@@ -109,7 +109,8 @@ export abstract class Command {
       new InsertCommand(),
       new MoveCommand(),
       new RenameCommand(),
-      new ResizeCommand()
+      new ResizeCommand(),
+      new ClearCommand()
     ];
   }
 
@@ -824,5 +825,25 @@ export class ResizeCommand extends CancellableCommand {
   execute() {
     const { app } = getRootStore();
     app.diagram.getField(this.paramIndex).length = this.paramNewSize;
+  }
+}
+
+/**
+ * this command is responsible for clearing the diagram fields
+ */
+export class ClearCommand extends CancellableCommand {
+  constructor() {
+    super("clear", null, "Remove all fields and start again");
+  }
+
+  handle(params: Parameter<ParameterType>[]): HandleResult {
+    this.execute();
+
+    return success("Removed all fields.");
+  }
+
+  execute() {
+    const { app } = getRootStore();
+    app.diagram.clear();
   }
 }
