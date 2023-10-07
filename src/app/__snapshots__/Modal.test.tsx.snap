@@ -81,6 +81,66 @@ exports[`Render HelpModal 2`] = `
         >
           Show help message
         </p>
+        <h5
+          class="MuiTypography-root MuiTypography-h5 MuiTypography-gutterBottom css-h93ljk-MuiTypography-root"
+        >
+          delete &lt;index&gt;
+        </h5>
+        <p
+          class="MuiTypography-root MuiTypography-body1 MuiTypography-gutterBottom css-d3wcwz-MuiTypography-root"
+        >
+          Remove the specified field from the diagram
+        </p>
+        <h5
+          class="MuiTypography-root MuiTypography-h5 MuiTypography-gutterBottom css-h93ljk-MuiTypography-root"
+        >
+          insert &lt;index&gt; &lt;length&gt; &lt;name&gt;
+        </h5>
+        <p
+          class="MuiTypography-root MuiTypography-body1 MuiTypography-gutterBottom css-d3wcwz-MuiTypography-root"
+        >
+          Insert a field at the given index
+        </p>
+        <h5
+          class="MuiTypography-root MuiTypography-h5 MuiTypography-gutterBottom css-h93ljk-MuiTypography-root"
+        >
+          move &lt;source_index&gt; &lt;destination_index&gt;
+        </h5>
+        <p
+          class="MuiTypography-root MuiTypography-body1 MuiTypography-gutterBottom css-d3wcwz-MuiTypography-root"
+        >
+          Move the specified field from one position to another
+        </p>
+        <h5
+          class="MuiTypography-root MuiTypography-h5 MuiTypography-gutterBottom css-h93ljk-MuiTypography-root"
+        >
+          rename &lt;index&gt; &lt;name&gt;
+        </h5>
+        <p
+          class="MuiTypography-root MuiTypography-body1 MuiTypography-gutterBottom css-d3wcwz-MuiTypography-root"
+        >
+          Rename the specified field
+        </p>
+        <h5
+          class="MuiTypography-root MuiTypography-h5 MuiTypography-gutterBottom css-h93ljk-MuiTypography-root"
+        >
+          resize &lt;index&gt; &lt;length&gt;
+        </h5>
+        <p
+          class="MuiTypography-root MuiTypography-body1 MuiTypography-gutterBottom css-d3wcwz-MuiTypography-root"
+        >
+          Resize the specified field
+        </p>
+        <h5
+          class="MuiTypography-root MuiTypography-h5 MuiTypography-gutterBottom css-h93ljk-MuiTypography-root"
+        >
+          clear
+        </h5>
+        <p
+          class="MuiTypography-root MuiTypography-body1 MuiTypography-gutterBottom css-d3wcwz-MuiTypography-root"
+        >
+          Remove all fields and start again
+        </p>
       </div>
       <div
         data-testid="sentinelEnd"
