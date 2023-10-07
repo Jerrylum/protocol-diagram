@@ -108,7 +108,8 @@ export abstract class Command {
       new DeleteCommand(),
       new InsertCommand(),
       new MoveCommand(),
-      new RenameCommand()
+      new RenameCommand(),
+      new ResizeCommand()
     ];
   }
 
@@ -761,5 +762,67 @@ export class RenameCommand extends CancellableCommand {
   execute() {
     const { app } = getRootStore();
     app.diagram.getField(this.paramIndex).name = this.paramNewName;
+  }
+}
+
+/**
+ * this command responsible in resizing a specific field with a new size
+ */
+export class ResizeCommand extends CancellableCommand {
+  /**
+   * the index of the affecting field
+   */
+  paramIndex!: number;
+  /**
+   * the new size will be applied after the execution
+   */
+  paramNewSize!: number;
+
+  constructor() {
+    super(
+      "resize",
+      buildInputSpecByUsages([
+        {
+          name: "index",
+          paramType: NumberT,
+          description: "the index of the field",
+          check: param => {
+            if (param.isDouble()) return fail("Index must be a integer.");
+            if (param.getInt() < 0) return fail("Index must be a positive integer or zero.");
+            const { app } = getRootStore();
+            if (param.getInt() >= app.diagram.size()) return fail("Index out of range.");
+            return success("");
+          }
+        },
+        {
+          name: "new_length",
+          paramType: NumberT,
+          description: "the new_length of the field",
+          check: param => {
+            if (param.isDouble()) return fail("Length must be a integer.");
+            if (param.getInt() <= 0) return fail("Length must be a positive integer.");
+            return success("");
+          }
+        }
+      ]),
+      "Resize the specified field"
+    );
+  }
+
+  handle(params: Parameter<ParameterType>[]): HandleResult {
+    this.paramIndex = params[0].getInt();
+    this.paramNewSize = params[1].getInt();
+    const { app } = getRootStore();
+    const f = app.diagram.getField(this.paramIndex);
+    const oldLength = f.length;
+
+    this.execute();
+
+    return success('Resized field "' + f.name + '" from ' + oldLength + " to " + f.length + ".");
+  }
+
+  execute() {
+    const { app } = getRootStore();
+    app.diagram.getField(this.paramIndex).length = this.paramNewSize;
   }
 }
