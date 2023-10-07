@@ -106,7 +106,8 @@ export abstract class Command {
       new ConfigCommand(),
       new HelpCommand(),
       new DeleteCommand(),
-      new InsertCommand()
+      new InsertCommand(),
+      new MoveCommand()
     ];
   }
 
@@ -619,7 +620,7 @@ export class InsertCommand extends CancellableCommand {
 
     let msg: string;
 
-    if (this.paramIndex == 0) msg = 'Inserted field "' + this.paramName + '" to the beginning.';
+    if (this.paramIndex === 0) msg = 'Inserted field "' + this.paramName + '" to the beginning.';
     else
       msg = 'Inserted field "' + this.paramName + '" after "' + app.diagram.getField(this.paramIndex - 1).name + '".';
 
@@ -629,5 +630,77 @@ export class InsertCommand extends CancellableCommand {
   execute() {
     const { app } = getRootStore();
     app.diagram.insertField(this.paramIndex, new Field(this.paramName, this.paramLength));
+  }
+}
+
+/**
+ * this command is responsible in rearrange the field from a specified index to an another specified index
+ */
+export class MoveCommand extends CancellableCommand {
+  /**
+   * the index of the to-be rearranged field
+   */
+  paramIndex!: number;
+  /**
+   * the new position of the field
+   */
+  paramTargetIndex!: number;
+
+  constructor() {
+    super(
+      "move",
+      buildInputSpecByUsages([
+        {
+          name: "source_index",
+          paramType: NumberT,
+          description: "the index of the source field",
+          check: param => {
+            if (param.isDouble()) return fail("Index must be a integer.");
+            if (param.getInt() < 0) return fail("Index must be a positive integer or zero.");
+            const { app } = getRootStore();
+            if (param.getInt() >= app.diagram.size()) return fail("Index out of range.");
+            return success("");
+          }
+        },
+        {
+          name: "destination_index",
+          paramType: NumberT,
+          description: "the index of the destination field",
+          check: param => {
+            if (param.isDouble()) return fail("Index must be a integer.");
+            if (param.getInt() < 0) return fail("Index must be a positive integer or zero.");
+            const { app } = getRootStore();
+            if (param.getInt() >= app.diagram.size()) return fail("Index out of range.");
+            return success("");
+          }
+        }
+      ]),
+      "Move the specified field from one position to another"
+    );
+  }
+
+  handle(params: Parameter<ParameterType>[]): HandleResult {
+    this.paramIndex = params[0].getInt();
+    this.paramTargetIndex = params[1].getInt();
+
+    const { app } = getRootStore();
+
+    if (this.paramIndex === this.paramTargetIndex) return fail("Index and target index cannot be the same.");
+
+    const f = app.diagram.getField(this.paramIndex);
+    let msg: string;
+
+    if (this.paramTargetIndex === 0) msg = 'Moved field "' + f.name + '" to the beginning.';
+    else if (this.paramTargetIndex === app.diagram.size() - 1) msg = 'Moved field "' + f.name + '" to the end.';
+    else msg = 'Moved field "' + f.name + '" after "' + app.diagram.getField(this.paramTargetIndex - 1).name + '".';
+
+    this.execute();
+
+    return success(msg);
+  }
+
+  execute() {
+    const { app } = getRootStore();
+    app.diagram.moveField(this.paramIndex, this.paramTargetIndex);
   }
 }
