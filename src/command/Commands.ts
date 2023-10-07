@@ -522,7 +522,7 @@ export class DeleteCommand extends CancellableCommand {
    */
   paramIndex!: number;
 
-  public constructor() {
+  constructor() {
     super(
       "delete",
       buildInputSpecByUsages([
@@ -658,8 +658,8 @@ export class MoveCommand extends CancellableCommand {
           paramType: NumberT,
           description: "the index of the source field",
           check: param => {
-            if (param.isDouble()) return fail("Index must be a integer.");
-            if (param.getInt() < 0) return fail("Index must be a positive integer or zero.");
+            if (param.isDouble()) return fail("Source index must be a integer.");
+            if (param.getInt() < 0) return fail("Source index must be a positive integer or zero.");
             const { app } = getRootStore();
             if (param.getInt() >= app.diagram.size()) return fail("Index out of range.");
             return success("");
@@ -670,8 +670,8 @@ export class MoveCommand extends CancellableCommand {
           paramType: NumberT,
           description: "the index of the destination field",
           check: param => {
-            if (param.isDouble()) return fail("Index must be a integer.");
-            if (param.getInt() < 0) return fail("Index must be a positive integer or zero.");
+            if (param.isDouble()) return fail("Destination index must be a integer.");
+            if (param.getInt() < 0) return fail("Destination index must be a positive integer or zero.");
             const { app } = getRootStore();
             if (param.getInt() >= app.diagram.size()) return fail("Index out of range.");
             return success("");
@@ -688,7 +688,7 @@ export class MoveCommand extends CancellableCommand {
 
     const { app } = getRootStore();
 
-    if (this.paramIndex === this.paramTargetIndex) return fail("Index and target index cannot be the same.");
+    if (this.paramIndex === this.paramTargetIndex) return fail("Source and Destination index cannot be the same.");
 
     const f = app.diagram.getField(this.paramIndex);
     let msg: string;
@@ -738,9 +738,9 @@ export class RenameCommand extends CancellableCommand {
           }
         },
         {
-          name: "new_name",
+          name: "name",
           paramType: StringT,
-          description: "the new name of the field"
+          description: "the name of the field"
         }
       ]),
       "Rename the specified field"
@@ -757,7 +757,7 @@ export class RenameCommand extends CancellableCommand {
 
     this.execute();
 
-    return success('Renamed field from "' + oldName + '" to "' + f.name + ".");
+    return success('Renamed field from "' + oldName + '" to "' + f.name + '".');
   }
 
   execute() {
@@ -796,9 +796,9 @@ export class ResizeCommand extends CancellableCommand {
           }
         },
         {
-          name: "new_length",
+          name: "length",
           paramType: NumberT,
-          description: "the new_length of the field",
+          description: "the length of the field",
           check: param => {
             if (param.isDouble()) return fail("Length must be a integer.");
             if (param.getInt() <= 0) return fail("Length must be a positive integer.");
