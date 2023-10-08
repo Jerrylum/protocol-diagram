@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import { makeAutoObservable } from "mobx";
 
 export class Field {

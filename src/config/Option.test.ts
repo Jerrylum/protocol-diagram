@@ -1,5 +1,7 @@
+import { validate } from "class-validator";
 import { CodePointBuffer, Parameter } from "../token/Tokens";
 import { BooleanOption, EnumOption, RangeOption } from "./Option";
+import { instanceToPlain, plainToClass } from "class-transformer";
 
 test("BooleanOption getter", () => {
   const option = new BooleanOption("test", true);
@@ -180,3 +182,35 @@ test("RangeOption parameter setter", () => {
   expect(result8.message).toBe("The value must be an integer.");
 });
 
+test("BooleanOption Validation", async () => {
+  const bo = new BooleanOption("test", true);
+  expect(bo.getValue()).toBe(true);
+  expect(bo.key).toBe("test");
+  expect(bo.defaultValue).toBe(true);
+
+  expect(await validate(bo)).toHaveLength(0);
+
+  const p = instanceToPlain(bo);
+  const bo2 = plainToClass(BooleanOption, p, { excludeExtraneousValues: true, exposeDefaultValues: true });
+
+  expect(await validate(bo2)).toHaveLength(0);
+  expect(bo2).toStrictEqual(bo);
+
+  (bo as any).key = 123;
+  expect(await validate(bo)).toHaveLength(1);
+
+  (bo as any).key = "";
+  expect(await validate(bo)).toHaveLength(1);
+
+  (bo as any).defaultValue = 123;
+  expect(await validate(bo)).toHaveLength(2);
+
+  (bo as any).defaultValue = "123";
+  expect(await validate(bo)).toHaveLength(2);
+
+  (bo as any).value = 123;
+  expect(await validate(bo)).toHaveLength(3);
+
+  (bo as any).value = "123";
+  expect(await validate(bo)).toHaveLength(3);
+});

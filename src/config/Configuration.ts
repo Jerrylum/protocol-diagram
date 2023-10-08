@@ -1,13 +1,29 @@
 import { makeAutoObservable } from "mobx";
 import { HandleResult, fail } from "../command/HandleResult";
 import { Parameter, ParameterType } from "../token/Tokens";
-import { Option, OptionType } from "./Option";
+import { EnumOption, Option, OptionType, RangeOption, BooleanOption } from "./Option";
+import { Expose, Type } from "class-transformer";
+import { ValidateNested, IsArray } from "class-validator";
 
 /**
  * Manages a list of available options, provides API for other classes to get
  * the value of a option, the list of options, set the value of a option
  */
 export class Configuration {
+  @ValidateNested()
+  @IsArray()
+  @Expose()
+  @Type(() => Option, {
+    discriminator: {
+      property: "__type",
+      subTypes: [
+        { value: EnumOption, name: "enum-option" },
+        { value: RangeOption, name: "range-option" },
+        { value: BooleanOption, name: "boolean-option" }
+      ]
+    },
+    keepDiscriminatorProperty: true
+  })
   readonly options: ReadonlyArray<Option<OptionType>>;
 
   constructor(...options: Option<OptionType>[]) {
