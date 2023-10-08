@@ -470,9 +470,9 @@ test("MoveCommand handle fail", () => {
   app.diagram.clear();
   const mc = new MoveCommand();
   const ac = new AddCommand();
-  expect(mc.handleLine(CommandLine.parse(cpb("move 0 1"))!)).toStrictEqual(fail("Index out of range."));
+  expect(mc.handleLine(CommandLine.parse(cpb("move 0 1"))!)).toStrictEqual(fail("Source index out of range."));
   ac.handleLine(CommandLine.parse(cpb("add 1 test1"))!);
-  expect(mc.handleLine(CommandLine.parse(cpb("move 0 1"))!)).toStrictEqual(fail("Index out of range."));
+  expect(mc.handleLine(CommandLine.parse(cpb("move 0 1"))!)).toStrictEqual(fail("Destination index out of range."));
   ac.handleLine(CommandLine.parse(cpb("add 2 test2"))!);
   expect(mc.handleLine(CommandLine.parse(cpb("move"))!)).toStrictEqual(HandleResult.TOO_FEW_ARGUMENTS);
   expect(mc.handleLine(CommandLine.parse(cpb("move 0"))!)).toStrictEqual(HandleResult.TOO_FEW_ARGUMENTS);

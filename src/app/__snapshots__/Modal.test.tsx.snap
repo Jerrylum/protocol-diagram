@@ -34,32 +34,22 @@ exports[`Render HelpModal 2`] = `
         <h5
           class="MuiTypography-root MuiTypography-h5 MuiTypography-gutterBottom css-h93ljk-MuiTypography-root"
         >
-          undo
-        </h5>
-        <p
-          class="MuiTypography-root MuiTypography-body1 MuiTypography-gutterBottom css-d3wcwz-MuiTypography-root"
-        >
-          Undo the last action
-        </p>
-        <h5
-          class="MuiTypography-root MuiTypography-h5 MuiTypography-gutterBottom css-h93ljk-MuiTypography-root"
-        >
-          redo
-        </h5>
-        <p
-          class="MuiTypography-root MuiTypography-body1 MuiTypography-gutterBottom css-d3wcwz-MuiTypography-root"
-        >
-          Redo the last action
-        </p>
-        <h5
-          class="MuiTypography-root MuiTypography-h5 MuiTypography-gutterBottom css-h93ljk-MuiTypography-root"
-        >
           add &lt;length&gt; &lt;name&gt;
         </h5>
         <p
           class="MuiTypography-root MuiTypography-body1 MuiTypography-gutterBottom css-d3wcwz-MuiTypography-root"
         >
           Add a field to the end of the diagram
+        </p>
+        <h5
+          class="MuiTypography-root MuiTypography-h5 MuiTypography-gutterBottom css-h93ljk-MuiTypography-root"
+        >
+          clear
+        </h5>
+        <p
+          class="MuiTypography-root MuiTypography-body1 MuiTypography-gutterBottom css-d3wcwz-MuiTypography-root"
+        >
+          Remove all fields and start again
         </p>
         <h5
           class="MuiTypography-root MuiTypography-h5 MuiTypography-gutterBottom css-h93ljk-MuiTypography-root"
@@ -74,22 +64,22 @@ exports[`Render HelpModal 2`] = `
         <h5
           class="MuiTypography-root MuiTypography-h5 MuiTypography-gutterBottom css-h93ljk-MuiTypography-root"
         >
-          help
-        </h5>
-        <p
-          class="MuiTypography-root MuiTypography-body1 MuiTypography-gutterBottom css-d3wcwz-MuiTypography-root"
-        >
-          Show help message
-        </p>
-        <h5
-          class="MuiTypography-root MuiTypography-h5 MuiTypography-gutterBottom css-h93ljk-MuiTypography-root"
-        >
           delete &lt;index&gt;
         </h5>
         <p
           class="MuiTypography-root MuiTypography-body1 MuiTypography-gutterBottom css-d3wcwz-MuiTypography-root"
         >
           Remove the specified field from the diagram
+        </p>
+        <h5
+          class="MuiTypography-root MuiTypography-h5 MuiTypography-gutterBottom css-h93ljk-MuiTypography-root"
+        >
+          help
+        </h5>
+        <p
+          class="MuiTypography-root MuiTypography-body1 MuiTypography-gutterBottom css-d3wcwz-MuiTypography-root"
+        >
+          Show help message
         </p>
         <h5
           class="MuiTypography-root MuiTypography-h5 MuiTypography-gutterBottom css-h93ljk-MuiTypography-root"
@@ -114,6 +104,16 @@ exports[`Render HelpModal 2`] = `
         <h5
           class="MuiTypography-root MuiTypography-h5 MuiTypography-gutterBottom css-h93ljk-MuiTypography-root"
         >
+          redo
+        </h5>
+        <p
+          class="MuiTypography-root MuiTypography-body1 MuiTypography-gutterBottom css-d3wcwz-MuiTypography-root"
+        >
+          Redo the last action
+        </p>
+        <h5
+          class="MuiTypography-root MuiTypography-h5 MuiTypography-gutterBottom css-h93ljk-MuiTypography-root"
+        >
           rename &lt;index&gt; &lt;name&gt;
         </h5>
         <p
@@ -134,12 +134,12 @@ exports[`Render HelpModal 2`] = `
         <h5
           class="MuiTypography-root MuiTypography-h5 MuiTypography-gutterBottom css-h93ljk-MuiTypography-root"
         >
-          clear
+          undo
         </h5>
         <p
           class="MuiTypography-root MuiTypography-body1 MuiTypography-gutterBottom css-d3wcwz-MuiTypography-root"
         >
-          Remove all fields and start again
+          Undo the last action
         </p>
       </div>
       <div

@@ -100,17 +100,17 @@ export abstract class Command {
 
   static getAvailableCommands(): Command[] {
     return [
-      new UndoCommand(),
-      new RedoCommand(),
       new AddCommand(),
+      new ClearCommand(),
       new ConfigCommand(),
-      new HelpCommand(),
       new DeleteCommand(),
+      new HelpCommand(),
       new InsertCommand(),
       new MoveCommand(),
+      new RedoCommand(),
       new RenameCommand(),
       new ResizeCommand(),
-      new ClearCommand()
+      new UndoCommand()
     ];
   }
 
@@ -254,6 +254,341 @@ export class ConfigCommand extends Command implements DiagramModifier {
 
   getCommandUsage(): string {
     return this.name + " <key> <value>";
+  }
+}
+
+/**
+ * this command is responsible in deleting undesired field from the diagram by specified index
+ */
+export class DeleteCommand extends CancellableCommand {
+  /**
+   * the index of the position of the undesired field
+   */
+  paramIndex!: number;
+
+  constructor() {
+    super(
+      "delete",
+      buildInputSpecByUsages([
+        {
+          name: "index",
+          paramType: NumberT,
+          description: "the index of the field",
+          check: param => {
+            if (param.isDouble()) return fail("Index must be a integer.");
+            if (param.getInt() < 0) return fail("Index must be a positive integer or zero.");
+            const { app } = getRootStore();
+            if (param.getInt() >= app.diagram.size()) return fail("Index out of range.");
+            return success("");
+          }
+        }
+      ]),
+      "Remove the specified field from the diagram"
+    );
+  }
+
+  handle(params: Parameter<ParameterType>[]): HandleResult {
+    this.paramIndex = params[0].getInt();
+    const { app } = getRootStore();
+    const f: Field = app.diagram.getField(this.paramIndex);
+
+    this.execute();
+
+    return success('Deleted field "' + f.name + ".");
+  }
+
+  execute() {
+    const { app } = getRootStore();
+    app.diagram.removeField(this.paramIndex);
+  }
+}
+
+/**
+ * this command responsible in adding new field in to the diagram with specified index
+ */
+export class InsertCommand extends CancellableCommand {
+  /**
+   * the index of position that will be injected the new field
+   */
+  paramIndex!: number;
+  /**
+   * the length of the to-be created field
+   */
+  paramLength!: number;
+  /**
+   * the name of the to-be created field
+   */
+  paramName!: string;
+
+  constructor() {
+    super(
+      "insert",
+      buildInputSpecByUsages([
+        {
+          name: "index",
+          paramType: NumberT,
+          description: "the index of the field",
+          check: param => {
+            if (param.isDouble()) return fail("Index must be a integer.");
+            if (param.getInt() < 0) return fail("Index must be a positive integer or zero.");
+            const { app } = getRootStore();
+            if (param.getInt() >= app.diagram.size()) return fail("Index out of range.");
+            return success("");
+          }
+        },
+        {
+          name: "length",
+          paramType: NumberT,
+          description: "the length of the field",
+          check: param => {
+            if (param.isDouble()) return fail("Length must be a integer.");
+            if (param.getInt() <= 0) return fail("Length must be a positive integer.");
+            return success("");
+          }
+        },
+        {
+          name: "name",
+          paramType: StringT,
+          description: "the name of the field"
+        }
+      ]),
+      "Insert a field at the given index"
+    );
+  }
+
+  handle(params: Parameter<ParameterType>[]): HandleResult {
+    this.paramIndex = params[0].getInt();
+    this.paramLength = params[1].getInt();
+    this.paramName = params[2].getString();
+
+    const { app } = getRootStore();
+
+    this.execute();
+
+    let msg: string;
+
+    if (this.paramIndex === 0) msg = 'Inserted field "' + this.paramName + '" to the beginning.';
+    else
+      msg = 'Inserted field "' + this.paramName + '" after "' + app.diagram.getField(this.paramIndex - 1).name + '".';
+
+    return success(msg);
+  }
+
+  execute() {
+    const { app } = getRootStore();
+    app.diagram.insertField(this.paramIndex, new Field(this.paramName, this.paramLength));
+  }
+}
+
+/**
+ * this command is responsible in rearrange the field from a specified index to an another specified index
+ */
+export class MoveCommand extends CancellableCommand {
+  /**
+   * the index of the to-be rearranged field
+   */
+  paramIndex!: number;
+  /**
+   * the new position of the field
+   */
+  paramTargetIndex!: number;
+
+  constructor() {
+    super(
+      "move",
+      buildInputSpecByUsages([
+        {
+          name: "source_index",
+          paramType: NumberT,
+          description: "the index of the source field",
+          check: param => {
+            if (param.isDouble()) return fail("Source index must be a integer.");
+            if (param.getInt() < 0) return fail("Source index must be a positive integer or zero.");
+            const { app } = getRootStore();
+            if (param.getInt() >= app.diagram.size()) return fail("Source index out of range.");
+            return success("");
+          }
+        },
+        {
+          name: "destination_index",
+          paramType: NumberT,
+          description: "the index of the destination field",
+          check: param => {
+            if (param.isDouble()) return fail("Destination index must be a integer.");
+            if (param.getInt() < 0) return fail("Destination index must be a positive integer or zero.");
+            const { app } = getRootStore();
+            if (param.getInt() >= app.diagram.size()) return fail("Destination index out of range.");
+            return success("");
+          }
+        }
+      ]),
+      "Move the specified field from one position to another"
+    );
+  }
+
+  handle(params: Parameter<ParameterType>[]): HandleResult {
+    this.paramIndex = params[0].getInt();
+    this.paramTargetIndex = params[1].getInt();
+
+    const { app } = getRootStore();
+
+    if (this.paramIndex === this.paramTargetIndex) return fail("Source and Destination index cannot be the same.");
+
+    const f = app.diagram.getField(this.paramIndex);
+    let msg: string;
+
+    if (this.paramTargetIndex === 0) msg = 'Moved field "' + f.name + '" to the beginning.';
+    else if (this.paramTargetIndex === app.diagram.size() - 1) msg = 'Moved field "' + f.name + '" to the end.';
+    else msg = 'Moved field "' + f.name + '" after "' + app.diagram.getField(this.paramTargetIndex - 1).name + '".';
+
+    this.execute();
+
+    return success(msg);
+  }
+
+  execute() {
+    const { app } = getRootStore();
+    app.diagram.moveField(this.paramIndex, this.paramTargetIndex);
+  }
+}
+
+/**
+ * this command responsible in renaming a specific field with a new name
+ */
+export class RenameCommand extends CancellableCommand {
+  /**
+   * the index of the affecting field
+   */
+  paramIndex!: number;
+  /**
+   * the new name will be applied after the execution
+   */
+  paramNewName!: string;
+
+  constructor() {
+    super(
+      "rename",
+      buildInputSpecByUsages([
+        {
+          name: "index",
+          paramType: NumberT,
+          description: "the index of the field",
+          check: param => {
+            if (param.isDouble()) return fail("Index must be a integer.");
+            if (param.getInt() < 0) return fail("Index must be a positive integer or zero.");
+            const { app } = getRootStore();
+            if (param.getInt() >= app.diagram.size()) return fail("Index out of range.");
+            return success("");
+          }
+        },
+        {
+          name: "name",
+          paramType: StringT,
+          description: "the name of the field"
+        }
+      ]),
+      "Rename the specified field"
+    );
+  }
+
+  handle(params: Parameter<ParameterType>[]): HandleResult {
+    this.paramIndex = params[0].getInt();
+    this.paramNewName = params[1].getString();
+
+    const { app } = getRootStore();
+    const f = app.diagram.getField(this.paramIndex);
+    const oldName = f.name;
+
+    this.execute();
+
+    return success('Renamed field from "' + oldName + '" to "' + f.name + '".');
+  }
+
+  execute() {
+    const { app } = getRootStore();
+    app.diagram.getField(this.paramIndex).name = this.paramNewName;
+  }
+}
+
+/**
+ * this command responsible in resizing a specific field with a new size
+ */
+export class ResizeCommand extends CancellableCommand {
+  /**
+   * the index of the affecting field
+   */
+  paramIndex!: number;
+  /**
+   * the new size will be applied after the execution
+   */
+  paramNewSize!: number;
+
+  constructor() {
+    super(
+      "resize",
+      buildInputSpecByUsages([
+        {
+          name: "index",
+          paramType: NumberT,
+          description: "the index of the field",
+          check: param => {
+            if (param.isDouble()) return fail("Index must be a integer.");
+            if (param.getInt() < 0) return fail("Index must be a positive integer or zero.");
+            const { app } = getRootStore();
+            if (param.getInt() >= app.diagram.size()) return fail("Index out of range.");
+            return success("");
+          }
+        },
+        {
+          name: "length",
+          paramType: NumberT,
+          description: "the length of the field",
+          check: param => {
+            if (param.isDouble()) return fail("Length must be a integer.");
+            if (param.getInt() <= 0) return fail("Length must be a positive integer.");
+            return success("");
+          }
+        }
+      ]),
+      "Resize the specified field"
+    );
+  }
+
+  handle(params: Parameter<ParameterType>[]): HandleResult {
+    this.paramIndex = params[0].getInt();
+    this.paramNewSize = params[1].getInt();
+    const { app } = getRootStore();
+    const f = app.diagram.getField(this.paramIndex);
+    const oldLength = f.length;
+
+    this.execute();
+
+    return success('Resized field "' + f.name + '" from ' + oldLength + " to " + f.length + ".");
+  }
+
+  execute() {
+    const { app } = getRootStore();
+    app.diagram.getField(this.paramIndex).length = this.paramNewSize;
+  }
+}
+
+/**
+ * this command is responsible for clearing the diagram fields
+ */
+export class ClearCommand extends CancellableCommand {
+  constructor() {
+    super("clear", null, "Remove all fields and start again");
+  }
+
+  handle(params: Parameter<ParameterType>[]): HandleResult {
+    this.execute();
+
+    return success("Removed all fields.");
+  }
+
+  execute() {
+    const { app } = getRootStore();
+    app.diagram.clear();
   }
 }
 
@@ -511,339 +846,4 @@ export class CommandLineSpec implements InputSpec<typeof StringT> {
 
 export function buildInputSpecByCommands(commands: Command[]): InputSpec<typeof StringT> | null {
   return new CommandLineSpec(commands);
-}
-
-/**
- * this command is responsible in deleting undesired field from the diagram by specified index
- */
-export class DeleteCommand extends CancellableCommand {
-  /**
-   * the index of the position of the undesired field
-   */
-  paramIndex!: number;
-
-  constructor() {
-    super(
-      "delete",
-      buildInputSpecByUsages([
-        {
-          name: "index",
-          paramType: NumberT,
-          description: "the index of the field",
-          check: param => {
-            if (param.isDouble()) return fail("Index must be a integer.");
-            if (param.getInt() < 0) return fail("Index must be a positive integer or zero.");
-            const { app } = getRootStore();
-            if (param.getInt() >= app.diagram.size()) return fail("Index out of range.");
-            return success("");
-          }
-        }
-      ]),
-      "Remove the specified field from the diagram"
-    );
-  }
-
-  handle(params: Parameter<ParameterType>[]): HandleResult {
-    this.paramIndex = params[0].getInt();
-    const { app } = getRootStore();
-    const f: Field = app.diagram.getField(this.paramIndex);
-
-    this.execute();
-
-    return success('Deleted field "' + f.name + ".");
-  }
-
-  execute() {
-    const { app } = getRootStore();
-    app.diagram.removeField(this.paramIndex);
-  }
-}
-
-/**
- * this command responsible in adding new field in to the diagram with specified index
- */
-export class InsertCommand extends CancellableCommand {
-  /**
-   * the index of position that will be injected the new field
-   */
-  paramIndex!: number;
-  /**
-   * the length of the to-be created field
-   */
-  paramLength!: number;
-  /**
-   * the name of the to-be created field
-   */
-  paramName!: string;
-
-  constructor() {
-    super(
-      "insert",
-      buildInputSpecByUsages([
-        {
-          name: "index",
-          paramType: NumberT,
-          description: "the index of the field",
-          check: param => {
-            if (param.isDouble()) return fail("Index must be a integer.");
-            if (param.getInt() < 0) return fail("Index must be a positive integer or zero.");
-            const { app } = getRootStore();
-            if (param.getInt() >= app.diagram.size()) return fail("Index out of range.");
-            return success("");
-          }
-        },
-        {
-          name: "length",
-          paramType: NumberT,
-          description: "the length of the field",
-          check: param => {
-            if (param.isDouble()) return fail("Length must be a integer.");
-            if (param.getInt() <= 0) return fail("Length must be a positive integer.");
-            return success("");
-          }
-        },
-        {
-          name: "name",
-          paramType: StringT,
-          description: "the name of the field"
-        }
-      ]),
-      "Insert a field at the given index"
-    );
-  }
-
-  handle(params: Parameter<ParameterType>[]): HandleResult {
-    this.paramIndex = params[0].getInt();
-    this.paramLength = params[1].getInt();
-    this.paramName = params[2].getString();
-
-    const { app } = getRootStore();
-
-    this.execute();
-
-    let msg: string;
-
-    if (this.paramIndex === 0) msg = 'Inserted field "' + this.paramName + '" to the beginning.';
-    else
-      msg = 'Inserted field "' + this.paramName + '" after "' + app.diagram.getField(this.paramIndex - 1).name + '".';
-
-    return success(msg);
-  }
-
-  execute() {
-    const { app } = getRootStore();
-    app.diagram.insertField(this.paramIndex, new Field(this.paramName, this.paramLength));
-  }
-}
-
-/**
- * this command is responsible in rearrange the field from a specified index to an another specified index
- */
-export class MoveCommand extends CancellableCommand {
-  /**
-   * the index of the to-be rearranged field
-   */
-  paramIndex!: number;
-  /**
-   * the new position of the field
-   */
-  paramTargetIndex!: number;
-
-  constructor() {
-    super(
-      "move",
-      buildInputSpecByUsages([
-        {
-          name: "source_index",
-          paramType: NumberT,
-          description: "the index of the source field",
-          check: param => {
-            if (param.isDouble()) return fail("Source index must be a integer.");
-            if (param.getInt() < 0) return fail("Source index must be a positive integer or zero.");
-            const { app } = getRootStore();
-            if (param.getInt() >= app.diagram.size()) return fail("Index out of range.");
-            return success("");
-          }
-        },
-        {
-          name: "destination_index",
-          paramType: NumberT,
-          description: "the index of the destination field",
-          check: param => {
-            if (param.isDouble()) return fail("Destination index must be a integer.");
-            if (param.getInt() < 0) return fail("Destination index must be a positive integer or zero.");
-            const { app } = getRootStore();
-            if (param.getInt() >= app.diagram.size()) return fail("Index out of range.");
-            return success("");
-          }
-        }
-      ]),
-      "Move the specified field from one position to another"
-    );
-  }
-
-  handle(params: Parameter<ParameterType>[]): HandleResult {
-    this.paramIndex = params[0].getInt();
-    this.paramTargetIndex = params[1].getInt();
-
-    const { app } = getRootStore();
-
-    if (this.paramIndex === this.paramTargetIndex) return fail("Source and Destination index cannot be the same.");
-
-    const f = app.diagram.getField(this.paramIndex);
-    let msg: string;
-
-    if (this.paramTargetIndex === 0) msg = 'Moved field "' + f.name + '" to the beginning.';
-    else if (this.paramTargetIndex === app.diagram.size() - 1) msg = 'Moved field "' + f.name + '" to the end.';
-    else msg = 'Moved field "' + f.name + '" after "' + app.diagram.getField(this.paramTargetIndex - 1).name + '".';
-
-    this.execute();
-
-    return success(msg);
-  }
-
-  execute() {
-    const { app } = getRootStore();
-    app.diagram.moveField(this.paramIndex, this.paramTargetIndex);
-  }
-}
-
-/**
- * this command responsible in renaming a specific field with a new name
- */
-export class RenameCommand extends CancellableCommand {
-  /**
-   * the index of the affecting field
-   */
-  paramIndex!: number;
-  /**
-   * the new name will be applied after the execution
-   */
-  paramNewName!: string;
-
-  constructor() {
-    super(
-      "rename",
-      buildInputSpecByUsages([
-        {
-          name: "index",
-          paramType: NumberT,
-          description: "the index of the field",
-          check: param => {
-            if (param.isDouble()) return fail("Index must be a integer.");
-            if (param.getInt() < 0) return fail("Index must be a positive integer or zero.");
-            const { app } = getRootStore();
-            if (param.getInt() >= app.diagram.size()) return fail("Index out of range.");
-            return success("");
-          }
-        },
-        {
-          name: "name",
-          paramType: StringT,
-          description: "the name of the field"
-        }
-      ]),
-      "Rename the specified field"
-    );
-  }
-
-  handle(params: Parameter<ParameterType>[]): HandleResult {
-    this.paramIndex = params[0].getInt();
-    this.paramNewName = params[1].getString();
-
-    const { app } = getRootStore();
-    const f = app.diagram.getField(this.paramIndex);
-    const oldName = f.name;
-
-    this.execute();
-
-    return success('Renamed field from "' + oldName + '" to "' + f.name + '".');
-  }
-
-  execute() {
-    const { app } = getRootStore();
-    app.diagram.getField(this.paramIndex).name = this.paramNewName;
-  }
-}
-
-/**
- * this command responsible in resizing a specific field with a new size
- */
-export class ResizeCommand extends CancellableCommand {
-  /**
-   * the index of the affecting field
-   */
-  paramIndex!: number;
-  /**
-   * the new size will be applied after the execution
-   */
-  paramNewSize!: number;
-
-  constructor() {
-    super(
-      "resize",
-      buildInputSpecByUsages([
-        {
-          name: "index",
-          paramType: NumberT,
-          description: "the index of the field",
-          check: param => {
-            if (param.isDouble()) return fail("Index must be a integer.");
-            if (param.getInt() < 0) return fail("Index must be a positive integer or zero.");
-            const { app } = getRootStore();
-            if (param.getInt() >= app.diagram.size()) return fail("Index out of range.");
-            return success("");
-          }
-        },
-        {
-          name: "length",
-          paramType: NumberT,
-          description: "the length of the field",
-          check: param => {
-            if (param.isDouble()) return fail("Length must be a integer.");
-            if (param.getInt() <= 0) return fail("Length must be a positive integer.");
-            return success("");
-          }
-        }
-      ]),
-      "Resize the specified field"
-    );
-  }
-
-  handle(params: Parameter<ParameterType>[]): HandleResult {
-    this.paramIndex = params[0].getInt();
-    this.paramNewSize = params[1].getInt();
-    const { app } = getRootStore();
-    const f = app.diagram.getField(this.paramIndex);
-    const oldLength = f.length;
-
-    this.execute();
-
-    return success('Resized field "' + f.name + '" from ' + oldLength + " to " + f.length + ".");
-  }
-
-  execute() {
-    const { app } = getRootStore();
-    app.diagram.getField(this.paramIndex).length = this.paramNewSize;
-  }
-}
-
-/**
- * this command is responsible for clearing the diagram fields
- */
-export class ClearCommand extends CancellableCommand {
-  constructor() {
-    super("clear", null, "Remove all fields and start again");
-  }
-
-  handle(params: Parameter<ParameterType>[]): HandleResult {
-    this.execute();
-
-    return success("Removed all fields.");
-  }
-
-  execute() {
-    const { app } = getRootStore();
-    app.diagram.clear();
-  }
 }
