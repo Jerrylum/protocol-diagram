@@ -20,7 +20,9 @@ import {
   Parameter,
   CommandLine,
   ParameterType,
-  Token
+  Token,
+  CommandParameter,
+  CommandParameterList
 } from "./Tokens";
 
 export function cpb(s: string): CodePointBuffer {
@@ -314,14 +316,14 @@ test("StringT valid case", () => {
   expect(new StringT("test")).toStrictEqual(StringT.parse(cpb("test"))); // test
   expect(new StringT("")).toStrictEqual(StringT.parse(cpb(" "))); // empty
   expect(new StringT("test")).toStrictEqual(StringT.parse(cpb("test test"))); // test
-  expect(new StringT("test")).toStrictEqual(StringT.parse(cpb("'test'"))); // 'test'
-  expect(new StringT("test")).toStrictEqual(StringT.parse(cpb('"test"'))); // "test"
-  expect(new StringT("\\")).toStrictEqual(StringT.parse(cpb("'\\\\'"))); // '\\'
-  expect(new StringT("'")).toStrictEqual(StringT.parse(cpb("'\\''"))); // '\''
-  expect(new StringT("\\")).toStrictEqual(StringT.parse(cpb('"\\\\"'))); // "\\"
-  expect(new StringT('"')).toStrictEqual(StringT.parse(cpb("'\\\"'"))); // '\"'
-  expect(new StringT("\\test")).toStrictEqual(StringT.parse(cpb("'\\\\test'"))); // '\\test'
-  expect(new StringT("\\test")).toStrictEqual(StringT.parse(cpb('"\\\\test"'))); // "\\test"
+  expect(new StringT("'test'", "test")).toStrictEqual(StringT.parse(cpb("'test'"))); // 'test'
+  expect(new StringT('"test"', "test")).toStrictEqual(StringT.parse(cpb('"test"'))); // "test"
+  expect(new StringT("'\\\\'", "\\")).toStrictEqual(StringT.parse(cpb("'\\\\'"))); // '\\'
+  expect(new StringT("'\\''", "'")).toStrictEqual(StringT.parse(cpb("'\\''"))); // '\''
+  expect(new StringT('"\\\\"', "\\")).toStrictEqual(StringT.parse(cpb('"\\\\"'))); // "\\"
+  expect(new StringT("'\\\"'", '"')).toStrictEqual(StringT.parse(cpb("'\\\"'"))); // '\"'
+  expect(new StringT("'\\\\test'", "\\test")).toStrictEqual(StringT.parse(cpb("'\\\\test'"))); // '\\test'
+  expect(new StringT('"\\\\test"', "\\test")).toStrictEqual(StringT.parse(cpb('"\\\\test"'))); // "\\test"
 });
 
 test("StringT invalid case", () => {
@@ -351,12 +353,16 @@ test("Zero invalid case", () => {
 test("Parameter Valid", () => {
   expect(Parameter.parse(cpb("True"))?.getBoolean()).toBe(true);
   expect(Parameter.parse(cpb("False"))?.getBoolean()).toBe(false);
+  expect(Parameter.parse(cpb("test"))?.getBoolean()).toBe(false);
+  expect(Parameter.parse(cpb("0"))?.getBoolean()).toBe(false);
   expect(Parameter.parse(cpb("123"))?.getInt()).toBe(123);
   expect(Parameter.parse(cpb("123.456"))?.getDouble()).toBe(123.456);
   expect(Parameter.parse(cpb("0"))?.getInt()).toBe(0);
   expect(Parameter.parse(cpb("0.0"))?.getDouble()).toBe(0.0);
   expect(Parameter.parse(cpb("-14"))?.getInt()).toBe(-14);
   expect(Parameter.parse(cpb("-14.0"))?.getDouble()).toBe(-14.0);
+  expect(Parameter.parse(cpb("test"))?.getInt()).toBe(0);
+  expect(Parameter.parse(cpb("test"))?.getDouble()).toBe(0);
   expect(Parameter.parse(cpb('"14"'))?.getString()).toBe("14");
   expect(Parameter.parse(cpb('"14.0"'))?.getString()).toBe("14.0");
   expect(Parameter.parse(cpb('"-14"'))?.getString()).toBe("-14");
@@ -365,6 +371,8 @@ test("Parameter Valid", () => {
   expect(Parameter.parse(cpb("'14.0'"))?.getString()).toBe("14.0");
   expect(Parameter.parse(cpb("'-14'"))?.getString()).toBe("-14");
   expect(Parameter.parse(cpb("'-14.0'"))?.getString()).toBe("-14.0");
+  expect(Parameter.parse(cpb("-14"))?.getString()).toBe("");
+  expect(Parameter.parse(cpb("-14.0"))?.getString()).toBe("");
   expect(Parameter.parse(cpb("3.14h"))?.toString()).toBe("3.14h");
 });
 
@@ -432,33 +440,119 @@ test("Parameter Methods", () => {
   expect(p4.toString()).toBe("Hello");
 });
 
+test("CommandParameter Valid", () => {
+  expect(CommandParameter.parse(cpb("True"))?.getBoolean()).toBe(true);
+  expect(CommandParameter.parse(cpb("False"))?.getBoolean()).toBe(false);
+  expect(CommandParameter.parse(cpb("test"))?.getBoolean()).toBe(false);
+  expect(CommandParameter.parse(cpb("0"))?.getBoolean()).toBe(false);
+  expect(CommandParameter.parse(cpb("123"))?.getInt()).toBe(123);
+  expect(CommandParameter.parse(cpb("123.456"))?.getDouble()).toBe(123.456);
+  expect(CommandParameter.parse(cpb("0"))?.getInt()).toBe(0);
+  expect(CommandParameter.parse(cpb("0.0"))?.getDouble()).toBe(0.0);
+  expect(CommandParameter.parse(cpb("-14"))?.getInt()).toBe(-14);
+  expect(CommandParameter.parse(cpb("-14.0"))?.getDouble()).toBe(-14.0);
+  expect(CommandParameter.parse(cpb("test"))?.getInt()).toBe(0);
+  expect(CommandParameter.parse(cpb("test"))?.getDouble()).toBe(0);
+  expect(CommandParameter.parse(cpb('"14"'))?.getString()).toBe("14");
+  expect(CommandParameter.parse(cpb('"14.0"'))?.getString()).toBe("14.0");
+  expect(CommandParameter.parse(cpb('"-14"'))?.getString()).toBe("-14");
+  expect(CommandParameter.parse(cpb('"-14.0"'))?.getString()).toBe("-14.0");
+  expect(CommandParameter.parse(cpb("'14'"))?.getString()).toBe("14");
+  expect(CommandParameter.parse(cpb("'14.0'"))?.getString()).toBe("14.0");
+  expect(CommandParameter.parse(cpb("'-14'"))?.getString()).toBe("-14");
+  expect(CommandParameter.parse(cpb("'-14.0'"))?.getString()).toBe("-14.0");
+  expect(CommandParameter.parse(cpb("-14"))?.getString()).toBe("");
+  expect(CommandParameter.parse(cpb("-14.0"))?.getString()).toBe("");
+  expect(CommandParameter.parse(cpb("3.14h"))?.toString()).toBe("3.14h");
+});
+
+test("CommandParameterList Valid", () => {
+  expect(CommandParameterList.parse(cpb(" "))!.params.length).toBe(0);
+
+  let params: CommandParameter<ParameterType>[] = [];
+  expect(CommandParameterList.parse(cpb("target"))!.params.length).toBe(1);
+  expect(CommandParameterList.parse(cpb("target "))!.params.length).toBe(1);
+  expect(CommandParameterList.parse(cpb("  target   "))!.params.length).toBe(1);
+
+  params.push(new CommandParameter(new StringT("target"), 0, 6));
+  expect(CommandParameterList.parse(cpb("target"))!.params).toStrictEqual(params);
+
+  params.push(new CommandParameter(new StringT("value1"), 7, 13));
+  expect(CommandParameterList.parse(cpb("target value1"))!.params).toStrictEqual(params);
+
+  params.push(new CommandParameter(new StringT("'value2'", "value2"), 14, 22));
+  expect(CommandParameterList.parse(cpb("target value1 'value2'"))!.params).toStrictEqual(params);
+
+  params.push(new CommandParameter(new StringT('"value3"', "value3"), 23, 31));
+  expect(CommandParameterList.parse(cpb("target value1 'value2' \"value3\""))!.params).toStrictEqual(params);
+  // params.push(CommandParameter.parse(cpb("True"))!);
+  params.push(new CommandParameter(new BooleanT("True", true), 32, 36));
+  expect(CommandParameterList.parse(cpb("target value1 'value2' \"value3\" True"))!.params).toStrictEqual(params);
+  // params.push(CommandParameter.parse(cpb("False"))!);
+  params.push(new CommandParameter(new BooleanT("False", false), 37, 42));
+  expect(CommandParameterList.parse(cpb("target value1 'value2' \"value3\" True False"))!.params).toStrictEqual(params);
+  // params.push(CommandParameter.parse(cpb("123"))!);
+  params.push(new CommandParameter(new NumberT("123", true, false), 43, 46));
+  expect(CommandParameterList.parse(cpb("target value1 'value2' \"value3\" True False 123"))!.params).toStrictEqual(
+    params
+  );
+  // params.push(CommandParameter.parse(cpb("123.456"))!);
+  params.push(new CommandParameter(new NumberT("123.456", true, true), 47, 54));
+  expect(
+    CommandParameterList.parse(cpb("target value1 'value2' \"value3\" True False 123 123.456"))!.params
+  ).toStrictEqual(params);
+  // params.push(CommandParameter.parse(cpb("-123.456"))!);
+  params.push(new CommandParameter(new NumberT("-123.456", false, true), 55, 63));
+  expect(
+    CommandParameterList.parse(cpb("target value1 'value2' \"value3\" True False 123 123.456 -123.456"))!.params
+  ).toStrictEqual(params);
+  // params.push(CommandParameter.parse(cpb("-123"))!);
+  params.push(new CommandParameter(new NumberT("-123", false, false), 64, 68));
+  expect(
+    CommandParameterList.parse(cpb("target value1 'value2' \"value3\" True False 123 123.456 -123.456 -123"))!.params
+  ).toStrictEqual(params);
+});
+
+test("CommandParameterList Null", () => {
+  expect(CommandParameterList.parse(cpb("target '"))).toBeNull();
+});
+
 test("CommandLine Valid", () => {
-  let params: Parameter<ParameterType>[] = [];
+  let params: CommandParameter<ParameterType>[] = [];
   expect(CommandLine.parse(cpb("target"))!.name).toBe("target");
   expect(CommandLine.parse(cpb("target "))!.name).toBe("target");
   expect(CommandLine.parse(cpb("  target   "))!.name).toBe("target");
   expect(CommandLine.parse(cpb("target"))!.params).toStrictEqual(params);
-  params.push(Parameter.parse(cpb("value1"))!);
+  // params.push(CommandParameter.parse(cpb("value1", 6))!);
+  params.push(new CommandParameter(new StringT("value1"), 7, 13));
   expect(CommandLine.parse(cpb("target value1"))!.params).toStrictEqual(params);
-  params.push(Parameter.parse(cpb("'value2'"))!);
+  // params.push(CommandParameter.parse(cpb("'value2'"))!);
+  params.push(new CommandParameter(new StringT("'value2'", "value2"), 14, 22));
   expect(CommandLine.parse(cpb("target value1 'value2'"))!.params).toStrictEqual(params);
-  params.push(Parameter.parse(cpb('"value3"'))!);
+  // params.push(CommandParameter.parse(cpb('"value3"'))!);
+  params.push(new CommandParameter(new StringT('"value3"', "value3"), 23, 31));
   expect(CommandLine.parse(cpb("target value1 'value2' \"value3\""))!.params).toStrictEqual(params);
-  params.push(Parameter.parse(cpb("True"))!);
+  // params.push(CommandParameter.parse(cpb("True"))!);
+  params.push(new CommandParameter(new BooleanT("True", true), 32, 36));
   expect(CommandLine.parse(cpb("target value1 'value2' \"value3\" True"))!.params).toStrictEqual(params);
-  params.push(Parameter.parse(cpb("False"))!);
+  // params.push(CommandParameter.parse(cpb("False"))!);
+  params.push(new CommandParameter(new BooleanT("False", false), 37, 42));
   expect(CommandLine.parse(cpb("target value1 'value2' \"value3\" True False"))!.params).toStrictEqual(params);
-  params.push(Parameter.parse(cpb("123"))!);
+  // params.push(CommandParameter.parse(cpb("123"))!);
+  params.push(new CommandParameter(new NumberT("123", true, false), 43, 46));
   expect(CommandLine.parse(cpb("target value1 'value2' \"value3\" True False 123"))!.params).toStrictEqual(params);
-  params.push(Parameter.parse(cpb("123.456"))!);
+  // params.push(CommandParameter.parse(cpb("123.456"))!);
+  params.push(new CommandParameter(new NumberT("123.456", true, true), 47, 54));
   expect(CommandLine.parse(cpb("target value1 'value2' \"value3\" True False 123 123.456"))!.params).toStrictEqual(
     params
   );
-  params.push(Parameter.parse(cpb("-123.456"))!);
+  // params.push(CommandParameter.parse(cpb("-123.456"))!);
+  params.push(new CommandParameter(new NumberT("-123.456", false, true), 55, 63));
   expect(
     CommandLine.parse(cpb("target value1 'value2' \"value3\" True False 123 123.456 -123.456"))!.params
   ).toStrictEqual(params);
-  params.push(Parameter.parse(cpb("-123"))!);
+  // params.push(CommandParameter.parse(cpb("-123"))!);
+  params.push(new CommandParameter(new NumberT("-123", false, false), 64, 68));
   expect(
     CommandLine.parse(cpb("target value1 'value2' \"value3\" True False 123 123.456 -123.456 -123"))!.params
   ).toStrictEqual(params);
@@ -470,13 +564,13 @@ test("CommandLine Null", () => {
 });
 
 test("Read Safe Chunk", () => {
-  expect(cpb("target").readSafeChunk()).toStrictEqual(("target"));
-  expect(cpb("target ").readSafeChunk()).toStrictEqual(("target"));
-  expect(cpb(" target ").readSafeChunk()).toStrictEqual((""));
-  expect(cpb("target:").readSafeChunk()).toStrictEqual(("target"));
-  expect(cpb(":target").readSafeChunk()).toStrictEqual((""));
-  expect(cpb("target,").readSafeChunk()).toStrictEqual(("target"));
-  expect(cpb(",target").readSafeChunk()).toStrictEqual((""));
+  expect(cpb("target").readSafeChunk()).toStrictEqual("target");
+  expect(cpb("target ").readSafeChunk()).toStrictEqual("target");
+  expect(cpb(" target ").readSafeChunk()).toStrictEqual("");
+  expect(cpb("target:").readSafeChunk()).toStrictEqual("target");
+  expect(cpb(":target").readSafeChunk()).toStrictEqual("");
+  expect(cpb("target,").readSafeChunk()).toStrictEqual("target");
+  expect(cpb(",target").readSafeChunk()).toStrictEqual("");
 });
 
 test("Token", () => {

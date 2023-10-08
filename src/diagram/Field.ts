@@ -5,7 +5,7 @@ export class Field {
   public length: number;
   public uid: number;
 
-  constructor (name: string, length: number, uid?: number) {
+  constructor(name: string, length: number, uid?: number) {
     this.name = name;
     this.length = length;
     this.uid = uid ?? Field.uidCount++;
@@ -14,7 +14,7 @@ export class Field {
   equals(obj: unknown): boolean {
     // Especially for the uid comparison, ignore name and length
     if (obj instanceof Field) {
-      return obj.uid == this.uid;
+      return obj.uid === this.uid;
     }
 
     return false;
