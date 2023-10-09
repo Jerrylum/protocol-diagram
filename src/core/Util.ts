@@ -1,5 +1,9 @@
 import { Vector } from "./Vector";
 
+export async function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 export const IS_MAC_OS = isMacOS(navigator.userAgent);
 
 export function isMacOS(userAgent: string): boolean {
