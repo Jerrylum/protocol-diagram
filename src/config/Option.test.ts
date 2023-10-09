@@ -1,6 +1,6 @@
 import { validate } from "class-validator";
 import { CodePointBuffer, Parameter } from "../token/Tokens";
-import { BooleanOption, EnumOption, RangeOption } from "./Option";
+import { BooleanOption, EnumOption, IsInArrayConstraint, IsMaxConstraint, IsMinConstraint, IsWithinRangeConstraint, RangeOption } from "./Option";
 import { instanceToPlain, plainToClass } from "class-transformer";
 
 test("BooleanOption getter", () => {
@@ -213,4 +213,133 @@ test("BooleanOption Validation", async () => {
 
   (bo as any).value = "123";
   expect(await validate(bo)).toHaveLength(3);
+});
+
+test("EnumOption Validation", async () => {
+  const eo = new EnumOption("test", "a", ["a", "b", "c"] as const);
+  expect(eo.getValue()).toBe("a");
+  expect(eo.key).toBe("test");
+  expect(eo.defaultValue).toBe("a");
+
+  expect(await validate(eo)).toHaveLength(0);
+
+  const p = instanceToPlain(eo);
+  const eo2 = plainToClass(EnumOption, p, { excludeExtraneousValues: true, exposeDefaultValues: true });
+
+  expect(await validate(eo2)).toHaveLength(0);
+
+  (eo as any).key = 123;
+  expect(await validate(eo)).toHaveLength(1);
+
+  (eo as any).key = "";
+  expect(await validate(eo)).toHaveLength(1);
+
+  (eo as any).defaultValue = 123;
+  expect(await validate(eo)).toHaveLength(2);
+
+  (eo as any).defaultValue = "123";
+  expect(await validate(eo)).toHaveLength(2);
+
+  (eo as any).value = 123;
+  expect(await validate(eo)).toHaveLength(3);
+
+  (eo as any).value = "123";
+  expect(await validate(eo)).toHaveLength(3);
+
+  (eo as any).value = "b";
+  expect(await validate(eo)).toHaveLength(2);
+
+  (eo as any).acceptedValues = "b";
+  expect(await validate(eo)).toHaveLength(4);
+
+  (eo as any).acceptedValues = [];
+  expect(await validate(eo)).toHaveLength(4);
+
+  (eo as any).acceptedValues = [123];
+  expect(await validate(eo)).toHaveLength(4);
+
+  (eo as any).acceptedValues = ["test"];
+  expect(await validate(eo)).toHaveLength(3);
+});
+
+test("RangeOption Validation", async () => {
+  const ro = new RangeOption("test", 1, 0, 10);
+  expect(ro.getValue()).toBe(1);
+  expect(ro.key).toBe("test");
+  expect(ro.defaultValue).toBe(1);
+
+  expect(await validate(ro)).toHaveLength(0);
+
+  const p = instanceToPlain(ro);
+  const ro2 = plainToClass(RangeOption, p);
+
+  expect(await validate(ro2)).toHaveLength(0);
+
+  (ro as any).key = 123;
+  expect(await validate(ro)).toHaveLength(1);
+
+  (ro as any).key = "";
+  expect(await validate(ro)).toHaveLength(1);
+
+  (ro as any).defaultValue = 123;
+  expect(await validate(ro)).toHaveLength(2);
+
+  (ro as any).defaultValue = -123;
+  expect(await validate(ro)).toHaveLength(2);
+
+  (ro as any).defaultValue = "123";
+  expect(await validate(ro)).toHaveLength(2);
+
+  (ro as any).defaultValue = 1;
+  expect(await validate(ro)).toHaveLength(1);
+
+  (ro as any).value = "b";
+  expect(await validate(ro)).toHaveLength(2);
+
+  (ro as any).value = 123;
+  expect(await validate(ro)).toHaveLength(2);
+
+  (ro as any).value = -123;
+  expect(await validate(ro)).toHaveLength(2);
+
+  (ro as any).value = 1;
+  expect(await validate(ro)).toHaveLength(1);
+});
+
+test ("Validator instanceof test" , () => {
+  const isInArrayConstraint = new IsInArrayConstraint();
+
+  isInArrayConstraint.validate("test", {
+    object: new Object(), property: "acceptedValues",
+    value: undefined,
+    constraints: [],
+    targetName: ""
+  })
+
+  const isMaxConstraint = new IsMaxConstraint();
+
+  isMaxConstraint.validate("test", {
+    object: new Object(), property: "max",
+    value: undefined,
+    constraints: [],
+    targetName: ""
+  })
+
+  const isMinConstraint = new IsMinConstraint();
+
+  isMinConstraint.validate("test", {
+    object: new Object(), property: "min",
+    value: undefined,
+    constraints: [],
+    targetName: ""
+  })
+
+  const isWithinRangeConstraint = new IsWithinRangeConstraint();
+
+  isWithinRangeConstraint.validate("test", {
+    object: new Object(), property: "min",
+    value: undefined,
+    constraints: [],
+    targetName: ""
+  })
 });

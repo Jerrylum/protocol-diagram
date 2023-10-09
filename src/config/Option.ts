@@ -3,6 +3,7 @@ import { makeObservable, observable } from "mobx";
 import { HandleResult, success, fail } from "../command/HandleResult";
 import { Parameter, ParameterType } from "../token/Tokens";
 import {
+  ArrayMinSize,
   IsArray,
   IsBoolean,
   IsInt,
@@ -13,7 +14,7 @@ import {
   ValidationOptions,
   ValidatorConstraint,
   ValidatorConstraintInterface,
-  registerDecorator
+  registerDecorator,
 } from "class-validator";
 import { Expose } from "class-transformer";
 
@@ -24,7 +25,7 @@ export class IsInArrayConstraint implements ValidatorConstraintInterface {
   validate(value: unknown, args: ValidationArguments) {
     const obj = args.object;
     if (obj instanceof EnumOption) {
-      return IsArray(obj.acceptedValues) && (obj.acceptedValues as readonly string[]).includes(value as string);
+      return Array.isArray(obj.acceptedValues) && (obj.acceptedValues as readonly string[]).includes(value as string);
     } else return false;
   }
 }
@@ -41,6 +42,18 @@ export function IsInAcceptedValues(validationOptions?: ValidationOptions) {
   };
 }
 
+@ValidatorConstraint({ async: true })
+export class IsMaxConstraint implements ValidatorConstraintInterface {
+  validate(value: unknown, args: ValidationArguments) {
+    const obj = args.object;
+    if (obj instanceof RangeOption) {
+      const value = obj.max;
+      return value >= obj.min;
+    } else return false;
+  }
+}
+
+
 export function IsMax(validationOptions?: ValidationOptions) {
   return function (object: Object, propertyName: string) {
     registerDecorator({
@@ -48,17 +61,20 @@ export function IsMax(validationOptions?: ValidationOptions) {
       propertyName: propertyName,
       options: validationOptions,
       constraints: [],
-      validator: {
-        validate(value: unknown, args: ValidationArguments) {
-          const obj = args.object;
-          if (obj instanceof RangeOption) {
-            const value = obj.max;
-            return value >= obj.min;
-          } else return false;
-        }
-      }
+      validator: IsMaxConstraint
     });
   };
+}
+
+@ValidatorConstraint({ async: true })
+export class IsMinConstraint implements ValidatorConstraintInterface {
+  validate(value: unknown, args: ValidationArguments) {
+    const obj = args.object;
+    if (obj instanceof RangeOption) {
+      const value = obj.min;
+      return value <= obj.max;
+    } else return false;
+  }
 }
 
 export function IsMin(validationOptions?: ValidationOptions) {
@@ -68,17 +84,21 @@ export function IsMin(validationOptions?: ValidationOptions) {
       propertyName: propertyName,
       options: validationOptions,
       constraints: [],
-      validator: {
-        validate(value: unknown, args: ValidationArguments) {
-          const obj = args.object;
-          if (obj instanceof RangeOption) {
-            const value = obj.min;
-            return value <= obj.max;
-          } else return false;
-        }
-      }
+      validator: IsMinConstraint
     });
   };
+}
+
+@ValidatorConstraint({ async: true })
+export class IsWithinRangeConstraint implements ValidatorConstraintInterface {
+  validate(value: unknown, args: ValidationArguments) {
+    const obj = args.object;
+    if (obj instanceof RangeOption && typeof value === "number") {
+      const min = obj.min;
+      const max = obj.max;
+      return value <= obj.max && value >= obj.min;
+    } else return false;
+  }
 }
 
 export function IsWithinRange(validationOptions?: ValidationOptions) {
@@ -88,16 +108,7 @@ export function IsWithinRange(validationOptions?: ValidationOptions) {
       propertyName: propertyName,
       options: validationOptions,
       constraints: [],
-      validator: {
-        validate(value: unknown, args: ValidationArguments) {
-          const obj = args.object;
-          if (obj instanceof RangeOption && typeof value === "number") {
-            const min = obj.min;
-            const max = obj.max;
-            return value <= obj.max && value >= obj.min;
-          } else return false;
-        }
-      }
+      validator: IsWithinRangeConstraint
     });
   };
 }
@@ -199,6 +210,7 @@ export class BooleanOption extends Option<boolean> {
  */
 export class EnumOption<TAccepts extends readonly string[]> extends Option<TAccepts[number]> {
   @IsArray()
+  @ArrayMinSize(1)
   @IsString({ each: true })
   @Expose()
   readonly acceptedValues: TAccepts;
