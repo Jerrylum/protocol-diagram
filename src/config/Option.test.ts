@@ -1,6 +1,14 @@
 import { validate } from "class-validator";
 import { CodePointBuffer, Parameter } from "../token/Tokens";
-import { BooleanOption, EnumOption, IsInArrayConstraint, IsMaxConstraint, IsMinConstraint, IsWithinRangeConstraint, RangeOption } from "./Option";
+import {
+  BooleanOption,
+  EnumOption,
+  IsInArrayConstraint,
+  IsMaxConstraint,
+  IsMinConstraint,
+  IsWithinRangeConstraint,
+  RangeOption
+} from "./Option";
 import { instanceToPlain, plainToClass } from "class-transformer";
 
 test("BooleanOption getter", () => {
@@ -306,40 +314,44 @@ test("RangeOption Validation", async () => {
   expect(await validate(ro)).toHaveLength(1);
 });
 
-test ("Validator instanceof test" , () => {
+test("Validator instanceof test", () => {
   const isInArrayConstraint = new IsInArrayConstraint();
 
   isInArrayConstraint.validate("test", {
-    object: new Object(), property: "acceptedValues",
+    object: new Object(),
+    property: "acceptedValues",
     value: undefined,
     constraints: [],
     targetName: ""
-  })
+  });
 
   const isMaxConstraint = new IsMaxConstraint();
 
   isMaxConstraint.validate("test", {
-    object: new Object(), property: "max",
+    object: new Object(),
+    property: "max",
     value: undefined,
     constraints: [],
     targetName: ""
-  })
+  });
 
   const isMinConstraint = new IsMinConstraint();
 
   isMinConstraint.validate("test", {
-    object: new Object(), property: "min",
+    object: new Object(),
+    property: "min",
     value: undefined,
     constraints: [],
     targetName: ""
-  })
+  });
 
   const isWithinRangeConstraint = new IsWithinRangeConstraint();
 
   isWithinRangeConstraint.validate("test", {
-    object: new Object(), property: "min",
+    object: new Object(),
+    property: "min",
     value: undefined,
     constraints: [],
     targetName: ""
-  })
+  });
 });

@@ -14,7 +14,7 @@ import {
   ValidationOptions,
   ValidatorConstraint,
   ValidatorConstraintInterface,
-  registerDecorator,
+  registerDecorator
 } from "class-validator";
 import { Expose } from "class-transformer";
 
@@ -52,7 +52,6 @@ export class IsMaxConstraint implements ValidatorConstraintInterface {
     } else return false;
   }
 }
-
 
 export function IsMax(validationOptions?: ValidationOptions) {
   return function (object: Object, propertyName: string) {
