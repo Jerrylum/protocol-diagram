@@ -1,12 +1,9 @@
 import { TextField } from "@mui/material";
 import { observer } from "mobx-react-lite";
-import { CommandLine, CodePointBuffer, CommandParameterList } from "../token/Tokens";
+import { CommandLine, CodePointBuffer } from "../token/Tokens";
 import {
-  buildInputSpecByCommands,
   CancellableCommand,
-  Command,
-  mapCommandParameterWithInputSpec
-} from "../command/Commands";
+  Command} from "../command/Commands";
 import { HandleResult } from "../command/HandleResult";
 import { getRootStore } from "../core/Root";
 import { isDiagramModifier } from "../diagram/Diagram";

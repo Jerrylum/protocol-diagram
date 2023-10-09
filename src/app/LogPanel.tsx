@@ -4,7 +4,6 @@ import React from "react";
 import { useTimeout } from "../core/Hook";
 import { CommandLog } from "../core/CommandLog";
 import { getRootStore } from "../core/Root";
-import { reaction } from "mobx";
 
 export const CommandLogComponent = observer((props: { log: CommandLog; focused: boolean }) => {
   const log = props.log;
