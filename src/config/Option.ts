@@ -105,7 +105,7 @@ export class EnumOption<TAccepts extends readonly string[]> extends Option<TAcce
           break;
         }
         if (acceptedValue.startsWith(value.toLowerCase())) {
-          if (selected != null) {
+          if (selected !== null) {
             return fail('Ambiguous value "' + value + '".');
           }
           selected = acceptedValue;

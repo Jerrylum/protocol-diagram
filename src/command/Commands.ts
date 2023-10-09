@@ -124,9 +124,6 @@ export abstract class Command {
  * every commands extends upon this will be recognized as cancellable command
  */
 export abstract class CancellableCommand extends Command implements Cancellable {
-  constructor(name: string, usage: InputSpec<ParameterTypeClass> | null, description: string) {
-    super(name, usage, description);
-  }
   readonly discriminator = "DiagramModifier";
 
   abstract execute(): void;
@@ -613,7 +610,7 @@ export function checkCommandParameters(
 ): [HandleResult, InputSpec<ParameterTypeClass> | null] {
   let curr = spec;
   let i = 0;
-  while (curr != null) {
+  while (curr !== null) {
     if (i >= params.length) return [HandleResult.TOO_FEW_ARGUMENTS, curr];
     const param = params[i];
     if (param.value instanceof curr.paramType) {
