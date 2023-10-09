@@ -7,33 +7,84 @@ import { BottomPanel } from "./app/BottomPanel";
 import { useCustomHotkeys } from "./core/Hook";
 import { HelpModal } from "./app/HelpModal";
 import { getRootStore } from "./core/Root";
-// import React from "react";
+import React from "react";
 import { ConfirmationModal } from "./app/Confirmation";
+import { enqueueErrorSnackbar, enqueueSuccessSnackbar, NoticeProvider } from "./app/Notice";
+import { SemVer } from "semver";
+import { APP_VERSION } from "./core/MainApp";
+import { Logger } from "./core/Logger";
+import { checkForUpdates, promptUpdate } from "./core/Versioning";
+import * as SWR from "./core/ServiceWorkerRegistration";
+import { reaction } from "mobx";
+import { APP_VERSION_STRING } from "./Version";
+
+(window as any)["checkForUpdates"] = checkForUpdates;
+
+export async function onLatestVersionChange(newVer: SemVer | null | undefined, oldVer: SemVer | null | undefined) {
+  const logger = Logger("Versioning");
+
+  if (newVer === undefined) {
+    enqueueErrorSnackbar(logger, "Failed to fetch latest version", 5000);
+  } else if (newVer === null) {
+    // UX: RFC: Should we show a snackbar when fetching?
+    // enqueueSuccessSnackbar(logger, "Fetching latest version", 5000);
+  } else {
+    /*
+    Note: Is it possible that the service worker has an update
+    but the version of the application and the waiting service worker are the same?
+    */
+
+    const waitingVer = await SWR.getWaitingSWVersion();
+    if (newVer.compare(APP_VERSION) !== 0 || waitingVer !== undefined) {
+      enqueueSuccessSnackbar(logger, `New version available: ${newVer}`, 5000);
+
+      promptUpdate();
+    } else {
+      enqueueSuccessSnackbar(logger, "There are currently no updates available", 5000);
+    }
+  }
+}
 
 const Root = observer(() => {
   const { app, modals } = getRootStore();
 
+  React.useEffect(() => {
+    const logger = Logger("Versioning");
+
+    const lastTimeAppVersion = localStorage.getItem("appVersion");
+    if (APP_VERSION_STRING !== lastTimeAppVersion) {
+      localStorage.setItem("appVersion", APP_VERSION_STRING);
+      if (lastTimeAppVersion !== null) enqueueSuccessSnackbar(logger, "Updated to v" + APP_VERSION_STRING);
+    }
+
+    const disposer = reaction(() => app.latestVersion, onLatestVersionChange);
+
+    return () => {
+      disposer();
+    };
+  }, [app]);
+
   // React.useEffect(() => {
-    // getRootStore().modals.open(HelpModalSymbol);
-    // getRootStore().confirmation.prompt({
-    //   title: "Welcome to Diagrams",
-    //   description: "This is a diagram editor. You can use it to create diagrams.",
-    //   buttons: [
-    //     {
-    //       label: "OK",
-    //       hotkey: "Enter",
-    //       onClick: () => {},
-    //       color: "success"
-    //     },
-    //     {
-    //       label: "Cancel",
-    //       onClick: () => {},
-    //       color: "error"
-    //     }
-    //   ],
-    //   inputLabel: "Name",
-    //   inputDefaultValue: "John",
-    // });
+  // getRootStore().modals.open(HelpModalSymbol);
+  // getRootStore().confirmation.prompt({
+  //   title: "Welcome to Diagrams",
+  //   description: "This is a diagram editor. You can use it to create diagrams.",
+  //   buttons: [
+  //     {
+  //       label: "OK",
+  //       hotkey: "Enter",
+  //       onClick: () => {},
+  //       color: "success"
+  //     },
+  //     {
+  //       label: "Cancel",
+  //       onClick: () => {},
+  //       color: "error"
+  //     }
+  //   ],
+  //   inputLabel: "Name",
+  //   inputDefaultValue: "John",
+  // });
   // }, []);
 
   const isUsingEditor = !modals.isOpen;
