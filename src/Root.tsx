@@ -56,6 +56,7 @@ const Root = observer(() => {
 
   return (
     <Box id="root-container">
+      <NoticeProvider />
       <DiagramCanvas />
       <BottomPanel />
       <HelpModal />
@@ -65,3 +66,4 @@ const Root = observer(() => {
 });
 
 export default Root;
+
