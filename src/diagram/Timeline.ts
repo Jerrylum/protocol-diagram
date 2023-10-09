@@ -1,3 +1,4 @@
+import { action, computed, makeObservable, observable } from "mobx";
 import { Cancellable } from "../diagram/Diagram";
 import { Diagram, Memento } from "./Diagram";
 
@@ -12,6 +13,19 @@ export class Timeline<T extends Cancellable> {
 
   constructor(protected _diagram: Diagram) {
     this.resetHistory();
+
+    makeObservable<Timeline<T>, "latest" | "undoStack" | "redoStack" | "_diagram">(this, {
+      latest: observable,
+      undoStack: observable,
+      redoStack: observable,
+      _diagram: observable,
+      diagram: computed,
+      getLatestMemento: action,
+      resetHistory: action,
+      operate: action,
+      undo: action,
+      redo: action,
+    });
   }
 
   /**
@@ -85,3 +99,4 @@ export class Timeline<T extends Cancellable> {
     return modifier;
   }
 }
+
