@@ -8,7 +8,7 @@ import { RowSegment, Segment } from "./render/Segment";
 import { Matrix } from "./render/Matrix";
 import { AsciiStyle, AsciiVerboseStyle, UTF8CornerStyle, UTF8HeaderStyle, UTF8Style } from "./render/Style";
 import { action, makeObservable, observable } from "mobx";
-import { IsArray, ValidateNested } from "class-validator";
+import { IsArray, IsNotEmpty, ValidateNested } from "class-validator";
 import { Expose, Type } from "class-transformer";
 
 /**
@@ -62,6 +62,7 @@ export class Diagram {
   /**
    * the list of fields that the diagram holds
    */
+  @IsNotEmpty()
   @ValidateNested()
   @IsArray()
   @Type(() => Field)
@@ -70,7 +71,9 @@ export class Diagram {
   /**
    * the configuration of the diagram
    */
+  @IsNotEmpty()
   @ValidateNested()
+  @Type(() => Configuration)
   @Expose()
   readonly config: Configuration;
 
