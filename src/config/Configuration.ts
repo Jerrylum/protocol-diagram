@@ -3,7 +3,15 @@ import { HandleResult, fail } from "../command/HandleResult";
 import { Parameter, ParameterType } from "../token/Tokens";
 import { EnumOption, Option, OptionType, RangeOption, BooleanOption } from "./Option";
 import { Expose, Type } from "class-transformer";
-import { ValidateNested, IsArray, ValidationOptions, registerDecorator, ValidatorConstraint, ValidatorConstraintInterface, ValidationArguments } from "class-validator";
+import {
+  ValidateNested,
+  IsArray,
+  ValidationOptions,
+  registerDecorator,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
+  ValidationArguments
+} from "class-validator";
 
 /**
  * Manages a list of available options, provides API for other classes to get
