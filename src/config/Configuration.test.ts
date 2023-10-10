@@ -2,6 +2,8 @@ import { Parameter, ParameterType } from "../token/Tokens";
 import { Configuration } from "./Configuration";
 import { BooleanOption, EnumOption, RangeOption, Option, OptionType } from "./Option";
 import { cpb } from "../token/Tokens.test";
+import { validate } from "class-validator";
+import { instanceToPlain, plainToClass } from "class-transformer";
 
 function mp(s: OptionType): Parameter<ParameterType> {
     return Parameter.parse(cpb(s.toString()))!;
@@ -53,4 +55,49 @@ test("Configuration setter", () => {
     expect(c.setValue("testro1", mp(1)).message).toBe('Set "testro1" from 10 to 1.');
     expect(c.setValue("testro1", mp(11)).message).toBe('The value must be between 1 and 10.');
     expect(c.setValue("testro1", mp(0)).message).toBe('The value must be between 1 and 10.');
+});
+
+test ("Configuration Validation", async () => {
+    const bo = new BooleanOption("testbo1", true);
+    const bo2 = new BooleanOption("testbo2", false);
+    const eo = new EnumOption("testeo", "aaa", ["aaa", "bbb", "ccc", "abc"] as const);
+    const ro = new RangeOption("testro1", 1, 1, 10);
+    const c: Configuration = new Configuration(bo, bo2, eo, ro);
+    expect(c.getOption("testbo1") instanceof BooleanOption).toBe(true);
+    expect(c.getOption("testbo2") instanceof BooleanOption).toBe(true);
+    expect(c.getOption("testeo") instanceof EnumOption).toBe(true);
+    expect(c.getOption("testro1") instanceof RangeOption).toBe(true);
+
+    expect(await validate(c)).toHaveLength(0);
+
+    const p = instanceToPlain(c);
+    const c2 = plainToClass(Configuration, p);
+
+    expect(await validate(c2)).toHaveLength(0);
+    expect(c2.getOption("testbo1")).toStrictEqual(bo);
+    expect(c2.getOption("testbo2")).toStrictEqual(bo2);
+    expect(c2.getOption("testeo")).toStrictEqual(eo);
+    expect(c2.getOption("testro1")).toStrictEqual(ro);
+
+    expect(c2.getOption("testbo1") instanceof BooleanOption).toBe(true);
+    expect(c2.getOption("testbo2") instanceof BooleanOption).toBe(true);
+    expect(c2.getOption("testeo") instanceof EnumOption).toBe(true);
+    expect(c2.getOption("testro1") instanceof RangeOption).toBe(true);
+
+    (c2 as any).options = "asd";
+    expect(await validate(c2)).toHaveLength(1);
+    (c2 as any).options = 123;
+    expect(await validate(c2)).toHaveLength(1);
+    (c2 as any).options = [123];
+    expect(await validate(c2)).toHaveLength(1);
+    (c2 as any).options = [];
+    expect(await validate(c2)).toHaveLength(0);
+    (c2 as any).options = [bo, 123];
+    expect(await validate(c2)).toHaveLength(1);
+    (c2 as any).options = [bo, bo2];
+    expect(await validate(c2)).toHaveLength(0);
+    (c2 as any).options = {};
+    expect(await validate(c2)).toHaveLength(1);
+    (c2 as any).options = {a: 1};
+    expect(await validate(c2)).toHaveLength(1);
 });

@@ -3,7 +3,30 @@ import { HandleResult, fail } from "../command/HandleResult";
 import { Parameter, ParameterType } from "../token/Tokens";
 import { EnumOption, Option, OptionType, RangeOption, BooleanOption } from "./Option";
 import { Expose, Type } from "class-transformer";
-import { ValidateNested, IsArray } from "class-validator";
+import { ValidateNested, IsArray, ValidationOptions, registerDecorator, ValidatorConstraint, ValidatorConstraintInterface, ValidationArguments } from "class-validator";
+
+@ValidatorConstraint({ async: true })
+export class IsInArrayOptionConstraint implements ValidatorConstraintInterface {
+  validate(options: unknown, args: ValidationArguments) {
+      return Array.isArray(options) && options.every(option => this.isValidOption(option));
+  }
+
+  private isValidOption(option: Option<OptionType>): boolean {
+    return (option instanceof Option);
+  }
+}
+
+export function IsInArrayOption(validationOptions?: ValidationOptions) {
+  return function (object: Object, propertyName: string) {
+    registerDecorator({
+      target: object.constructor,
+      propertyName: propertyName,
+      options: validationOptions,
+      constraints: [],
+      validator: IsInArrayOptionConstraint
+    });
+  };
+}
 
 /**
  * Manages a list of available options, provides API for other classes to get
@@ -12,6 +35,7 @@ import { ValidateNested, IsArray } from "class-validator";
 export class Configuration {
   @ValidateNested()
   @IsArray()
+  @IsInArrayOption()
   @Expose()
   @Type(() => Option, {
     discriminator: {
