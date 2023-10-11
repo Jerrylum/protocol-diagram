@@ -7,12 +7,33 @@ import { BottomPanel } from "./app/BottomPanel";
 import { useCustomHotkeys } from "./core/Hook";
 import { HelpModal } from "./app/HelpModal";
 import { getRootStore } from "./core/Root";
+// import React from "react";
+import { ConfirmationModal } from "./app/Confirmation";
 
 const Root = observer(() => {
   const { app, modals } = getRootStore();
 
   // React.useEffect(() => {
-  //   getRootStore().modals.open(HelpModalSymbol);
+    // getRootStore().modals.open(HelpModalSymbol);
+    // getRootStore().confirmation.prompt({
+    //   title: "Welcome to Diagrams",
+    //   description: "This is a diagram editor. You can use it to create diagrams.",
+    //   buttons: [
+    //     {
+    //       label: "OK",
+    //       hotkey: "Enter",
+    //       onClick: () => {},
+    //       color: "success"
+    //     },
+    //     {
+    //       label: "Cancel",
+    //       onClick: () => {},
+    //       color: "error"
+    //     }
+    //   ],
+    //   inputLabel: "Name",
+    //   inputDefaultValue: "John",
+    // });
   // }, []);
 
   const isUsingEditor = !modals.isOpen;
@@ -38,6 +59,7 @@ const Root = observer(() => {
       <DiagramCanvas />
       <BottomPanel />
       <HelpModal />
+      <ConfirmationModal />
     </Box>
   );
 });

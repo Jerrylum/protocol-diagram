@@ -12,3 +12,27 @@
   transform: translate(-50%, -50%);
   color: var(--text-primary-color);
 }
+
+#confirmation-modal {
+  padding: 16px;
+  min-width: 320px;
+  max-width: 80%;
+  min-height: 96px;
+  outline: none !important;
+
+  h2 {
+    font-size: 24px;
+  }
+
+  .button-box {
+    display: flex;
+    margin-top: 16px;
+    justify-content: flex-end;
+    align-items: flex-end;
+    gap: 8px;
+
+    *:focus {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+  }
+}
