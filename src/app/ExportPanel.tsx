@@ -19,6 +19,12 @@ export const ExportPanel = observer(() => {
     onExportMenuItemClick();
   };
 
+  const onExportAsSVG = () => {
+    navigator.clipboard.writeText(app.diagram.toSvgString());
+
+    onExportMenuItemClick();
+  };
+
   return (
     <Box
       sx={{
@@ -41,7 +47,7 @@ export const ExportPanel = observer(() => {
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
         transformOrigin={{ vertical: "bottom", horizontal: "center" }}>
         <MenuItem onClick={onExportAsText}>As Text</MenuItem>
-        <MenuItem onClick={() => {}}>As SVG</MenuItem>
+        <MenuItem onClick={onExportAsSVG}>As SVG</MenuItem>
       </Menu>
       {/* <Button>Share URL</Button> */}
     </Box>

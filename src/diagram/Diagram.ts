@@ -213,6 +213,46 @@ export class Diagram {
       }[style](elements).output()
     );
   }
+
+  toSvgString() {
+    const bit = this.config.getValue("bit") as number;
+    const style = this.config.getValue("diagram-style") as DiagramStyle;
+    const headerStyle = this.config.getValue("header-style") as HeaderStyle;
+    const leftSpacePlaceholder = this.config.getValue("left-space-placeholder") as boolean;
+
+    const rows = convertFieldsToRow(bit, this.fields, leftSpacePlaceholder);
+    const dividers = spliceDividers(bit, rows);
+    const segments = mergeRowsAndDividers(rows, dividers);
+    this.fields.forEach(f => displayNameAtTheCentralSegment(f, segments));
+
+    const matrix = new Matrix(segments);
+    matrix.process();
+    matrix.process(); // Process twice to make sure all the connector are processed
+
+    const elements = matrix.elements;
+
+    /**
+     * Replaces the object element with the characters defined in style configrations
+     * such as connectors, vertical borders, and the next lines into the diagram
+     */
+    const lines = (
+      generateHeader(elements, bit, headerStyle) +
+      new {
+        utf8: UTF8Style,
+        "utf8-header": UTF8HeaderStyle,
+        "utf8-corner": UTF8CornerStyle,
+        ascii: AsciiStyle,
+        "ascii-verbose": AsciiVerboseStyle
+      }[style](elements).output()
+    ).split("\n");
+
+    const svgLines = lines.reduce((acc, line) => acc + `<tspan x="0" dy="1em">${line}</tspan>\n`, "");
+
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${matrix.width * 9.75}" height="${lines.length * 16}">
+<text x="0" y="0" style="white-space:pre;font-size:16px;font-family:Menlo,consolas,'Courier New',monospace">
+${svgLines}</text>
+</svg>`;
+  }
 }
 
 /**
@@ -387,3 +427,4 @@ export function generateHeader(elements: Element[], bit: number, headerStyle: He
 
   return rtn;
 }
+
