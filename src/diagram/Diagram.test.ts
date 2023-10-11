@@ -397,7 +397,7 @@ test("Diagram Validation", async () => {
   expect(await validate(d)).toHaveLength(0);
 
   const p = instanceToPlain(d);
-  const d2 = plainToClass(Diagram, p);
+  const d2 = plainToClass(Diagram, p, { excludeExtraneousValues: true, exposeDefaultValues: true });
 
   expect(await validate(d2)).toHaveLength(0);
 
@@ -424,14 +424,18 @@ test("Diagram Validation", async () => {
   expect(await validate(d2)).toHaveLength(1);
   (d2 as any).config = [123];
   expect(await validate(d2)).toHaveLength(1);
-  // (d2 as any).config = {};
-  // expect(await validate(d2)).toHaveLength(1);
   (d2 as any).config = null;
   expect(await validate(d2)).toHaveLength(1);
   (d2 as any).config = undefined;
   expect(await validate(d2)).toHaveLength(1);
-  // (d2 as any).config = [];
-  // expect(await validate(d2)).toHaveLength(1);
+  (d2 as any).config = [];
+  expect(await validate(d2)).toHaveLength(1);
   (d2 as any).config = new Configuration();
   expect(await validate(d2)).toHaveLength(0);
+
+  const testd = plainToClass(Diagram, {}, { excludeExtraneousValues: true, exposeDefaultValues: true });
+  expect(await validate(testd)).toHaveLength(0);
+
+  const testd2 = plainToClass(Diagram, [], { excludeExtraneousValues: true, exposeDefaultValues: false }); // need instanceof Diagram
+  expect(await validate(testd2)).toHaveLength(0);
 });

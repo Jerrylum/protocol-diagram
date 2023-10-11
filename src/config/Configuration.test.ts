@@ -71,13 +71,13 @@ test("Configuration Validation", async () => {
   expect(await validate(c)).toHaveLength(0);
 
   const p = instanceToPlain(c);
-  const c2 = plainToClass(Configuration, p);
+  const c2 = plainToClass(Configuration, p, { excludeExtraneousValues: true, exposeDefaultValues: true });
 
   expect(await validate(c2)).toHaveLength(0);
-  expect(c2.getOption("testbo1")).toStrictEqual(bo);
-  expect(c2.getOption("testbo2")).toStrictEqual(bo2);
-  expect(c2.getOption("testeo")).toStrictEqual(eo);
-  expect(c2.getOption("testro1")).toStrictEqual(ro);
+
+  const p2 = instanceToPlain(c2);
+
+  expect(p2).toStrictEqual(p);
 
   expect(c2.getOption("testbo1") instanceof BooleanOption).toBe(true);
   expect(c2.getOption("testbo2") instanceof BooleanOption).toBe(true);
@@ -100,4 +100,22 @@ test("Configuration Validation", async () => {
   expect(await validate(c2)).toHaveLength(1);
   (c2 as any).options = { a: 1 };
   expect(await validate(c2)).toHaveLength(1);
+
+  const c3 = plainToClass(Configuration, {}, { excludeExtraneousValues: true, exposeDefaultValues: true });
+  expect(await validate(c3)).toHaveLength(0);
+
+  const c4 = plainToClass(Configuration, [], { excludeExtraneousValues: true, exposeDefaultValues: false }); //need instanceof Configuration
+  expect(await validate(c4)).toHaveLength(0);
+
+  const c5 = plainToClass(Configuration, null, { excludeExtraneousValues: true, exposeDefaultValues: true });
+  expect(c5).toBe(null);
+
+  const c6 = plainToClass(Configuration, undefined, { excludeExtraneousValues: true, exposeDefaultValues: true });
+  expect(c6).toBe(undefined);
+
+  const c7 = plainToClass(Configuration, true, { excludeExtraneousValues: true, exposeDefaultValues: true });
+  expect(c7).toBe(true);
+
+  const c8 = plainToClass(Configuration, false, { excludeExtraneousValues: true, exposeDefaultValues: true });
+  expect(c8).toBe(false);
 });

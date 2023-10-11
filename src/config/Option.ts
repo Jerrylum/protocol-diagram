@@ -118,8 +118,8 @@ export function IsWithinRange(validationOptions?: ValidationOptions) {
  * changed afterward
  */
 export abstract class Option<T extends OptionType> {
-  @IsNotEmpty()
   @IsString()
+  @IsNotEmpty()
   @Expose()
   readonly key: string;
   readonly defaultValue: T;
@@ -162,12 +162,9 @@ export abstract class Option<T extends OptionType> {
 }
 
 export class BooleanOption extends Option<boolean> {
-  @IsNotEmpty()
   @IsBoolean()
-  @IsNotEmpty()
   @Expose()
   readonly defaultValue: boolean;
-  @IsNotEmpty()
   @IsBoolean()
   @Expose()
   protected value: boolean;
@@ -211,18 +208,15 @@ export class BooleanOption extends Option<boolean> {
  * possible values of string literals
  */
 export class EnumOption<TAccepts extends readonly string[]> extends Option<TAccepts[number]> {
-  @IsNotEmpty()
   @IsArray()
   @ArrayMinSize(1)
   @IsString({ each: true })
   @Expose()
   readonly acceptedValues: TAccepts;
-  @IsNotEmpty()
   @IsString()
   @IsInAcceptedValues()
   @Expose()
   readonly defaultValue: TAccepts[number];
-  @IsNotEmpty()
   @IsString()
   @IsInAcceptedValues()
   @Expose()
@@ -287,25 +281,25 @@ export class EnumOption<TAccepts extends readonly string[]> extends Option<TAcce
 }
 
 export class RangeOption extends Option<number> {
-  @IsNotEmpty()
   @IsNumber()
   @IsInt()
   @IsWithinRange()
+  @Expose()
   readonly defaultValue: number;
-  @IsNotEmpty()
   @IsNumber()
   @IsInt()
   @IsMin()
+  @Expose()
   readonly min: number;
-  @IsNotEmpty()
   @IsNumber()
   @IsInt()
   @IsMax()
+  @Expose()
   readonly max: number;
-  @IsNotEmpty()
   @IsNumber()
   @IsInt()
   @IsWithinRange()
+  @Expose()
   protected value: number;
 
   constructor(key: string, defaultValue: number, min: number, max: number, value: number = defaultValue) {

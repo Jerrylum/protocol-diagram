@@ -5,12 +5,7 @@ import { EnumOption, Option, OptionType, RangeOption, BooleanOption } from "./Op
 import { Expose, Type } from "class-transformer";
 import {
   ValidateNested,
-  IsArray,
-  ValidationOptions,
-  registerDecorator,
-  ValidatorConstraint,
-  ValidatorConstraintInterface,
-  ValidationArguments
+  IsArray
 } from "class-validator";
 
 /**

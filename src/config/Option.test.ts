@@ -221,6 +221,26 @@ test("BooleanOption Validation", async () => {
 
   (bo as any).value = "123";
   expect(await validate(bo)).toHaveLength(3);
+
+  const test = {};
+  const bo3 = plainToClass(BooleanOption, test);
+  expect(await validate(bo3)).toHaveLength(3);
+
+  const test2 = { key: "aaa", defaultValue: true, value: false };
+  const bo4 = plainToClass(BooleanOption, test2);
+  expect(await validate(bo4)).toHaveLength(0);
+
+  const test3 = { key: "aaa", defaultValue: true };
+  const bo5 = plainToClass(BooleanOption, test3);
+  expect(await validate(bo5)).toHaveLength(1);
+
+  const test4 = { key: "aaa", value: false };
+  const bo6 = plainToClass(BooleanOption, test4);
+  expect(await validate(bo6)).toHaveLength(1);
+
+  const test5 = { defaultValue: true, value: false };
+  const bo7 = plainToClass(BooleanOption, test5);
+  expect(await validate(bo7)).toHaveLength(1);
 });
 
 test("EnumOption Validation", async () => {
@@ -268,6 +288,30 @@ test("EnumOption Validation", async () => {
 
   (eo as any).acceptedValues = ["test"];
   expect(await validate(eo)).toHaveLength(3);
+
+  const test = {};
+  const eo3 = plainToClass(EnumOption, test);
+  expect(await validate(eo3)).toHaveLength(4);
+
+  const test2 = { key: "aaa", defaultValue: "a", value: "b", acceptedValues: ["a", "b", "c"] };
+  const eo4 = plainToClass(EnumOption, test2);
+  expect(await validate(eo4)).toHaveLength(0);
+
+  const test3 = { key: "aaa", defaultValue: "a", value: "b" };
+  const eo5 = plainToClass(EnumOption, test3);
+  expect(await validate(eo5)).toHaveLength(3); //both defaultValue and value validation are depend on acceptedValues + missing acceptedValues
+
+  const test4 = { key: "aaa", defaultValue: "a", acceptedValues: ["a", "b", "c"] };
+  const eo6 = plainToClass(EnumOption, test4);
+  expect(await validate(eo6)).toHaveLength(1);
+
+  const test5 = { key: "aaa", value: "b", acceptedValues: ["a", "b", "c"] };
+  const eo7 = plainToClass(EnumOption, test5);
+  expect(await validate(eo7)).toHaveLength(1);
+
+  const test6 = { defaultValue: "a", value: "b", acceptedValues: ["a", "b", "c"] };
+  const eo8 = plainToClass(EnumOption, test6);
+  expect(await validate(eo8)).toHaveLength(1);
 });
 
 test("RangeOption Validation", async () => {
@@ -312,6 +356,30 @@ test("RangeOption Validation", async () => {
 
   (ro as any).value = 1;
   expect(await validate(ro)).toHaveLength(1);
+
+  const test = {};
+  const ro3 = plainToClass(RangeOption, test);
+  expect(await validate(ro3)).toHaveLength(5);
+
+  const test2 = { key: "aaa", defaultValue: 1, value: 2, min: 0, max: 10 };
+  const ro4 = plainToClass(RangeOption, test2);
+  expect(await validate(ro4)).toHaveLength(0);
+
+  const test3 = { key: "aaa", defaultValue: 1, value: 2, min: 0 };
+  const ro5 = plainToClass(RangeOption, test3);
+  expect(await validate(ro5)).toHaveLength(4);
+
+  const test4 = { key: "aaa", defaultValue: 1, value: 2, max: 10 };
+  const ro6 = plainToClass(RangeOption, test4);
+  expect(await validate(ro6)).toHaveLength(4);
+
+  const test5 = { key: "aaa", defaultValue: 1, min: 0, max: 10 };
+  const ro7 = plainToClass(RangeOption, test5);
+  expect(await validate(ro7)).toHaveLength(1);
+
+  const test6 = { key: "aaa", value: 2, min: 0, max: 10 };
+  const ro8 = plainToClass(RangeOption, test6);
+  expect(await validate(ro8)).toHaveLength(1);
 });
 
 test("Validator instanceof test", () => {
