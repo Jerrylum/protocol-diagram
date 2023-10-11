@@ -1,7 +1,32 @@
-import { CodePointBuffer, Parameter } from "../token/Tokens";
-import { BooleanOption, EnumOption, RangeOption } from "./Option";
+import { HandleResult, success } from "../command/HandleResult";
+import { CodePointBuffer, Parameter, ParameterType } from "../token/Tokens";
+import { BooleanOption, EnumOption, RangeOption, Option } from "./Option";
+
+class CustomOption extends Option<string> {
+  constructor(key: string, defaultValue: string) {
+    super(key, defaultValue);
+  }
+
+  public setValue(value: string | Parameter<ParameterType>): HandleResult {
+    return success("");
+  }
+
+  getUsageDescription() {
+    return "";
+  }
+
+  clone() {
+    return new CustomOption(this.key, this.value);
+  }
+}
+
+test("CustomOption", () => {
+  new CustomOption("test key", "test value");
+  // expect(1).toBe(1);
+});
 
 test("BooleanOption getter", () => {
+  ("");
   const option = new BooleanOption("test", true);
   expect(option.key).toBe("test");
   expect(option.defaultValue).toBe(true);
@@ -11,6 +36,9 @@ test("BooleanOption getter", () => {
   expect(option2.defaultValue).toBe(false);
   expect(option2.getValue()).toBe(false);
   expect(option2.getUsageDescription()).toBe("true | FALSE");
+  const option3 = new BooleanOption("test", true, true);
+  expect(option3.getValue()).toBe(true);
+  const option4 = option.clone();
 });
 
 test("BooleanOption boolean setter", () => {
@@ -35,6 +63,8 @@ test("BooleanOption parameter setter", () => {
   expect(option.setValue(Parameter.parse(new CodePointBuffer("true"))!).success).toBe(false);
   expect(option.setValue(Parameter.parse(new CodePointBuffer("true"))!).message).toBe("It is already true.");
   expect(option.getUsageDescription()).toBe("TRUE | false");
+  const copy_result = option.clone();
+  expect(copy_result.defaultValue).toBe(true);
   const result1 = option.setValue(Parameter.parse(new CodePointBuffer("false"))!);
   expect(result1.success).toBe(true);
   expect(result1.message).toBe('Set "test" from true to false.');
@@ -59,6 +89,8 @@ test("EnumOption getter", () => {
   expect(option.defaultValue).toBe("a");
   expect(option.getValue()).toBe("a");
   expect(option.getUsageDescription()).toBe("A | b | c");
+  const option1 = option.clone();
+  expect(option1.key).toBe("test");
 });
 
 test("EnumOption string setter", () => {
@@ -179,4 +211,3 @@ test("RangeOption parameter setter", () => {
   expect(result8.success).toBe(false);
   expect(result8.message).toBe("The value must be an integer.");
 });
-
