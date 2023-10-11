@@ -1,6 +1,12 @@
 import { BooleanT, CommandLine, CommandParameter, NumberT, Parameter, ParameterType, StringT } from "../token/Tokens";
 import {
   AddCommand,
+  DeleteCommand,
+  InsertCommand,
+  MoveCommand,
+  RenameCommand,
+  ResizeCommand,
+  ClearCommand,
   Command,
   CommandLineSpec,
   ConfigCommand,
@@ -46,6 +52,7 @@ test("AddCommand handle fail", () => {
   expect(ac.handleLine(CommandLine.parse(cpb("add -1 test"))!).success).toBe(false);
   expect(ac.handleLine(CommandLine.parse(cpb("add 0 test"))!).success).toBe(false);
   expect(ac.handleLine(CommandLine.parse(cpb("add 1 -1"))!).success).toBe(false);
+  expect(ac.handleLine(CommandLine.parse(cpb("add 1.5 test"))!).success).toBe(false);
   app.diagram.clear();
 });
 
@@ -363,4 +370,229 @@ test("OptionSpec", () => {
   expect(madeInputSpect3?.acceptedValues).toStrictEqual([]);
   expect(madeInputSpect3?.paramType).toBe(NumberT);
   expect(madeInputSpect3?.check).not.toBe(null);
+});
+
+test("DeleteCommand handle success", () => {
+  const { app } = getRootStore();
+  app.diagram.clear();
+  const dc = new DeleteCommand();
+  const ac = new AddCommand();
+  ac.handleLine(CommandLine.parse(cpb("add 1 test1"))!);
+  ac.handleLine(CommandLine.parse(cpb("add 2 test2"))!);
+  ac.handleLine(CommandLine.parse(cpb("add 3 test3"))!);
+  expect(app.diagram.fields.length).toBe(3);
+  expect(dc.handleLine(CommandLine.parse(cpb("delete 0"))!).success).toBe(true);
+  expect(app.diagram.fields.length).toBe(2);
+  expect(dc.handleLine(CommandLine.parse(cpb("delete 0"))!).success).toBe(true);
+  expect(app.diagram.fields.length).toBe(1);
+  expect(dc.handleLine(CommandLine.parse(cpb("delete 0"))!).success).toBe(true);
+  expect(app.diagram.fields.length).toBe(0);
+});
+
+test("DeleteCommand handle fail", () => {
+  const { app } = getRootStore();
+  app.diagram.clear();
+  const dc = new DeleteCommand();
+  expect(dc.handleLine(CommandLine.parse(cpb("delete"))!)).toStrictEqual(HandleResult.TOO_FEW_ARGUMENTS);
+  expect(dc.handleLine(CommandLine.parse(cpb("delete 0"))!)).toStrictEqual(fail("Index out of range."));
+  expect(dc.handleLine(CommandLine.parse(cpb("delete -1"))!)).toStrictEqual(
+    fail("Index must be a positive integer or zero.")
+  );
+  expect(dc.handleLine(CommandLine.parse(cpb("delete a"))!)).toStrictEqual(fail("The index must be a number."));
+  const ac = new AddCommand();
+  ac.handleLine(CommandLine.parse(cpb("add 1 test1"))!);
+  ac.handleLine(CommandLine.parse(cpb("add 2 test2"))!);
+  expect(dc.handleLine(CommandLine.parse(cpb("delete 1.5"))!)).toStrictEqual(fail("Index must be a integer."));
+  expect(dc.handleLine(CommandLine.parse(cpb("delete 1 2"))!)).toStrictEqual(HandleResult.TOO_MANY_ARGUMENTS);
+});
+
+test("InsertCommand handle success", () => {
+  const { app } = getRootStore();
+  app.diagram.clear();
+  const ic = new InsertCommand();
+  const ac = new AddCommand();
+  ac.handleLine(CommandLine.parse(cpb("add 1 test1"))!);
+  ac.handleLine(CommandLine.parse(cpb("add 2 test2"))!);
+  ac.handleLine(CommandLine.parse(cpb("add 3 test3"))!);
+  expect(app.diagram.fields.length).toBe(3);
+  expect(ic.handleLine(CommandLine.parse(cpb("insert 0 1 test4"))!)).toStrictEqual(
+    success('Inserted field "test4" to the beginning.')
+  );
+  expect(app.diagram.fields.length).toBe(4);
+  expect(ic.handleLine(CommandLine.parse(cpb("insert 1 1 test5"))!)).toStrictEqual(
+    success('Inserted field "test5" after "test4".')
+  );
+});
+
+test("InsertCommand handle fail", () => {
+  const { app } = getRootStore();
+  app.diagram.clear();
+  const ic = new InsertCommand();
+  const ac = new AddCommand();
+  expect(ic.handleLine(CommandLine.parse(cpb("insert 0 1 test"))!)).toStrictEqual(fail("Index out of range."));
+  ac.handleLine(CommandLine.parse(cpb("add 1 test1"))!);
+  expect(ic.handleLine(CommandLine.parse(cpb("insert"))!)).toStrictEqual(HandleResult.TOO_FEW_ARGUMENTS);
+  expect(ic.handleLine(CommandLine.parse(cpb("insert 0"))!)).toStrictEqual(HandleResult.TOO_FEW_ARGUMENTS);
+  expect(ic.handleLine(CommandLine.parse(cpb("insert 0 1"))!)).toStrictEqual(HandleResult.TOO_FEW_ARGUMENTS);
+  expect(ic.handleLine(CommandLine.parse(cpb("insert a 1 test"))!)).toStrictEqual(fail("The index must be a number."));
+  expect(ic.handleLine(CommandLine.parse(cpb("insert 0 a test"))!)).toStrictEqual(fail("The length must be a number."));
+  expect(ic.handleLine(CommandLine.parse(cpb("insert 1.5 1 test"))!)).toStrictEqual(fail("Index must be a integer."));
+  expect(ic.handleLine(CommandLine.parse(cpb("insert 0 1.5 test"))!)).toStrictEqual(fail("Length must be a integer."));
+  expect(ic.handleLine(CommandLine.parse(cpb("insert -1 1 test"))!)).toStrictEqual(
+    fail("Index must be a positive integer or zero.")
+  );
+  expect(ic.handleLine(CommandLine.parse(cpb("insert 0 -1 test"))!)).toStrictEqual(
+    fail("Length must be a positive integer.")
+  );
+});
+
+test("MoveCommand handle success", () => {
+  const { app } = getRootStore();
+  app.diagram.clear();
+  const mc = new MoveCommand();
+  const ac = new AddCommand();
+  ac.handleLine(CommandLine.parse(cpb("add 1 test1"))!);
+  ac.handleLine(CommandLine.parse(cpb("add 2 test2"))!);
+  ac.handleLine(CommandLine.parse(cpb("add 3 test3"))!);
+  ac.handleLine(CommandLine.parse(cpb("add 4 test4"))!);
+  expect(app.diagram.fields.length).toBe(4);
+  expect(mc.handleLine(CommandLine.parse(cpb("move 1 0"))!)).toStrictEqual(
+    success('Moved field "test2" to the beginning.')
+  );
+  expect(mc.handleLine(CommandLine.parse(cpb("move 3 1"))!)).toStrictEqual(
+    success('Moved field "test4" after "test2".')
+  );
+  expect(mc.handleLine(CommandLine.parse(cpb("move 0 3"))!)).toStrictEqual(success('Moved field "test2" to the end.'));
+});
+
+test("MoveCommand handle fail", () => {
+  const { app } = getRootStore();
+  app.diagram.clear();
+  const mc = new MoveCommand();
+  const ac = new AddCommand();
+  expect(mc.handleLine(CommandLine.parse(cpb("move 0 1"))!)).toStrictEqual(fail("Source index out of range."));
+  ac.handleLine(CommandLine.parse(cpb("add 1 test1"))!);
+  expect(mc.handleLine(CommandLine.parse(cpb("move 0 1"))!)).toStrictEqual(fail("Destination index out of range."));
+  ac.handleLine(CommandLine.parse(cpb("add 2 test2"))!);
+  expect(mc.handleLine(CommandLine.parse(cpb("move"))!)).toStrictEqual(HandleResult.TOO_FEW_ARGUMENTS);
+  expect(mc.handleLine(CommandLine.parse(cpb("move 0"))!)).toStrictEqual(HandleResult.TOO_FEW_ARGUMENTS);
+  expect(mc.handleLine(CommandLine.parse(cpb("move a 1"))!)).toStrictEqual(fail("The source_index must be a number."));
+  expect(mc.handleLine(CommandLine.parse(cpb("move 0 a"))!)).toStrictEqual(
+    fail("The destination_index must be a number.")
+  );
+  expect(mc.handleLine(CommandLine.parse(cpb("move 1.5 1"))!)).toStrictEqual(fail("Source index must be a integer."));
+  expect(mc.handleLine(CommandLine.parse(cpb("move 0 1.5"))!)).toStrictEqual(
+    fail("Destination index must be a integer.")
+  );
+  expect(mc.handleLine(CommandLine.parse(cpb("move -1 1"))!)).toStrictEqual(
+    fail("Source index must be a positive integer or zero.")
+  );
+  expect(mc.handleLine(CommandLine.parse(cpb("move 0 -1"))!)).toStrictEqual(
+    fail("Destination index must be a positive integer or zero.")
+  );
+  expect(mc.handleLine(CommandLine.parse(cpb("move 0 0"))!)).toStrictEqual(
+    fail("Source and Destination index cannot be the same.")
+  );
+});
+
+test("RenameCommand handle success", () => {
+  const { app } = getRootStore();
+  app.diagram.clear();
+  const rc = new RenameCommand();
+  const ac = new AddCommand();
+  ac.handleLine(CommandLine.parse(cpb("add 1 test1"))!);
+  ac.handleLine(CommandLine.parse(cpb("add 2 test2"))!);
+  ac.handleLine(CommandLine.parse(cpb("add 3 test3"))!);
+  expect(app.diagram.fields.length).toBe(3);
+  expect(rc.handleLine(CommandLine.parse(cpb("rename 0 test4"))!)).toStrictEqual(
+    success('Renamed field from "test1" to "test4".')
+  );
+  expect(rc.handleLine(CommandLine.parse(cpb("rename 1 test5"))!)).toStrictEqual(
+    success('Renamed field from "test2" to "test5".')
+  );
+  expect(rc.handleLine(CommandLine.parse(cpb("rename 2 test6"))!)).toStrictEqual(
+    success('Renamed field from "test3" to "test6".')
+  );
+});
+
+test("RenameCommand handle fail", () => {
+  const { app } = getRootStore();
+  app.diagram.clear();
+  const rc = new RenameCommand();
+  const ac = new AddCommand();
+  expect(rc.handleLine(CommandLine.parse(cpb("rename 0 test"))!)).toStrictEqual(fail("Index out of range."));
+  ac.handleLine(CommandLine.parse(cpb("add 1 test1"))!);
+  expect(rc.handleLine(CommandLine.parse(cpb("rename -1 test"))!)).toStrictEqual(
+    fail("Index must be a positive integer or zero.")
+  );
+  expect(rc.handleLine(CommandLine.parse(cpb("rename 0"))!)).toStrictEqual(HandleResult.TOO_FEW_ARGUMENTS);
+  expect(rc.handleLine(CommandLine.parse(cpb("rename a test"))!)).toStrictEqual(fail("The index must be a number."));
+  expect(rc.handleLine(CommandLine.parse(cpb("rename 1.5 123"))!)).toStrictEqual(fail("Index must be a integer."));
+  expect(rc.handleLine(CommandLine.parse(cpb("rename 0 123"))!)).toStrictEqual(fail("The name must be a string."));
+  expect(rc.handleLine(CommandLine.parse(cpb("rename 0 test 123"))!)).toStrictEqual(HandleResult.TOO_MANY_ARGUMENTS);
+});
+
+test("ResizeCommand handle success", () => {
+  const { app } = getRootStore();
+  app.diagram.clear();
+  const rc = new ResizeCommand();
+  const ac = new AddCommand();
+  ac.handleLine(CommandLine.parse(cpb("add 1 test1"))!);
+  ac.handleLine(CommandLine.parse(cpb("add 2 test2"))!);
+  ac.handleLine(CommandLine.parse(cpb("add 3 test3"))!);
+  expect(app.diagram.fields.length).toBe(3);
+  expect(rc.handleLine(CommandLine.parse(cpb("resize 0 1"))!)).toStrictEqual(
+    success('Resized field "test1" from 1 to 1.')
+  );
+  expect(rc.handleLine(CommandLine.parse(cpb("resize 1 2"))!)).toStrictEqual(
+    success('Resized field "test2" from 2 to 2.')
+  );
+  expect(rc.handleLine(CommandLine.parse(cpb("resize 2 3"))!)).toStrictEqual(
+    success('Resized field "test3" from 3 to 3.')
+  );
+});
+
+test("ResizeCommand handle fail", () => {
+  const { app } = getRootStore();
+  app.diagram.clear();
+  const rc = new ResizeCommand();
+  const ac = new AddCommand();
+  expect(rc.handleLine(CommandLine.parse(cpb("resize 0 1"))!)).toStrictEqual(fail("Index out of range."));
+  ac.handleLine(CommandLine.parse(cpb("add 1 test1"))!);
+  expect(rc.handleLine(CommandLine.parse(cpb("resize -1 1"))!)).toStrictEqual(
+    fail("Index must be a positive integer or zero.")
+  );
+  expect(rc.handleLine(CommandLine.parse(cpb("resize 0"))!)).toStrictEqual(HandleResult.TOO_FEW_ARGUMENTS);
+  expect(rc.handleLine(CommandLine.parse(cpb("resize a 1"))!)).toStrictEqual(fail("The index must be a number."));
+  expect(rc.handleLine(CommandLine.parse(cpb("resize 0 a"))!)).toStrictEqual(fail("The length must be a number."));
+  expect(rc.handleLine(CommandLine.parse(cpb("resize 1.5 1"))!)).toStrictEqual(fail("Index must be a integer."));
+  expect(rc.handleLine(CommandLine.parse(cpb("resize 0 1.5"))!)).toStrictEqual(fail("Length must be a integer."));
+  expect(rc.handleLine(CommandLine.parse(cpb("resize 0 -1"))!)).toStrictEqual(
+    fail("Length must be a positive integer.")
+  );
+  expect(rc.handleLine(CommandLine.parse(cpb("resize 0 0"))!)).toStrictEqual(
+    fail("Length must be a positive integer.")
+  );
+  expect(rc.handleLine(CommandLine.parse(cpb("resize 0 1 1"))!)).toStrictEqual(HandleResult.TOO_MANY_ARGUMENTS);
+});
+
+test("ClearCommand handle success", () => {
+  const { app } = getRootStore();
+  app.diagram.clear();
+  const cc = new ClearCommand();
+  const ac = new AddCommand();
+  ac.handleLine(CommandLine.parse(cpb("add 1 test1"))!);
+  ac.handleLine(CommandLine.parse(cpb("add 2 test2"))!);
+  ac.handleLine(CommandLine.parse(cpb("add 3 test3"))!);
+  expect(app.diagram.fields.length).toBe(3);
+  expect(cc.handleLine(CommandLine.parse(cpb("clear"))!)).toStrictEqual(success("Removed all fields."));
+  expect(app.diagram.fields.length).toBe(0);
+});
+
+test("ClearCommand handle fail", () => {
+  const { app } = getRootStore();
+  app.diagram.clear();
+  const cc = new ClearCommand();
+  const ac = new AddCommand();
+  expect(cc.handleLine(CommandLine.parse(cpb("clear test"))!)).toStrictEqual(HandleResult.TOO_MANY_ARGUMENTS);
 });

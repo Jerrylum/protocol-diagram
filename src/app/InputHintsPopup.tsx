@@ -1,5 +1,6 @@
 import { Box, Typography } from "@mui/material";
 import { observer } from "mobx-react-lite";
+import React from "react";
 import { Vector } from "../core/Vector";
 import { BottomPanelController } from "./BottomPanel";
 
@@ -105,15 +106,36 @@ export function getCaretCoordinates(reference: HTMLInputElement | HTMLTextAreaEl
   return coordinates;
 }
 
-export const AcceptedValue = observer((props: { value: string; current: string; selected: boolean }) => {
+export type AcceptedValueProps = {
+  controller: BottomPanelController;
+  value: string;
+  current: string;
+  selected: boolean;
+};
+
+export const AcceptedValue = observer((props: AcceptedValueProps) => {
+  const [isHover, setIsHover] = React.useState(false);
+
+  let bgColor: string = "transparent";
+  if (props.selected && isHover) bgColor = "rgb(25 118 210 / 70%)";
+  if (props.selected && !isHover) bgColor = "rgb(25 118 210 / 60%)";
+  if (!props.selected && isHover) bgColor = "rgb(235 235 235 / 100%)";
+
   const head = props.value.substring(0, props.current.length);
   const tail = props.value.substring(props.current.length);
 
   return (
     <Box
+      onMouseEnter={() => setIsHover(true)}
+      onMouseLeave={() => setIsHover(false)}
+      onClick={() => {
+        props.controller.insertAutoCompletionValue(props.value);
+        props.controller.inputElement?.focus();
+      }}
       sx={{
         padding: "0 4px",
-        backgroundColor: props.selected ? "rgb(25 118 210 / 60%)" : "transparent"
+        backgroundColor: bgColor,
+        cursor: "pointer"
       }}>
       {head !== "" && (
         <Typography
@@ -162,12 +184,15 @@ export const InputHintsPopup = observer((props: { controller: BottomPanelControl
 
   return (
     <Box
+      onMouseDown={() => (controller.isFocusedPopup = true)}
+      onMouseUp={() => (controller.isFocusedPopup = false)}
       sx={{
         position: "absolute",
         left: caretOffset + "px",
         bottom: "calc(100% - 8px)",
         minWidth: "100px",
-        backgroundColor: "rgb(250, 250, 250)"
+        backgroundColor: "rgb(250, 250, 250)",
+        userSelect: "none"
       }}>
       {autoCompletionValues.length > 0 ? (
         <Box
@@ -180,7 +205,13 @@ export const InputHintsPopup = observer((props: { controller: BottomPanelControl
             borderBottom: "none"
           }}>
           {autoCompletionValues.map((val, i) => (
-            <AcceptedValue key={i} value={val} current={currentParamValue} selected={controller.selected === val} />
+            <AcceptedValue
+              key={i}
+              controller={controller}
+              value={val}
+              current={currentParamValue}
+              selected={controller.selected === val}
+            />
           ))}
         </Box>
       ) : null}
@@ -200,3 +231,4 @@ export const InputHintsPopup = observer((props: { controller: BottomPanelControl
     </Box>
   );
 });
+
