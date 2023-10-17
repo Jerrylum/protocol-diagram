@@ -5,7 +5,7 @@ import { observable } from "mobx";
 
 test("ObserverInput test", () => {
   let ref: Ref<HTMLInputElement | null> = createRef();
-  let testValue = observable({value: "12345"});
+  let testValue = observable({ value: "12345" });
   function getValue() {
     return testValue.value;
   }
@@ -105,7 +105,7 @@ test("ObserverInput test", () => {
     fireEvent.focus(inputField, { target: { value: "123456" } });
     fireEvent.input(inputField, { target: { value: "123456" } });
     fireEvent.blur(inputField, { target: { value: "123456" } });
-  })
+  });
   result.rerender(components);
   expect(testValue.value).toBe("123456");
   expect(inputField.value).toBe("123456");
@@ -138,9 +138,8 @@ test("ObserverInput test", () => {
     fireEvent.focus(inputField2, { target: { value: "123456" } });
     fireEvent.input(inputField2, { target: { value: "123456" } });
     fireEvent.blur(inputField2, { target: { value: "123456" } });
-  })
+  });
   result2.rerender(components2);
   expect(testValue.value).toBe("123456");
   expect(inputField2.value).toBe("123456");
-
 });
