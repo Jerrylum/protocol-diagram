@@ -1,11 +1,19 @@
 import { validate } from "class-validator";
-import { convertFieldsToRow, Diagram, generateHeader, spliceDividers } from "./Diagram";
+import { convertFieldsToRow, Diagram, generateHeader, isDiagramModifier, spliceDividers } from "./Diagram";
 import { Field } from "./Field";
 import { Element, MatrixLike, VisibleSetting } from "./render/Element";
 import { RowSegment, RowTail, Segment } from "./render/Segment";
 import { Divider, Row } from "./render/SegmentGroup";
 import { instanceToPlain, plainToClass } from "class-transformer";
 import { Configuration } from "../config/Configuration";
+
+test("isDiagramModifier", () => {
+  expect(isDiagramModifier(null)).toBe(false);
+  expect(isDiagramModifier(undefined)).toBe(false);
+  expect(isDiagramModifier({})).toBe(false);
+  expect(isDiagramModifier({ discriminator: "anything" })).toBe(false);
+  expect(isDiagramModifier({ discriminator: "DiagramModifier" })).toBe(true);
+});
 
 test("Diagram add field", () => {
   const dtest = new Diagram();
@@ -439,3 +447,4 @@ test("Diagram Validation", async () => {
   const testd2 = plainToClass(Diagram, [], { excludeExtraneousValues: true, exposeDefaultValues: false }); // need instanceof Diagram
   expect(await validate(testd2)).toHaveLength(0);
 });
+
