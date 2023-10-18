@@ -440,13 +440,13 @@ export class DiagramCanvasController implements DiagramInteractionHandler {
     const posWithoutOffsetInPx = this.getUnboundedPxFromNativeEvent(evt, false);
     const posInPx = this.getUnboundedPxFromNativeEvent(evt);
     if (posWithoutOffsetInPx === undefined || posInPx === undefined) return;
-    const flooredPosInMatrix = this.getFlooredPosInMatrix(posInPx);
+    const posInMatrix = this.getPosInMatrix(posInPx);
 
     this.interaction =
-      this.interaction?.onMouseDown(flooredPosInMatrix, evt) ||
-      ResizeFieldInteraction1.onMouseDown(this, flooredPosInMatrix, evt) ||
-      ResizeFieldInteraction2.onMouseDown(this, flooredPosInMatrix, evt) ||
-      DeleteFieldInteraction.onMouseDown(this, flooredPosInMatrix, evt);
+      this.interaction?.onMouseDown(posInMatrix, evt) ||
+      ResizeFieldInteraction1.onMouseDown(this, posInMatrix, evt) ||
+      ResizeFieldInteraction2.onMouseDown(this, posInMatrix, evt) ||
+      DeleteFieldInteraction.onMouseDown(this, posInMatrix, evt);
 
     if (evt.button === 1) {
       // middle click
@@ -461,9 +461,9 @@ export class DiagramCanvasController implements DiagramInteractionHandler {
     const posWithoutOffsetInPx = this.getUnboundedPxFromNativeEvent(evt, false);
     const posInPx = this.getUnboundedPxFromNativeEvent(evt);
     if (posWithoutOffsetInPx === undefined || posInPx === undefined) return;
-    const flooredPosInMatrix = this.getFlooredPosInMatrix(posInPx);
+    const posInMatrix = this.getPosInMatrix(posInPx);
 
-    this.interaction = this.interaction?.onMouseMove(flooredPosInMatrix, evt);
+    this.interaction = this.interaction?.onMouseMove(posInMatrix, evt);
 
     if (this.grabAndMove(posWithoutOffsetInPx)) return;
   }
@@ -472,9 +472,9 @@ export class DiagramCanvasController implements DiagramInteractionHandler {
     const posWithoutOffsetInPx = this.getUnboundedPxFromNativeEvent(evt, false);
     const posInPx = this.getUnboundedPxFromNativeEvent(evt);
     if (posWithoutOffsetInPx === undefined || posInPx === undefined) return;
-    const flooredPosInMatrix = this.getFlooredPosInMatrix(posInPx);
+    const posInMatrix = this.getPosInMatrix(posInPx);
 
-    this.interaction = this.interaction?.onMouseUp(flooredPosInMatrix, evt);
+    this.interaction = this.interaction?.onMouseUp(posInMatrix, evt);
 
     if (evt.button === 1) {
       // middle click
@@ -482,7 +482,7 @@ export class DiagramCanvasController implements DiagramInteractionHandler {
     }
   }
 
-  getFlooredPosInMatrix(posInPx: Vector): Vector {
+  getPosInMatrix(posInPx: Vector): Vector {
     const { app } = getRootStore();
     const diagram = app.diagram;
     const yOffset = diagram.header == "" ? 0 : 2;
@@ -491,8 +491,7 @@ export class DiagramCanvasController implements DiagramInteractionHandler {
     const flooredPosInMatrix = new Vector(Math.floor(floatingPosInScale.x), Math.floor(floatingPosInScale.y));
     if (flooredPosInMatrix.y % 2 === 0) {
       const i = Math.abs(flooredPosInMatrix.y - floatingPosInScale.y);
-      if (i >= 0.7) flooredPosInMatrix.y += 1;
-      else if (i <= 0.3) flooredPosInMatrix.y -= 1;
+      flooredPosInMatrix.y += i >= 0.7 ? 1 : i <= 0.3 ? -1 : 0;
     }
 
     return flooredPosInMatrix;
