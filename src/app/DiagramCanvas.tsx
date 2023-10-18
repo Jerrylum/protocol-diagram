@@ -9,11 +9,12 @@ import React from "react";
 import Konva from "konva";
 import { getRootStore } from "../core/Root";
 import { Connector, DividerSegment, RowSegment, RowTail } from "../diagram/render/Segment";
-import { DeleteCommand } from "../command/Commands";
+import { CancellableCommand, Command, DeleteCommand } from "../command/Commands";
 import { buildParameters, Parameter } from "../token/Tokens";
 import { Matrix } from "../diagram/render/Matrix";
 import { Field } from "../diagram/Field";
 import { Diagram } from "../diagram/Diagram";
+import { HandleResult, success } from "../command/HandleResult";
 
 export function isKonvaTouchEvent(event: Konva.KonvaEventObject<unknown>): event is Konva.KonvaEventObject<TouchEvent> {
   return !!window.TouchEvent && event.evt instanceof TouchEvent;
@@ -47,29 +48,32 @@ export function toBitLengthPos(posInMatrix: Vector, matrix: Matrix): Vector {
 }
 
 export abstract class Interaction {
-  abstract onMouseDown(diagram: Diagram, posInMatrix: Vector, isPressShift: boolean): this | undefined;
-  abstract onMouseMove(diagram: Diagram, posInMatrix: Vector, isPressShift: boolean): this | undefined;
-  abstract onMouseUp(diagram: Diagram, posInMatrix: Vector, isPressShift: boolean): this | undefined;
+  constructor(readonly handler: DiagramInteractionHandler) {}
+
+  abstract onMouseDown(posInMatrix: Vector, isPressShift: boolean): this | undefined;
+  abstract onMouseMove(posInMatrix: Vector, isPressShift: boolean): this | undefined;
+  abstract onMouseUp(posInMatrix: Vector, isPressShift: boolean): this | undefined;
 }
 
 export class ResizeFieldInteraction1 extends Interaction {
   private constructor(
+    handler: DiagramInteractionHandler,
     public dragFromPosInMatrix: Vector,
     public leftField: FieldMemento,
     public rightField: FieldMemento | undefined
   ) {
-    super();
+    super(handler);
   }
 
-  onMouseDown(diagram: Diagram, posInMatrix: Vector, isPressShift: boolean): this | undefined {
-    const matrix = diagram.renderMatrix;
+  onMouseDown(posInMatrix: Vector, isPressShift: boolean): this | undefined {
+    const matrix = this.handler.diagram.renderMatrix;
 
     return this;
   }
 
-  onMouseMove(diagram: Diagram, posInMatrix: Vector, isPressShift: boolean): this | undefined {
+  onMouseMove(posInMatrix: Vector, isPressShift: boolean): this | undefined {
     if (posInMatrix.y % 2 === 0) return this; // divider line
-    const matrix = diagram.renderMatrix;
+    const matrix = this.handler.diagram.renderMatrix;
 
     const bitLength = Math.floor((matrix.width - 2) / 2);
     const dragFromPosInBitLength = toBitLengthPos(this.dragFromPosInMatrix, matrix);
@@ -91,17 +95,19 @@ export class ResizeFieldInteraction1 extends Interaction {
     return this;
   }
 
-  onMouseUp(diagram: Diagram, posInMatrix: Vector, isPressShift: boolean): this | undefined {
+  onMouseUp(posInMatrix: Vector, isPressShift: boolean): this | undefined {
+    this.handler.commitChange(success("Moved fields(s)"));
+
     return undefined;
   }
 
   static onMouseDown(
-    diagram: Diagram,
+    handler: DiagramInteractionHandler,
     posInMatrix: Vector,
     isPressShift: boolean
   ): ResizeFieldInteraction1 | undefined {
     if (posInMatrix.y % 2 === 0) return undefined; // divider line
-    const matrix = diagram.renderMatrix;
+    const matrix = handler.diagram.renderMatrix;
 
     const element = matrix.get(posInMatrix.x, posInMatrix.y);
     if (element instanceof Connector === false) return undefined;
@@ -118,7 +124,7 @@ export class ResizeFieldInteraction1 extends Interaction {
         if (searchElement === undefined) return undefined;
         if (searchElement instanceof RowTail) return undefined;
         if (searchElement instanceof RowSegment)
-          return diagram.fields.find(field => field.uid === searchElement.represent.uid);
+          return handler.diagram.fields.find(field => field.uid === searchElement.represent.uid);
       }
     };
 
@@ -130,6 +136,7 @@ export class ResizeFieldInteraction1 extends Interaction {
     if (leftField === rightField) return undefined;
 
     return new ResizeFieldInteraction1(
+      handler,
       posInMatrix,
       { field: leftField, originLength: leftField.length },
       rightField && { field: rightField, originLength: rightField.length }
@@ -139,17 +146,18 @@ export class ResizeFieldInteraction1 extends Interaction {
 
 export class ResizeFieldInteraction2 extends Interaction {
   private constructor(
+    handler: DiagramInteractionHandler,
     public dragFromYInMatrix: number,
     public topField: FieldMemento,
     public bottomField: FieldMemento | undefined
   ) {
-    super();
+    super(handler);
   }
 
-  onMouseDown(diagram: Diagram, posInMatrix: Vector, isPressShift: boolean): this | undefined {
+  onMouseDown(posInMatrix: Vector, isPressShift: boolean): this | undefined {
     return this;
   }
-  onMouseMove(diagram: Diagram, posInMatrix: Vector, isPressShift: boolean): this | undefined {
+  onMouseMove(posInMatrix: Vector, isPressShift: boolean): this | undefined {
     const dragFromYInBitLength = Math.floor((this.dragFromYInMatrix - 1) / 2);
     const yInBitLength = Math.floor((posInMatrix.y - 1) / 2);
 
@@ -167,15 +175,19 @@ export class ResizeFieldInteraction2 extends Interaction {
     return this;
   }
 
-  onMouseUp(diagram: Diagram, posInMatrix: Vector, isPressShift: boolean): this | undefined {
+  onMouseUp(posInMatrix: Vector, isPressShift: boolean): this | undefined {
+    this.handler.commitChange(success("Moved fields(s)"));
+
     return undefined;
   }
 
   static onMouseDown(
-    diagram: Diagram,
+    handler: DiagramInteractionHandler,
     posInMatrix: Vector,
     isPressShift: boolean
   ): ResizeFieldInteraction2 | undefined {
+    const diagram = handler.diagram;
+
     if (posInMatrix.y % 2 !== 0) return undefined; // divider line
     const matrix = diagram.renderMatrix;
 
@@ -195,6 +207,7 @@ export class ResizeFieldInteraction2 extends Interaction {
       bottom instanceof RowSegment ? diagram.fields.find(field => field.uid === bottom.represent.uid) : undefined;
 
     return new ResizeFieldInteraction2(
+      handler,
       posInMatrix.y,
       { field: topField, originLength: topField.length },
       bottomField && { field: bottomField, originLength: bottomField.length }
@@ -202,7 +215,28 @@ export class ResizeFieldInteraction2 extends Interaction {
   }
 }
 
-export class DiagramCanvasController {
+export interface DiagramInteractionHandler {
+  get diagram(): Diagram;
+  commitChange(result: HandleResult): void;
+}
+
+export class DiagramInteractionCommand extends Command implements CancellableCommand {
+  readonly discriminator = "DiagramModifier";
+
+  constructor(private result: HandleResult) {
+    super("not-callable", null, "not-callable");
+  }
+
+  execute(): void {
+    // noop
+  }
+
+  handle(): HandleResult {
+    return this.result;
+  }
+}
+
+export class DiagramCanvasController implements DiagramInteractionHandler {
   private offsetStart: Vector | undefined = undefined;
 
   diagramSize: Vector = new Vector(0, 0);
@@ -214,6 +248,19 @@ export class DiagramCanvasController {
 
   get viewOffset() {
     return new Vector((this.canvasSize.x - this.diagramSize.x) / 2, 0);
+  }
+
+  get diagram() {
+    return getRootStore().app.diagram;
+  }
+
+  commitChange(result: HandleResult): void {
+    const { app, logger } = getRootStore();
+    if (result === HandleResult.NOT_HANDLED || result.message === null) return;
+    if (result.success) logger.info(result.message ?? "");
+    else logger.error(result.message ?? "");
+
+    app.operate(new DiagramInteractionCommand(result));
   }
 
   private updateCanvasSize() {
@@ -248,8 +295,8 @@ export class DiagramCanvasController {
     return isGrabbing;
   }
 
-  w(posInPx: Vector) {
-    const { app, logger } = getRootStore();
+  removeField(posInPx: Vector) {
+    const { app } = getRootStore();
     const diagram = app.diagram;
     const matrix = diagram.renderMatrix;
 
@@ -257,14 +304,13 @@ export class DiagramCanvasController {
 
     const element = matrix.get(flooredPosInMatrix.x, flooredPosInMatrix.y);
 
-    // console.log(element, flooredPosInMatrix.x, flooredPosInMatrix.y);
     if (element instanceof RowSegment || element instanceof DividerSegment) {
-      if (element.represent !== null) {
-        const index = diagram.fields.findIndex(field => field.uid === element.represent?.uid);
+      const field = element.represent;
+      if (field !== null) {
+        const index = diagram.fields.findIndex(f => f.uid === field.uid);
+        app.diagram.removeField(index);
 
-        const cmd = new DeleteCommand();
-        logger.info(cmd.handle(buildParameters(index)).message ?? "");
-        app.operate(cmd);
+        this.commitChange(success('Deleted field "' + field.name + "'."));
       }
     }
   }
@@ -353,9 +399,9 @@ export class DiagramCanvasController {
       const flooredPosInMatrix = this.getFlooredPosInMatrix(posInPx);
 
       this.interaction =
-        this.interaction?.onMouseDown(diagram, flooredPosInMatrix, evt.shiftKey) ||
-        ResizeFieldInteraction1.onMouseDown(diagram, flooredPosInMatrix, evt.shiftKey) ||
-        ResizeFieldInteraction2.onMouseDown(diagram, flooredPosInMatrix, evt.shiftKey);
+        this.interaction?.onMouseDown(flooredPosInMatrix, evt.shiftKey) ||
+        ResizeFieldInteraction1.onMouseDown(this, flooredPosInMatrix, evt.shiftKey) ||
+        ResizeFieldInteraction2.onMouseDown(this, flooredPosInMatrix, evt.shiftKey);
     } else if (evt.button === 1) {
       // middle click
       // UX: Start "Grab & Move" if: middle click at any position
@@ -363,7 +409,7 @@ export class DiagramCanvasController {
 
       this.startGrabAndMove(posWithoutOffsetInPx);
     } else if (evt.button === 2) {
-      this.w(posInPx);
+      this.removeField(posInPx);
     }
   }
 
@@ -382,7 +428,7 @@ export class DiagramCanvasController {
       // left click
       const flooredPosInMatrix = this.getFlooredPosInMatrix(posInPx);
 
-      this.interaction = this.interaction?.onMouseMove(diagram, flooredPosInMatrix, evt.shiftKey);
+      this.interaction = this.interaction?.onMouseMove(flooredPosInMatrix, evt.shiftKey);
     }
   }
 
@@ -398,7 +444,7 @@ export class DiagramCanvasController {
       // left click
       const flooredPosInMatrix = this.getFlooredPosInMatrix(posInPx);
 
-      this.interaction = this.interaction?.onMouseUp(diagram, flooredPosInMatrix, evt.shiftKey);
+      this.interaction = this.interaction?.onMouseUp(flooredPosInMatrix, evt.shiftKey);
     } else if (evt.button === 1) {
       // middle click
       this.endGrabAndMove();
