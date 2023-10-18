@@ -1,8 +1,116 @@
+import "reflect-metadata";
 import { makeObservable, observable } from "mobx";
 import { HandleResult, success, fail } from "../command/HandleResult";
 import { Parameter, ParameterType } from "../token/Tokens";
+import {
+  ArrayMinSize,
+  IsArray,
+  IsBoolean,
+  IsInt,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  ValidationArguments,
+  ValidationOptions,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
+  registerDecorator
+} from "class-validator";
+import { Expose } from "class-transformer";
 
 export type OptionType = boolean | number | string;
+
+@ValidatorConstraint({ async: true })
+export class IsInArrayConstraint implements ValidatorConstraintInterface {
+  validate(value: unknown, args: ValidationArguments) {
+    const obj = args.object;
+    if (obj instanceof EnumOption) {
+      return Array.isArray(obj.acceptedValues) && (obj.acceptedValues as readonly string[]).includes(value as string);
+    } else return false;
+  }
+}
+
+export function IsInAcceptedValues(validationOptions?: ValidationOptions) {
+  return function (object: Object, propertyName: string) {
+    registerDecorator({
+      target: object.constructor,
+      propertyName: propertyName,
+      options: validationOptions,
+      constraints: [],
+      validator: IsInArrayConstraint
+    });
+  };
+}
+
+@ValidatorConstraint({ async: true })
+export class IsMaxConstraint implements ValidatorConstraintInterface {
+  validate(value: unknown, args: ValidationArguments) {
+    const obj = args.object;
+    if (obj instanceof RangeOption) {
+      const value = obj.max;
+      return value >= obj.min;
+    } else return false;
+  }
+}
+
+export function IsMax(validationOptions?: ValidationOptions) {
+  return function (object: Object, propertyName: string) {
+    registerDecorator({
+      target: object.constructor,
+      propertyName: propertyName,
+      options: validationOptions,
+      constraints: [],
+      validator: IsMaxConstraint
+    });
+  };
+}
+
+@ValidatorConstraint({ async: true })
+export class IsMinConstraint implements ValidatorConstraintInterface {
+  validate(value: unknown, args: ValidationArguments) {
+    const obj = args.object;
+    if (obj instanceof RangeOption) {
+      const value = obj.min;
+      return value <= obj.max;
+    } else return false;
+  }
+}
+
+export function IsMin(validationOptions?: ValidationOptions) {
+  return function (object: Object, propertyName: string) {
+    registerDecorator({
+      target: object.constructor,
+      propertyName: propertyName,
+      options: validationOptions,
+      constraints: [],
+      validator: IsMinConstraint
+    });
+  };
+}
+
+@ValidatorConstraint({ async: true })
+export class IsWithinRangeConstraint implements ValidatorConstraintInterface {
+  validate(value: unknown, args: ValidationArguments) {
+    const obj = args.object;
+    if (obj instanceof RangeOption && typeof value === "number") {
+      const min = obj.min;
+      const max = obj.max;
+      return value <= obj.max && value >= obj.min;
+    } else return false;
+  }
+}
+
+export function IsWithinRange(validationOptions?: ValidationOptions) {
+  return function (object: Object, propertyName: string) {
+    registerDecorator({
+      target: object.constructor,
+      propertyName: propertyName,
+      options: validationOptions,
+      constraints: [],
+      validator: IsWithinRangeConstraint
+    });
+  };
+}
 
 /**
  * this abstract class provides a basic shape of an option class, that takes a
@@ -10,7 +118,18 @@ export type OptionType = boolean | number | string;
  * changed afterward
  */
 export abstract class Option<T extends OptionType> {
-  constructor(readonly key: string, readonly defaultValue: T, protected value: T = defaultValue) {}
+  @IsString()
+  @IsNotEmpty()
+  @Expose()
+  readonly key: string;
+  readonly defaultValue: T;
+  protected value: T;
+
+  constructor(key: string, defaultValue: T, value: T = defaultValue) {
+    this.key = key;
+    this.defaultValue = defaultValue;
+    this.value = value;
+  }
 
   /**
    * a setter method that sets the value of this option
@@ -43,8 +162,17 @@ export abstract class Option<T extends OptionType> {
 }
 
 export class BooleanOption extends Option<boolean> {
+  @IsBoolean()
+  @Expose()
+  readonly defaultValue: boolean;
+  @IsBoolean()
+  @Expose()
+  protected value: boolean;
+
   public constructor(key: string, defaultValue: boolean, value: boolean = defaultValue) {
     super(key, defaultValue, value);
+    this.defaultValue = defaultValue;
+    this.value = value;
     makeObservable<BooleanOption, "value">(this, { value: observable });
   }
 
@@ -80,13 +208,30 @@ export class BooleanOption extends Option<boolean> {
  * possible values of string literals
  */
 export class EnumOption<TAccepts extends readonly string[]> extends Option<TAccepts[number]> {
+  @IsArray()
+  @ArrayMinSize(1)
+  @IsString({ each: true })
+  @Expose()
+  readonly acceptedValues: TAccepts;
+  @IsString()
+  @IsInAcceptedValues()
+  @Expose()
+  readonly defaultValue: TAccepts[number];
+  @IsString()
+  @IsInAcceptedValues()
+  @Expose()
+  protected value: TAccepts[number];
+
   constructor(
     key: string,
     defaultValue: TAccepts[number],
-    readonly acceptedValues: TAccepts,
+    acceptedValues: TAccepts,
     value: TAccepts[number] = defaultValue
   ) {
     super(key, defaultValue, value);
+    this.defaultValue = defaultValue;
+    this.acceptedValues = acceptedValues;
+    this.value = value;
     makeObservable<EnumOption<TAccepts>, "value">(this, { value: observable });
   }
 
@@ -105,7 +250,7 @@ export class EnumOption<TAccepts extends readonly string[]> extends Option<TAcce
           break;
         }
         if (acceptedValue.startsWith(value.toLowerCase())) {
-          if (selected != null) {
+          if (selected !== null) {
             return fail('Ambiguous value "' + value + '".');
           }
           selected = acceptedValue;
@@ -136,14 +281,33 @@ export class EnumOption<TAccepts extends readonly string[]> extends Option<TAcce
 }
 
 export class RangeOption extends Option<number> {
-  constructor(
-    key: string,
-    defaultValue: number,
-    readonly min: number,
-    readonly max: number,
-    value: number = defaultValue
-  ) {
+  @IsNumber()
+  @IsInt()
+  @IsWithinRange()
+  @Expose()
+  readonly defaultValue: number;
+  @IsNumber()
+  @IsInt()
+  @IsMin()
+  @Expose()
+  readonly min: number;
+  @IsNumber()
+  @IsInt()
+  @IsMax()
+  @Expose()
+  readonly max: number;
+  @IsNumber()
+  @IsInt()
+  @IsWithinRange()
+  @Expose()
+  protected value: number;
+
+  constructor(key: string, defaultValue: number, min: number, max: number, value: number = defaultValue) {
     super(key, defaultValue, value);
+    this.defaultValue = defaultValue;
+    this.min = min;
+    this.max = max;
+    this.value = value;
     makeObservable<RangeOption, "value">(this, { value: observable });
   }
 

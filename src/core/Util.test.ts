@@ -1,7 +1,14 @@
 import { render, screen } from "@testing-library/react";
-import { clamp, getWindowSize, isMacOS } from "./Util";
+import { clamp, getWindowSize, isMacOS, sleep } from "./Util";
 import { Vector } from "./Vector";
 import isEqual from "lodash.isequal";
+
+test("sleep", ()=> {
+  expect.assertions(1);
+  return sleep(10).then(() => {
+    expect(true).toBe(true);
+  });
+})
 
 test("isMacOS", () => {
   expect(isMacOS("Windows")).toBe(false);

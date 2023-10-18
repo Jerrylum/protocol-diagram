@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import Root from "./Root";
-import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
+import * as SWR from "./core/ServiceWorkerRegistration";
 
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 root.render(
@@ -10,7 +10,8 @@ root.render(
   </React.StrictMode>
 );
 
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: https://cra.link/PWA
-serviceWorkerRegistration.unregister();
+// See: https://deanhume.com/displaying-a-new-version-available-progressive-web-app/
+// See: https://web.dev/service-worker-lifecycle/
+// See: https://web.dev/service-worker-caching-and-http-caching/
+// See: https://web.dev/progressive-web-apps/
+SWR.register();

@@ -1,8 +1,11 @@
+import { validate } from "class-validator";
 import { convertFieldsToRow, Diagram, generateHeader, spliceDividers } from "./Diagram";
 import { Field } from "./Field";
 import { Element, MatrixLike, VisibleSetting } from "./render/Element";
 import { RowSegment, RowTail, Segment } from "./render/Segment";
 import { Divider, Row } from "./render/SegmentGroup";
+import { instanceToPlain, plainToClass } from "class-transformer";
+import { Configuration } from "../config/Configuration";
 
 test("Diagram add field", () => {
   const dtest = new Diagram();
@@ -387,4 +390,52 @@ test("Diagram render", () => {
 |               a               |                                
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                                
 `);
+});
+
+test("Diagram Validation", async () => {
+  const d = new Diagram();
+  expect(await validate(d)).toHaveLength(0);
+
+  const p = instanceToPlain(d);
+  const d2 = plainToClass(Diagram, p, { excludeExtraneousValues: true, exposeDefaultValues: true });
+
+  expect(await validate(d2)).toHaveLength(0);
+
+  (d2 as any)._fields = "asd";
+  expect(await validate(d2)).toHaveLength(1);
+  (d2 as any)._fields = 123;
+  expect(await validate(d2)).toHaveLength(1);
+  (d2 as any)._fields = [123];
+  expect(await validate(d2)).toHaveLength(1);
+  (d2 as any)._fields = {};
+  expect(await validate(d2)).toHaveLength(1);
+  (d2 as any)._fields = null;
+  expect(await validate(d2)).toHaveLength(1);
+  (d2 as any)._fields = undefined;
+  expect(await validate(d2)).toHaveLength(1);
+  (d2 as any)._fields = [];
+  expect(await validate(d2)).toHaveLength(0);
+  (d2 as any)._fields = [new Field("test", 1)];
+  expect(await validate(d2)).toHaveLength(0);
+
+  (d2 as any).config = "asd";
+  expect(await validate(d2)).toHaveLength(1);
+  (d2 as any).config = 123;
+  expect(await validate(d2)).toHaveLength(1);
+  (d2 as any).config = [123];
+  expect(await validate(d2)).toHaveLength(1);
+  (d2 as any).config = null;
+  expect(await validate(d2)).toHaveLength(1);
+  (d2 as any).config = undefined;
+  expect(await validate(d2)).toHaveLength(1);
+  (d2 as any).config = [];
+  expect(await validate(d2)).toHaveLength(1);
+  (d2 as any).config = new Configuration();
+  expect(await validate(d2)).toHaveLength(0);
+
+  const testd = plainToClass(Diagram, {}, { excludeExtraneousValues: true, exposeDefaultValues: true });
+  expect(await validate(testd)).toHaveLength(0);
+
+  const testd2 = plainToClass(Diagram, [], { excludeExtraneousValues: true, exposeDefaultValues: false }); // need instanceof Diagram
+  expect(await validate(testd2)).toHaveLength(0);
 });
