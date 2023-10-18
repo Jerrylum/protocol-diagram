@@ -8,6 +8,9 @@ import { useBetterMemo, useEventListener } from "../core/Hook";
 import React from "react";
 import Konva from "konva";
 import { getRootStore } from "../core/Root";
+import { DividerSegment, RowSegment } from "../diagram/render/Segment";
+import { DeleteCommand } from "../command/Commands";
+import { buildParameters, Parameter } from "../token/Tokens";
 
 export function isKonvaTouchEvent(event: Konva.KonvaEventObject<unknown>): event is Konva.KonvaEventObject<TouchEvent> {
   return !!window.TouchEvent && event.evt instanceof TouchEvent;
@@ -70,6 +73,56 @@ export class DiagramCanvasController {
     const isGrabbing = this.isGrabAndMove;
     this.offsetStart = undefined;
     return isGrabbing;
+  }
+
+  w(posInPx: Vector) {
+    const { app, logger } = getRootStore();
+    const diagram = app.diagram;
+    const matrix = diagram.renderMatrix;
+
+    const floatingPosInMatrix = posInPx.divide(new Vector(12, 16));
+    const flooredPosInMatrix = new Vector(Math.floor(floatingPosInMatrix.x), Math.floor(floatingPosInMatrix.y));
+    if (flooredPosInMatrix.y % 2 === 0) {
+      const i = Math.abs(flooredPosInMatrix.y - floatingPosInMatrix.y);
+      if (i >= 0.6) flooredPosInMatrix.y += 1;
+      else if (i <= 0.4) flooredPosInMatrix.y -= 1;
+    }
+    const yOffset = diagram.header == "" ? 0 : 2;
+    floatingPosInMatrix.y -= yOffset;
+    flooredPosInMatrix.y -= yOffset;
+
+    const element = matrix.get(flooredPosInMatrix.x, flooredPosInMatrix.y);
+
+    // console.log(element, flooredPosInMatrix.x, flooredPosInMatrix.y);
+    if (element instanceof RowSegment || element instanceof DividerSegment) {
+      if (element.represent !== null) {
+        const index = diagram.fields.findIndex(field => field.uid === element.represent?.uid);
+        
+        const cmd = new DeleteCommand();
+        logger.info(cmd.handle(buildParameters(index)).message ?? "");
+        app.operate(cmd);
+      }
+    }
+  }
+
+  x(posInPx: Vector) {
+    const diagram = getRootStore().app.diagram;
+    const matrix = diagram.renderMatrix;
+
+    const floatingPosInMatrix = posInPx.divide(new Vector(12, 16));
+    const flooredPosInMatrix = new Vector(Math.floor(floatingPosInMatrix.x), Math.floor(floatingPosInMatrix.y));
+    if (flooredPosInMatrix.y % 2 === 0) {
+      const i = Math.abs(flooredPosInMatrix.y - floatingPosInMatrix.y);
+      if (i >= 0.6) flooredPosInMatrix.y += 1;
+      else if (i <= 0.4) flooredPosInMatrix.y -= 1;
+    }
+    const yOffset = diagram.header == "" ? 0 : 2;
+    floatingPosInMatrix.y -= yOffset;
+    flooredPosInMatrix.y -= yOffset;
+
+    const element = matrix.get(flooredPosInMatrix.x, flooredPosInMatrix.y);
+
+    // console.log(element, flooredPosInMatrix.x, flooredPosInMatrix.y);
   }
 
   panning(vec: Vector): boolean {
@@ -152,6 +205,11 @@ export class DiagramCanvasController {
       const posWithoutOffsetInPx = this.getUnboundedPxFromNativeEvent(evt, false);
       if (posWithoutOffsetInPx === undefined) return;
       this.startGrabAndMove(posWithoutOffsetInPx);
+    } else if (evt.button === 2) {
+      const posInPx = this.getUnboundedPxFromNativeEvent(evt);
+      if (posInPx === undefined) return;
+
+      this.w(posInPx);
     }
   }
 
@@ -159,7 +217,10 @@ export class DiagramCanvasController {
     const posWithoutOffsetInPx = this.getUnboundedPxFromNativeEvent(evt, false);
     if (posWithoutOffsetInPx === undefined) return;
 
-    this.grabAndMove(posWithoutOffsetInPx);
+    const posInPx = this.getUnboundedPxFromNativeEvent(evt);
+    if (posInPx === undefined) return;
+
+    this.grabAndMove(posWithoutOffsetInPx) || this.x(posInPx);
   }
 
   onMouseUpStage(evt: MouseEvent) {
@@ -317,3 +378,4 @@ export const DiagramCanvas = observer(() => {
     </Box>
   );
 });
+
