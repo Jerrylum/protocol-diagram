@@ -4,6 +4,19 @@ import Root from "./Root";
 import { getRootStore } from "./core/Root";
 import { Diagram } from "./diagram/Diagram";
 
+test("confirmation test", () => {
+  const { confirmation, modals } = getRootStore();
+
+  confirmation.prompt({
+    title: "title1",
+    description: "description1",
+    buttons: [],
+    onKeyDown: undefined
+  });
+
+  expect(modals.isOpen).toBe(true);
+});
+
 test("Add/Undo/Redo command integration test", () => {
   const { app } = getRootStore();
 
@@ -28,6 +41,7 @@ test("Add/Undo/Redo command integration test", () => {
 │t│                                                              
 └─┘                                                              
 `);
+  app.diagram.toSvgString();
 
   act(() => {
     commandInputField.value = "undo";
@@ -36,6 +50,7 @@ test("Add/Undo/Redo command integration test", () => {
 
   result.rerender(<Root />);
   expect(app.diagram.toString()).toBe(``);
+  app.diagram.toSvgString();
 
   act(() => {
     commandInputField.value = "redo";
@@ -49,6 +64,7 @@ test("Add/Undo/Redo command integration test", () => {
 │t│                                                              
 └─┘                                                              
 `);
+  app.diagram.toSvgString();
 
   act(() => {
     commandInputField.value = "test";
@@ -69,7 +85,7 @@ test("Add/Undo/Redo command integration test", () => {
     commandInputField.value = "add 1 aaa aaa";
     fireEvent.keyDown(commandInputField, { key: "Enter" });
   });
-
 });
 
 test("Dummy", () => {});
+
