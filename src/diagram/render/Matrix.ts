@@ -32,9 +32,13 @@ export class Matrix implements MatrixLike {
     this.width = Math.floor(this.elements.length / this.height);
   }
 
+  index(x: number, y: number): number {
+    return y * this.width + x;
+  }
+
   get(x: number, y: number): Element | null {
     if (x < 0 || x >= this.width || y < 0 || y >= this.height) return null;
-    return this.elements[y * this.width + x];
+    return this.elements[this.index(x, y)];
   }
 
   process(): void {
@@ -43,8 +47,7 @@ export class Matrix implements MatrixLike {
       for (let x = 0; x < this.width; x++) {
         const e = this.get(x, y);
         if (last !== e) {
-          if (e !== null) 
-          e.process(this, x, y);
+          if (e !== null) e.process(this, x, y);
           last = e;
         }
       }
