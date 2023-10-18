@@ -1,5 +1,5 @@
 import { makeAutoObservable, when } from "mobx";
-import { getRootStore } from "./Root";
+import { Modals } from "./Modals";
 
 export interface ConfirmationButton {
   label: string;
@@ -24,14 +24,12 @@ export class Confirmation {
   private data?: ConfirmationPromptData | ConfirmationInputPromptData;
   public input?: string;
 
-  constructor() {
+  constructor(private modals: () => Modals) {
     makeAutoObservable(this);
   }
 
   close() {
-    const { modals } = getRootStore();
-    modals.close(ConfirmationModalSymbol);
-
+    this.modals().close(ConfirmationModalSymbol);
     this.data = undefined;
   }
 
@@ -48,8 +46,7 @@ export class Confirmation {
       this.input = undefined;
     }
 
-    const { modals } = getRootStore();
-    modals.open(ConfirmationModalSymbol, priority);
+    this.modals().open(ConfirmationModalSymbol, priority);
 
     await when(() => this.data === undefined);
 
@@ -57,9 +54,7 @@ export class Confirmation {
   }
 
   get isOpen() {
-    const { modals } = getRootStore();
-
-    return this.data !== undefined && modals.opening === ConfirmationModalSymbol;
+    return this.data !== undefined && this.modals().opening === ConfirmationModalSymbol;
   }
 
   get title() {
