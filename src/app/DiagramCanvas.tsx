@@ -74,7 +74,7 @@ export class ResizeFieldInteraction1 extends Interaction {
   }
 
   onMouseDown(posInMatrix: Vector, event: InteractionEvent): this | undefined {
-    return this;
+    return undefined;
   }
 
   onMouseMove(posInMatrix: Vector, event: InteractionEvent): this | undefined {
@@ -163,7 +163,7 @@ export class ResizeFieldInteraction2 extends Interaction {
   }
 
   onMouseDown(posInMatrix: Vector, event: InteractionEvent): this | undefined {
-    return this;
+    return undefined;
   }
 
   onMouseMove(posInMatrix: Vector, event: InteractionEvent): this | undefined {
@@ -235,13 +235,16 @@ export class DeleteFieldInteraction extends Interaction {
   }
 
   onMouseDown(posInMatrix: Vector, event: InteractionEvent): this | undefined {
-    return this;
+    return undefined;
   }
+
   onMouseMove(posInMatrix: Vector, event: InteractionEvent): this | undefined {
     return this;
   }
 
   onMouseUp(posInMatrix: Vector, event: InteractionEvent): this | undefined {
+    if (event.button !== 2) return this; // handle right click only
+
     const matrix = this.handler.diagram.renderMatrix;
 
     const element = matrix.get(posInMatrix.x, posInMatrix.y);
