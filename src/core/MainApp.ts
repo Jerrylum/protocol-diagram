@@ -1,7 +1,15 @@
+import { action, computed, makeObservable, observable, override } from "mobx";
+import { SemVer } from "semver";
 import { CancellableCommand } from "../command/Commands";
 import { Diagram, Memento } from "../diagram/Diagram";
 import { Timeline } from "../diagram/Timeline";
+import { APP_VERSION_STRING } from "../Version";
 import { DiagramEditor } from "./DiagramEditor";
+import { Logger } from "./Logger";
+
+export const APP_VERSION = new SemVer(APP_VERSION_STRING);
+
+const logger = Logger("App");
 
 export class MainApp extends Timeline<CancellableCommand> {
   // The current memento saved in the file or the first memento in the timeline
@@ -10,9 +18,25 @@ export class MainApp extends Timeline<CancellableCommand> {
 
   readonly diagramEditor = new DiagramEditor();
 
+  // null = loading, undefined = not available
+  public latestVersion: SemVer | null | undefined = undefined;
+
   constructor() {
     super(new Diagram());
     this.newDiagram();
+
+    makeObservable<MainApp, "sourceCurrentMemento" | "isModifiedFlag" | "latestVersion">(this, {
+      sourceCurrentMemento: observable,
+      isModifiedFlag: observable,
+      latestVersion: observable,
+      diagram: override,
+      newDiagram: action,
+      isModified: action,
+      setModified: action,
+      resetHistory: override
+    });
+
+    logger.log("Version", APP_VERSION_STRING);
   }
 
   get diagram(): Diagram {
