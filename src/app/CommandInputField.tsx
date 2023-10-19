@@ -8,12 +8,13 @@ import { isDiagramModifier } from "../diagram/Diagram";
 import React from "react";
 import { BottomPanelController } from "./BottomPanel";
 import { action, observable } from "mobx";
+import { useBetterMemo } from "../core/Hook";
 
 export const CommandInputField = observer((props: { controller: BottomPanelController }) => {
   const { app, logger } = getRootStore();
   const controller = props.controller;
-  const lastCmdIndex = observable.box(0);
-  const lastCmd = observable([] as string[]);
+  const lastCmdIndex = useBetterMemo(() => observable.box(0), []);
+  const lastCmd = useBetterMemo(() => observable([] as string[]), []);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const input = e.target as HTMLInputElement;
