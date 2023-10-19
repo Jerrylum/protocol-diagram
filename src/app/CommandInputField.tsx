@@ -12,9 +12,8 @@ import { action, observable } from "mobx";
 export const CommandInputField = observer((props: { controller: BottomPanelController }) => {
   const { app, logger } = getRootStore();
   const controller = props.controller;
-  let lastCmdIndex = observable.box(0);
-  let lastCmd = observable([] as string[]);
-  let inputFocused = false;
+  const lastCmdIndex = observable.box(0);
+  const lastCmd = observable([] as string[]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const input = e.target as HTMLInputElement;
@@ -74,7 +73,7 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
       const selected = controller.selected;
       const autoCompletionValues = controller.autoCompletionValues;
 
-      if (inputFocused && lastCmd.length > 0) {
+      if (lastCmd.length > 0) {
         lastCmdIndex.set(lastCmdIndex.get() - 1 === -1 ? 0 : lastCmdIndex.get() - 1);
         input.value = lastCmd[lastCmdIndex.get()];
       }
@@ -93,7 +92,7 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
       const selected = controller.selected;
       const autoCompletionValues = controller.autoCompletionValues;
 
-      if (inputFocused && lastCmd.length > 0) {
+      if (lastCmd.length > 0) {
         if (lastCmdIndex.get() + 1 < lastCmd.length) {
           lastCmdIndex.set(lastCmdIndex.get() + 1);
           input.value = lastCmd[lastCmdIndex.get()];
@@ -144,11 +143,6 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
 
   const handleOnBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     if (!controller.isFocusedPopup) controller.mapping = null;
-    inputFocused = false;
-  };
-
-  const handleOnFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    inputFocused = true;
   };
 
   return (
@@ -166,8 +160,7 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
         onCut: handleTextFieldCaretChange,
         // onMouseMove: handleTextFieldCaretChange,
         onSelect: handleTextFieldCaretChange,
-        onBlur: handleOnBlur,
-        onFocus: handleOnFocus
+        onBlur: handleOnBlur
       }}
       inputRef={ref => (controller.inputElement = ref)}
       spellCheck={false}
