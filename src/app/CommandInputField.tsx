@@ -14,6 +14,7 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
   const { app, logger } = getRootStore();
   const controller = props.controller;
   const lastCmdIndex = useBetterMemo(() => observable.box(0), []);
+  const isUsingPrevCommand = useBetterMemo(() => observable.box(false), []);
   const lastCmd = useBetterMemo(() => observable([] as string[]), []);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -26,7 +27,10 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
     if (e.key === "Enter") {
       e.preventDefault();
       lastCmd.push(inputValue);
-      lastCmdIndex.set(lastCmd.length);
+      if (lastCmd[lastCmdIndex.get()] !== inputValue) {
+        lastCmdIndex.set(lastCmd.length);
+      }
+      isUsingPrevCommand.set(false);
 
       if (line == null) {
         logger.error('Usage: <command> [arguments]\nPlease type "help" for more information.');
@@ -84,10 +88,11 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
       } else if (lastCmd.length > 0) {
         e.preventDefault();
 
-        const nextLastCmdIndex = Math.max(lastCmdIndex.get() - 1, 0);
+        const nextLastCmdIndex = Math.max(lastCmdIndex.get() - (isUsingPrevCommand.get() ? 1 : 0), 0);
         input.value = lastCmd[nextLastCmdIndex];
         input.setSelectionRange(input.value.length, input.value.length);
         lastCmdIndex.set(nextLastCmdIndex);
+        isUsingPrevCommand.set(true);
       }
       return;
     }
@@ -109,6 +114,7 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
         input.value = lastCmd[nextLastCmdIndex] ?? "";
         input.setSelectionRange(input.value.length, input.value.length);
         lastCmdIndex.set(Math.min(nextLastCmdIndex, lastCmd.length));
+        isUsingPrevCommand.set(true);
       }
       return;
     }
