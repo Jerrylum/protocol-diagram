@@ -51,17 +51,12 @@ const Root = observer(() => {
 
   React.useEffect(() => {
     const searchParams = new URLSearchParams(document.location.search);
-    const result = searchParams.get("Diagram");
+    const result = searchParams.get("diagram");
     if (result === null) return;
 
     // Replace URL-safe characters with base64 equivalents
-    let base64String = result.replace(/-/g, "+").replace(/_/g, "/");
+    let base64String = result.replaceAll("-", "+").replaceAll("_", "/");
 
-    // Add padding if necessary
-    while (base64String.length % 4 !== 0) {
-      base64String += "=";
-    }
-    console.log(base64String.length);
 
     const jsonDiagram = window.atob(base64String);
     app.diagram = plainToClass(Diagram, JSON.parse(jsonDiagram), {

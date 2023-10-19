@@ -26,12 +26,10 @@ export const ExportPanel = observer(() => {
   };
 
   const onExportAsURL = () => {
-    console.log(app.diagram.fields.length);
     const encodedJsonDiagram = window.btoa(app.diagram.toJson());
-    const protocol = window.location.protocol;
-    const domain = window.location.hostname;
-    const port = window.location.port;
-    const urlWithJson = `${protocol}//${domain}:${port}?Diagram=${encodedJsonDiagram}`;
+    const base64String = encodedJsonDiagram.replaceAll("+", "-").replaceAll("/", "_");
+    const origin = window.location.origin;
+    const urlWithJson = `${origin}?diagram=${base64String}`;
     navigator.clipboard.writeText(urlWithJson);
     onExportMenuItemClick();
   };
