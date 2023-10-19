@@ -1,9 +1,7 @@
 import { TextField } from "@mui/material";
 import { observer } from "mobx-react-lite";
 import { CommandLine, CodePointBuffer } from "../token/Tokens";
-import {
-  CancellableCommand,
-  Command} from "../command/Commands";
+import { CancellableCommand, Command } from "../command/Commands";
 import { HandleResult } from "../command/HandleResult";
 import { getRootStore } from "../core/Root";
 import { isDiagramModifier } from "../diagram/Diagram";
@@ -14,6 +12,9 @@ import { action } from "mobx";
 export const CommandInputField = observer((props: { controller: BottomPanelController }) => {
   const { app, logger } = getRootStore();
   const controller = props.controller;
+  let lastCmdIndex = 0;
+  let lastCmd: string[] = [];
+  let inputFocused = false;
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const input = e.target as HTMLInputElement;
@@ -24,6 +25,8 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
 
     if (e.key === "Enter") {
       e.preventDefault();
+      lastCmd.push(inputValue);
+      lastCmdIndex = lastCmd.length;
 
       if (line == null) {
         logger.error('Usage: <command> [arguments]\nPlease type "help" for more information.');
@@ -71,6 +74,11 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
       const selected = controller.selected;
       const autoCompletionValues = controller.autoCompletionValues;
 
+      if (inputFocused && lastCmd.length > 0) {
+        lastCmdIndex = lastCmdIndex - 1 === -1 ? 0 : lastCmdIndex - 1;
+        input.value = lastCmd[lastCmdIndex];
+      }
+
       if (selected !== null && autoCompletionValues.length > 0) {
         e.preventDefault();
 
@@ -84,6 +92,16 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
     if (e.key === "ArrowDown") {
       const selected = controller.selected;
       const autoCompletionValues = controller.autoCompletionValues;
+
+      if (inputFocused && lastCmd.length > 0) {
+        if (lastCmdIndex + 1 < lastCmd.length) {
+          lastCmdIndex = lastCmdIndex + 1;
+          input.value = lastCmd[lastCmdIndex];
+        } else {
+          input.value = "";
+          lastCmdIndex = lastCmd.length;
+        }
+      }
 
       if (selected !== null && autoCompletionValues.length > 0) {
         e.preventDefault();
@@ -126,6 +144,11 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
 
   const handleOnBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     if (!controller.isFocusedPopup) controller.mapping = null;
+    inputFocused = false;
+  };
+
+  const handleOnFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    inputFocused = true;
   };
 
   return (
@@ -143,11 +166,11 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
         onCut: handleTextFieldCaretChange,
         // onMouseMove: handleTextFieldCaretChange,
         onSelect: handleTextFieldCaretChange,
-        onBlur: handleOnBlur
+        onBlur: handleOnBlur,
+        onFocus: handleOnFocus
       }}
       inputRef={ref => (controller.inputElement = ref)}
       spellCheck={false}
     />
   );
 });
-
