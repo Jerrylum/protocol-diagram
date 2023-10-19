@@ -74,7 +74,7 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
       const selected = controller.selected;
       const autoCompletionValues = controller.autoCompletionValues;
 
-      if (lastCmd.length > 0) {
+      if (selected === null && autoCompletionValues.length <= 0 && lastCmd.length > 0) {
         lastCmdIndex.set(lastCmdIndex.get() - 1 === -1 ? 0 : lastCmdIndex.get() - 1);
         input.value = lastCmd[lastCmdIndex.get()];
       }
@@ -93,7 +93,7 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
       const selected = controller.selected;
       const autoCompletionValues = controller.autoCompletionValues;
 
-      if (lastCmd.length > 0) {
+      if (selected === null && autoCompletionValues.length <= 0 && lastCmd.length > 0) {
         if (lastCmdIndex.get() + 1 < lastCmd.length) {
           lastCmdIndex.set(lastCmdIndex.get() + 1);
           input.value = lastCmd[lastCmdIndex.get()];
