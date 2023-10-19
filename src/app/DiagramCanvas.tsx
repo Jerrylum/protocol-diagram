@@ -53,6 +53,8 @@ export interface InteractionEvent {
   readonly ctrlKey: boolean;
   readonly metaKey: boolean;
   readonly shiftKey: boolean;
+  readonly clientX: number;
+  readonly clientY: number;
 }
 
 export abstract class Interaction {
@@ -642,7 +644,32 @@ export const DiagramCanvas = observer(() => {
           ))}
         </Layer>
       </Stage>
+
+      <Box
+        sx={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "150px",
+          height: "26px",
+          backgroundColor: "rgb(250, 250, 250)",
+          border: "1px solid rgba(0, 0, 0, 0.23)",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center"
+        }}>
+        <input
+          style={{
+            border: "none",
+            outline: "none",
+            width: "calc(100% - 10px)",
+            height: "18px",
+            backgroundColor: "rgb(235 235 235 / 25%)",
+            lineHeight: "18px",
+            fontSize: "16px"
+          }}
+        />
+      </Box>
     </Box>
   );
 });
-
