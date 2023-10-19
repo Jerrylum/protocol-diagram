@@ -82,8 +82,12 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
 
         controller.selected = autoCompletionValues[nextIndex];
       } else if (lastCmd.length > 0) {
-        lastCmdIndex.set(lastCmdIndex.get() - 1 === -1 ? 0 : lastCmdIndex.get() - 1);
-        input.value = lastCmd[lastCmdIndex.get()];
+        e.preventDefault();
+
+        const nextLastCmdIndex = Math.max(lastCmdIndex.get() - 1, 0);
+        input.value = lastCmd[nextLastCmdIndex];
+        input.setSelectionRange(input.value.length, input.value.length);
+        lastCmdIndex.set(nextLastCmdIndex);
       }
       return;
     }
@@ -99,13 +103,12 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
 
         controller.selected = autoCompletionValues[nextIndex];
       } else if (lastCmd.length > 0) {
-        if (lastCmdIndex.get() + 1 < lastCmd.length) {
-          lastCmdIndex.set(lastCmdIndex.get() + 1);
-          input.value = lastCmd[lastCmdIndex.get()];
-        } else {
-          input.value = "";
-          lastCmdIndex.set(lastCmd.length);
-        }
+        e.preventDefault();
+
+        const nextLastCmdIndex = lastCmdIndex.get() + 1;
+        input.value = lastCmd[nextLastCmdIndex] ?? "";
+        input.setSelectionRange(input.value.length, input.value.length);
+        lastCmdIndex.set(Math.min(nextLastCmdIndex, lastCmd.length));
       }
       return;
     }
