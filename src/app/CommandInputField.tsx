@@ -28,7 +28,7 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
       e.preventDefault();
       lastCmd.push(inputValue);
       if (lastCmd[lastCmdIndex.get()] !== inputValue) {
-        lastCmdIndex.set(lastCmd.length);
+        lastCmdIndex.set(lastCmd.length - 1);
       }
       isUsingPrevCommand.set(false);
 
