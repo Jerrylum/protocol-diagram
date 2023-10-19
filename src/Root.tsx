@@ -20,6 +20,8 @@ import { APP_VERSION_STRING } from "./Version";
 import { plainToClass } from "class-transformer";
 import { Diagram } from "./diagram/Diagram";
 import { validate } from "class-validator";
+import { Modals } from "./core/Modals";
+import { Confirmation, ConfirmationButton, ConfirmationPromptData } from "./core/Confirmation";
 (window as any)["checkForUpdates"] = checkForUpdates;
 
 export async function onLatestVersionChange(newVer: SemVer | null | undefined, oldVer: SemVer | null | undefined) {
@@ -58,7 +60,7 @@ const Root = observer(() => {
     // Replace URL-safe characters with base64 equivalents
     let base64String = result.replaceAll("-", "+").replaceAll("_", "/");
 
-    try{
+    try {
       const diagramDataInJson = window.atob(base64String);
       const c = plainToClass(Diagram, JSON.parse(diagramDataInJson), {
         excludeExtraneousValues: true,
@@ -66,15 +68,30 @@ const Root = observer(() => {
       });
       validate(c).then(errors => {
         if (errors.length > 0) {
-          console.error(errors);
+          const data1Buttons: ConfirmationButton[] = [{ label: "OK" }];
+          const data1: ConfirmationPromptData = {
+            title: "Validation Error",
+            description: errors.map(e => e.toString()).join("\n"),
+            buttons: data1Buttons
+          };
+          const confirmation = getRootStore().confirmation;
+          confirmation.prompt(data1);
           return;
         }
         app.diagram = c;
       });
-    }catch(e){
-      console.error(e);
+    } catch (e) {
+      if (e instanceof Error) {
+        const data1Buttons: ConfirmationButton[] = [{ label: "OK" }];
+        const data1: ConfirmationPromptData = {
+          title: "Error Occured",
+          description: e.message,
+          buttons: data1Buttons
+        };
+        const confirmation = getRootStore().confirmation;
+        confirmation.prompt(data1);
+      }
     }
-    
   }, []);
 
   React.useEffect(() => {
