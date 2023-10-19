@@ -74,11 +74,6 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
       const selected = controller.selected;
       const autoCompletionValues = controller.autoCompletionValues;
 
-      if (selected === null && autoCompletionValues.length <= 0 && lastCmd.length > 0) {
-        lastCmdIndex.set(lastCmdIndex.get() - 1 === -1 ? 0 : lastCmdIndex.get() - 1);
-        input.value = lastCmd[lastCmdIndex.get()];
-      }
-
       if (selected !== null && autoCompletionValues.length > 0) {
         e.preventDefault();
 
@@ -86,22 +81,15 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
         const nextIndex = selectedIndex === 0 ? autoCompletionValues.length - 1 : selectedIndex - 1;
 
         controller.selected = autoCompletionValues[nextIndex];
+      } else if (lastCmd.length > 0) {
+        lastCmdIndex.set(lastCmdIndex.get() - 1 === -1 ? 0 : lastCmdIndex.get() - 1);
+        input.value = lastCmd[lastCmdIndex.get()];
       }
       return;
     }
     if (e.key === "ArrowDown") {
       const selected = controller.selected;
       const autoCompletionValues = controller.autoCompletionValues;
-
-      if (selected === null && autoCompletionValues.length <= 0 && lastCmd.length > 0) {
-        if (lastCmdIndex.get() + 1 < lastCmd.length) {
-          lastCmdIndex.set(lastCmdIndex.get() + 1);
-          input.value = lastCmd[lastCmdIndex.get()];
-        } else {
-          input.value = "";
-          lastCmdIndex.set(lastCmd.length);
-        }
-      }
 
       if (selected !== null && autoCompletionValues.length > 0) {
         e.preventDefault();
@@ -110,6 +98,14 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
         const nextIndex = selectedIndex === autoCompletionValues.length - 1 ? 0 : selectedIndex + 1;
 
         controller.selected = autoCompletionValues[nextIndex];
+      } else if (lastCmd.length > 0) {
+        if (lastCmdIndex.get() + 1 < lastCmd.length) {
+          lastCmdIndex.set(lastCmdIndex.get() + 1);
+          input.value = lastCmd[lastCmdIndex.get()];
+        } else {
+          input.value = "";
+          lastCmdIndex.set(lastCmd.length);
+        }
       }
       return;
     }
