@@ -27,7 +27,6 @@ export const ExportPanel = observer(() => {
 
   const onExportAsURL = () => {
     console.log(app.diagram.fields.length);
-    // const encodedJsonDiagram = base64.encode(app.diagram.toJson());
     const encodedJsonDiagram = window.btoa(app.diagram.toJson());
     const protocol = window.location.protocol;
     const domain = window.location.hostname;
