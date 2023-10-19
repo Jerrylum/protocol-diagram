@@ -17,7 +17,8 @@ import { checkForUpdates, promptUpdate } from "./core/Versioning";
 import * as SWR from "./core/ServiceWorkerRegistration";
 import { reaction } from "mobx";
 import { APP_VERSION_STRING } from "./Version";
-
+import { plainToClass } from "class-transformer";
+import { Diagram } from "./diagram/Diagram";
 (window as any)["checkForUpdates"] = checkForUpdates;
 
 export async function onLatestVersionChange(newVer: SemVer | null | undefined, oldVer: SemVer | null | undefined) {
@@ -47,6 +48,27 @@ export async function onLatestVersionChange(newVer: SemVer | null | undefined, o
 
 const Root = observer(() => {
   const { app, modals } = getRootStore();
+
+  React.useEffect(() => {
+    const searchParams = new URLSearchParams(document.location.search);
+    const result = searchParams.get("Diagram");
+    if (result === null) return;
+
+    // Replace URL-safe characters with base64 equivalents
+    let base64String = result.replace(/-/g, "+").replace(/_/g, "/");
+
+    // Add padding if necessary
+    while (base64String.length % 4 !== 0) {
+      base64String += "=";
+    }
+    console.log(base64String.length);
+
+    const jsonDiagram = window.atob(base64String);
+    app.diagram = plainToClass(Diagram, JSON.parse(jsonDiagram), {
+      excludeExtraneousValues: true,
+      exposeDefaultValues: true
+    });
+  }, []);
 
   React.useEffect(() => {
     const logger = Logger("Versioning");
@@ -117,4 +139,3 @@ const Root = observer(() => {
 });
 
 export default Root;
-

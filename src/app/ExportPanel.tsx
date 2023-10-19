@@ -25,6 +25,18 @@ export const ExportPanel = observer(() => {
     onExportMenuItemClick();
   };
 
+  const onExportAsURL = () => {
+    console.log(app.diagram.fields.length);
+    // const encodedJsonDiagram = base64.encode(app.diagram.toJson());
+    const encodedJsonDiagram = window.btoa(app.diagram.toJson());
+    const protocol = window.location.protocol;
+    const domain = window.location.hostname;
+    const port = window.location.port;
+    const urlWithJson = `${protocol}//${domain}:${port}?Diagram=${encodedJsonDiagram}`;
+    navigator.clipboard.writeText(urlWithJson);
+    onExportMenuItemClick();
+  };
+
   return (
     <Box
       sx={{
@@ -48,9 +60,9 @@ export const ExportPanel = observer(() => {
         transformOrigin={{ vertical: "bottom", horizontal: "center" }}>
         <MenuItem onClick={onExportAsText}>As Text</MenuItem>
         <MenuItem onClick={onExportAsSVG}>As SVG</MenuItem>
+        <MenuItem onClick={onExportAsURL}>As URL</MenuItem>
       </Menu>
       {/* <Button>Share URL</Button> */}
     </Box>
   );
 });
-

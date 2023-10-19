@@ -9,7 +9,7 @@ import { Matrix } from "./render/Matrix";
 import { AsciiStyle, AsciiVerboseStyle, UTF8CornerStyle, UTF8HeaderStyle, UTF8Style } from "./render/Style";
 import { action, makeObservable, observable } from "mobx";
 import { IsArray, IsObject, ValidateNested } from "class-validator";
-import { Expose, Type } from "class-transformer";
+import { Expose, Type, instanceToPlain } from "class-transformer";
 
 /**
  * Distinguish whether the command will manipulate the diagram instance
@@ -263,6 +263,11 @@ export class Diagram {
 ${svgLines}</text>
 </svg>`;
   }
+
+  toJson(): string {
+    const p = instanceToPlain(this);
+    return JSON.stringify(p);
+  }
 }
 
 /**
@@ -437,4 +442,3 @@ export function generateHeader(elements: Element[], bit: number, headerStyle: He
 
   return rtn;
 }
-
