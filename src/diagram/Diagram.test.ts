@@ -448,3 +448,11 @@ test("Diagram Validation", async () => {
   expect(await validate(testd2)).toHaveLength(0);
 });
 
+test("Diagram toSvgString", () => {
+  const d = new Diagram();
+  d.addField(new Field("test", 1));
+  d.addField(new Field("test2", 2));
+  d.addField(new Field("test3", 3));
+  d.config.getOption("diagram-style")?.setValue("ascii");
+  expect(d.toSvgString()).toMatchSnapshot();
+});

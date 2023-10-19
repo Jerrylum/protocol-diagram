@@ -1,0 +1,14 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Diagram toSvgString 1`] = `
+"<svg xmlns=\\"http://www.w3.org/2000/svg\\" width=\\"643.5\\" height=\\"96\\">
+<text x=\\"0\\" y=\\"0\\" style=\\"white-space:pre;font-size:16px;font-family:Menlo,consolas,'Courier New',monospace\\">
+<tspan x=\\"0\\" dy=\\"1em\\"> 0          </tspan>
+<tspan x=\\"0\\" dy=\\"1em\\"> 0 1 2 3 4 5</tspan>
+<tspan x=\\"0\\" dy=\\"1em\\">+-+---+-----+                                                    </tspan>
+<tspan x=\\"0\\" dy=\\"1em\\">|t|tes|test3|                                                    </tspan>
+<tspan x=\\"0\\" dy=\\"1em\\">+-+---+-----+                                                    </tspan>
+<tspan x=\\"0\\" dy=\\"1em\\"></tspan>
+</text>
+</svg>"
+`;

@@ -11,7 +11,7 @@ import {
 
 const logger = Logger("Service Worker Registration");
 
-const isLocalhost = Boolean(
+export const isLocalhost = () => Boolean(
   window.location.hostname === "localhost" ||
     // [::1] is the IPv6 localhost address.
     window.location.hostname === "[::1]" ||
@@ -80,7 +80,7 @@ export async function isInstalling(): Promise<boolean> {
 
 export function register() {
   // if (process.env.NODE_ENV !== "production") return; // TEST: disable this line to test service worker in development
-  if (isLocalhost) return unregister(); // TEST: disable this line to test service worker in localhost
+  if (isLocalhost()) return unregister(); // TEST: disable this line to test service worker in localhost
   if ("serviceWorker" in navigator === false) return;
 
   const publicUrl = new URL(process.env.PUBLIC_URL, window.location.href);
