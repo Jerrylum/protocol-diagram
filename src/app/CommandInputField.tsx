@@ -7,13 +7,13 @@ import { getRootStore } from "../core/Root";
 import { isDiagramModifier } from "../diagram/Diagram";
 import React from "react";
 import { BottomPanelController } from "./BottomPanel";
-import { action } from "mobx";
+import { action, observable } from "mobx";
 
 export const CommandInputField = observer((props: { controller: BottomPanelController }) => {
   const { app, logger } = getRootStore();
   const controller = props.controller;
-  let lastCmdIndex = 0;
-  let lastCmd: string[] = [];
+  let lastCmdIndex = observable.box(0);
+  let lastCmd = observable([] as string[]);
   let inputFocused = false;
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -26,7 +26,7 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
     if (e.key === "Enter") {
       e.preventDefault();
       lastCmd.push(inputValue);
-      lastCmdIndex = lastCmd.length;
+      lastCmdIndex.set(lastCmd.length);
 
       if (line == null) {
         logger.error('Usage: <command> [arguments]\nPlease type "help" for more information.');
@@ -75,8 +75,8 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
       const autoCompletionValues = controller.autoCompletionValues;
 
       if (inputFocused && lastCmd.length > 0) {
-        lastCmdIndex = lastCmdIndex - 1 === -1 ? 0 : lastCmdIndex - 1;
-        input.value = lastCmd[lastCmdIndex];
+        lastCmdIndex.set(lastCmdIndex.get() - 1 === -1 ? 0 : lastCmdIndex.get() - 1);
+        input.value = lastCmd[lastCmdIndex.get()];
       }
 
       if (selected !== null && autoCompletionValues.length > 0) {
@@ -94,12 +94,12 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
       const autoCompletionValues = controller.autoCompletionValues;
 
       if (inputFocused && lastCmd.length > 0) {
-        if (lastCmdIndex + 1 < lastCmd.length) {
-          lastCmdIndex = lastCmdIndex + 1;
-          input.value = lastCmd[lastCmdIndex];
+        if (lastCmdIndex.get() + 1 < lastCmd.length) {
+          lastCmdIndex.set(lastCmdIndex.get() + 1);
+          input.value = lastCmd[lastCmdIndex.get()];
         } else {
           input.value = "";
-          lastCmdIndex = lastCmd.length;
+          lastCmdIndex.set(lastCmd.length);
         }
       }
 
