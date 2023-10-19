@@ -19,6 +19,7 @@ import { reaction } from "mobx";
 import { APP_VERSION_STRING } from "./Version";
 import { plainToClass } from "class-transformer";
 import { Diagram } from "./diagram/Diagram";
+import { validate } from "class-validator";
 (window as any)["checkForUpdates"] = checkForUpdates;
 
 export async function onLatestVersionChange(newVer: SemVer | null | undefined, oldVer: SemVer | null | undefined) {
@@ -57,12 +58,23 @@ const Root = observer(() => {
     // Replace URL-safe characters with base64 equivalents
     let base64String = result.replaceAll("-", "+").replaceAll("_", "/");
 
-
-    const jsonDiagram = window.atob(base64String);
-    app.diagram = plainToClass(Diagram, JSON.parse(jsonDiagram), {
-      excludeExtraneousValues: true,
-      exposeDefaultValues: true
-    });
+    try{
+      const diagramDataInJson = window.atob(base64String);
+      const c = plainToClass(Diagram, JSON.parse(diagramDataInJson), {
+        excludeExtraneousValues: true,
+        exposeDefaultValues: true
+      });
+      validate(c).then(errors => {
+        if (errors.length > 0) {
+          console.error(errors);
+          return;
+        }
+        app.diagram = c;
+      });
+    }catch(e){
+      console.error(e);
+    }
+    
   }, []);
 
   React.useEffect(() => {

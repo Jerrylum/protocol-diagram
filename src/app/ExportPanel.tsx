@@ -31,6 +31,7 @@ export const ExportPanel = observer(() => {
     const origin = window.location.origin;
     const urlWithJson = `${origin}?diagram=${base64String}`;
     navigator.clipboard.writeText(urlWithJson);
+    window.history.pushState({}, "", urlWithJson);
     onExportMenuItemClick();
   };
 
