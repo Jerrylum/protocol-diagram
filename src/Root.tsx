@@ -50,13 +50,12 @@ export async function onLatestVersionChange(newVer: SemVer | null | undefined, o
 }
 
 const Root = observer(() => {
-  const { app, modals } = getRootStore();
+  const { app, modals, confirmation } = getRootStore();
 
   React.useEffect(() => {
     const searchParams = new URLSearchParams(document.location.search);
     const result = searchParams.get("diagram");
     if (result === null) return;
-    const confirmation = getRootStore().confirmation;
 
     // Replace URL-safe characters with base64 equivalents
     const base64String = result.replaceAll("-", "+").replaceAll("_", "/");
@@ -67,7 +66,6 @@ const Root = observer(() => {
         excludeExtraneousValues: true,
         exposeDefaultValues: true
       });
-      console.log(diagramDataInJson);
       validate(c).then(errors => {
         if (errors.length > 0) {
           confirmation.prompt({
