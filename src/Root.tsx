@@ -69,24 +69,22 @@ const Root = observer(() => {
       });
       validate(c).then(errors => {
         if (errors.length > 0) {
-          const data1: ConfirmationPromptData = {
+          confirmation.prompt({
             title: "Validation Error",
             description: errors.map(e => e.toString()).join("\n"),
             buttons: [{ label: "OK" }]
-          };
-          confirmation.prompt(data1);
+          } as ConfirmationPromptData);
           return;
         }
         app.diagram = c;
       });
     } catch (e) {
       if (e instanceof Error) {
-        const data1: ConfirmationPromptData = {
+        confirmation.prompt({
           title: "Error Occured",
           description: e.message,
           buttons: [{ label: "OK" }]
-        };
-        confirmation.prompt(data1);
+        } as ConfirmationPromptData);
       }
     }
   }, []);
