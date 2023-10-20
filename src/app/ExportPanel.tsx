@@ -26,7 +26,7 @@ export const ExportPanel = observer(() => {
   };
 
   const onExportAsURL = () => {
-    const encodedJsonDiagram = window.btoa(app.diagram.toJson());
+    const encodedJsonDiagram = window.btoa(unescape(encodeURIComponent(app.diagram.toJson())));
     const base64String = encodedJsonDiagram.replaceAll("+", "-").replaceAll("/", "_");
     const origin = window.location.origin;
     const urlWithJson = `${origin}?diagram=${base64String}`;

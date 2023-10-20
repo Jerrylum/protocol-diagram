@@ -56,25 +56,24 @@ const Root = observer(() => {
     const searchParams = new URLSearchParams(document.location.search);
     const result = searchParams.get("diagram");
     if (result === null) return;
+    const confirmation = getRootStore().confirmation;
 
     // Replace URL-safe characters with base64 equivalents
-    let base64String = result.replaceAll("-", "+").replaceAll("_", "/");
+    const base64String = result.replaceAll("-", "+").replaceAll("_", "/");
 
     try {
-      const diagramDataInJson = window.atob(base64String);
+      const diagramDataInJson = decodeURIComponent(escape(window.atob(base64String)));
       const c = plainToClass(Diagram, JSON.parse(diagramDataInJson), {
         excludeExtraneousValues: true,
         exposeDefaultValues: true
       });
       validate(c).then(errors => {
         if (errors.length > 0) {
-          const data1Buttons: ConfirmationButton[] = [{ label: "OK" }];
           const data1: ConfirmationPromptData = {
             title: "Validation Error",
             description: errors.map(e => e.toString()).join("\n"),
-            buttons: data1Buttons
+            buttons: [{ label: "OK" }]
           };
-          const confirmation = getRootStore().confirmation;
           confirmation.prompt(data1);
           return;
         }
@@ -82,13 +81,11 @@ const Root = observer(() => {
       });
     } catch (e) {
       if (e instanceof Error) {
-        const data1Buttons: ConfirmationButton[] = [{ label: "OK" }];
         const data1: ConfirmationPromptData = {
           title: "Error Occured",
           description: e.message,
-          buttons: data1Buttons
+          buttons: [{ label: "OK" }]
         };
-        const confirmation = getRootStore().confirmation;
         confirmation.prompt(data1);
       }
     }
