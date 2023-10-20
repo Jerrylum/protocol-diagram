@@ -67,6 +67,7 @@ const Root = observer(() => {
         excludeExtraneousValues: true,
         exposeDefaultValues: true
       });
+      console.log(diagramDataInJson);
       validate(c).then(errors => {
         if (errors.length > 0) {
           confirmation.prompt({
