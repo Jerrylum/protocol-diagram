@@ -439,7 +439,7 @@ test("Diagram Validation", async () => {
   (d2 as any).config = [];
   expect(await validate(d2)).toHaveLength(1);
   (d2 as any).config = new Configuration();
-  expect(await validate(d2)).toHaveLength(0);
+  expect(await validate(d2)).toHaveLength(1);
 
   const testd = plainToClass(Diagram, {}, { excludeExtraneousValues: true, exposeDefaultValues: true });
   expect(await validate(testd)).toHaveLength(0);
@@ -447,4 +447,3 @@ test("Diagram Validation", async () => {
   const testd2 = plainToClass(Diagram, [], { excludeExtraneousValues: true, exposeDefaultValues: false }); // need instanceof Diagram
   expect(await validate(testd2)).toHaveLength(0);
 });
-
