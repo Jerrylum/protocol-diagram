@@ -447,3 +447,16 @@ test("Diagram Validation", async () => {
   const testd2 = plainToClass(Diagram, [], { excludeExtraneousValues: true, exposeDefaultValues: false }); // need instanceof Diagram
   expect(await validate(testd2)).toHaveLength(0);
 });
+
+test("Diagram toJson", () => {
+  const d = new Diagram();
+  d.addField(new Field("test", 1));
+  d.addField(new Field("test2", 2));
+  d.addField(new Field("test3", 3));
+  d.config.getOption("bit")?.setValue(64);
+  d.config.getOption("diagram-style")?.setValue("utf8-header");
+  d.config.getOption("header-style")?.setValue("full");
+  d.config.getOption("left-space-placeholder")?.setValue(true);
+
+  expect(d.toJson()).toMatchSnapshot();
+});
