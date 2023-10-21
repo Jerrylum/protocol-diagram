@@ -93,17 +93,20 @@ test("handleDiagramParam", async () => {
   const { app } = getRootStore();
 
   const d = new Diagram();
-  d.addField(new Field("a", 12));
+  d.addField(new Field("a✓à", 12));
   d.addField(new Field("b", 12));
+  d.addField(new Field("我不是中文", 12));
   const encodedJsonDiagram = window.btoa(unescape(encodeURIComponent(d.toJson())));
 
   await handleDiagramParam(encodedJsonDiagram.replaceAll("+", "-").replaceAll("/", "_"));
 
-  expect(app.diagram.fields.length).toBe(2);
-  expect(app.diagram.fields[0].name).toBe("a");
+  expect(app.diagram.fields.length).toBe(3);
+  expect(app.diagram.fields[0].name).toBe("a✓à");
   expect(app.diagram.fields[0].length).toBe(12);
   expect(app.diagram.fields[1].name).toBe("b");
   expect(app.diagram.fields[1].length).toBe(12);
+  expect(app.diagram.fields[2].name).toBe("我不是中文");
+  expect(app.diagram.fields[2].length).toBe(12);
 
   app.diagram = new Diagram();
 
