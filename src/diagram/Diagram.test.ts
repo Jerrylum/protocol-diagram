@@ -1,11 +1,20 @@
 import { validate } from "class-validator";
-import { convertFieldsToRow, Diagram, generateHeader, isDiagramModifier, spliceDividers } from "./Diagram";
+import {
+  convertFieldsToRow,
+  Diagram,
+  DIAGRAM_STYLES,
+  generateHeader,
+  HEADER_STYLES,
+  isDiagramModifier,
+  spliceDividers
+} from "./Diagram";
 import { Field } from "./Field";
 import { Element, MatrixLike, VisibleSetting } from "./render/Element";
 import { RowSegment, RowTail, Segment } from "./render/Segment";
 import { Divider, Row } from "./render/SegmentGroup";
 import { instanceToPlain, plainToClass } from "class-transformer";
 import { Configuration } from "../config/Configuration";
+import { BooleanOption, EnumOption, RangeOption } from "../config/Option";
 
 test("isDiagramModifier", () => {
   expect(isDiagramModifier(null)).toBe(false);
@@ -446,6 +455,51 @@ test("Diagram Validation", async () => {
 
   const testd2 = plainToClass(Diagram, [], { excludeExtraneousValues: true, exposeDefaultValues: false }); // need instanceof Diagram
   expect(await validate(testd2)).toHaveLength(0);
+
+  (d as any).config = new Configuration(
+    new EnumOption("bit", "utf8", DIAGRAM_STYLES),
+    new RangeOption("diagram-style", 32, 1, 128),
+    new RangeOption("header-style", 32, 1, 128),
+    new EnumOption("left-space-placeholder", "utf8", DIAGRAM_STYLES)
+  );
+
+  expect(await validate(d)).toHaveLength(1);
+
+  (d as any).config = new Configuration(
+    new RangeOption("bit", 32, 1, 128),
+    new RangeOption("diagram-style", 32, 1, 128),
+    new RangeOption("header-style", 32, 1, 128),
+    new EnumOption("left-space-placeholder", "utf8", DIAGRAM_STYLES)
+  );
+
+  expect(await validate(d)).toHaveLength(1);
+
+  (d as any).config = new Configuration(
+    new RangeOption("bit", 32, 1, 128),
+    new EnumOption("diagram-style", "utf8", DIAGRAM_STYLES),
+    new RangeOption("header-style", 32, 1, 128),
+    new EnumOption("left-space-placeholder", "utf8", DIAGRAM_STYLES)
+  );
+
+  expect(await validate(d)).toHaveLength(1);
+
+  (d as any).config = new Configuration(
+    new RangeOption("bit", 32, 1, 128),
+    new EnumOption("diagram-style", "utf8", DIAGRAM_STYLES),
+    new EnumOption("header-style", "trim", HEADER_STYLES),
+    new EnumOption("left-space-placeholder", "utf8", DIAGRAM_STYLES)
+  );
+
+  expect(await validate(d)).toHaveLength(1);
+
+  (d as any).config = new Configuration(
+    new RangeOption("bit", 32, 1, 128),
+    new EnumOption("diagram-style", "utf8", DIAGRAM_STYLES),
+    new EnumOption("header-style", "trim", HEADER_STYLES),
+    new BooleanOption("left-space-placeholder", false)
+  );
+
+  expect(await validate(d)).toHaveLength(0);
 });
 
 test("Diagram toJson", () => {
