@@ -801,7 +801,9 @@ export const DiagramCanvas = observer(() => {
             const oldName = interaction.field.name;
             interaction.field.name = value;
 
-            controller.commitChange(success('Renamed field from "' + oldName + '" to "' + value + '".'));
+            if (oldName === value) {
+              controller.commitChange(success('Renamed field from "' + oldName + '" to "' + value + '".'));
+            }
             controller.interaction = undefined;
           }}
           isValidIntermediate={() => true}
