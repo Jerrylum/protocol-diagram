@@ -1,11 +1,11 @@
-import { action, makeAutoObservable } from "mobx";
+import { action, makeAutoObservable, makeObservable, observable, override } from "mobx";
 import { observer } from "mobx-react-lite";
-import { Box } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { Layer, Stage, Text } from "react-konva";
 import { Vector } from "../core/Vector";
 import { clamp, getWindowSize } from "../core/Util";
 import { useBetterMemo, useEventListener } from "../core/Hook";
-import React from "react";
+import React, { forwardRef } from "react";
 import Konva from "konva";
 import { getRootStore } from "../core/Root";
 import { Connector, DividerSegment, RowSegment, RowTail } from "../diagram/render/Segment";
@@ -15,6 +15,7 @@ import { Matrix } from "../diagram/render/Matrix";
 import { Field } from "../diagram/Field";
 import { Diagram } from "../diagram/Diagram";
 import { HandleResult, success } from "../command/HandleResult";
+import { ObserverInputProps, StylelessObserverInputProps, useStylelessObserverInput } from "../component/ObserverInput";
 
 export function isKonvaTouchEvent(event: Konva.KonvaEventObject<unknown>): event is Konva.KonvaEventObject<TouchEvent> {
   return !!window.TouchEvent && event.evt instanceof TouchEvent;
@@ -58,7 +59,13 @@ export interface InteractionEvent {
 }
 
 export abstract class Interaction {
-  constructor(readonly handler: DiagramInteractionHandler) {}
+  constructor(readonly handler: DiagramInteractionHandler) {
+    makeObservable(this, {
+      onMouseDown: action,
+      onMouseMove: action,
+      onMouseUp: action
+    });
+  }
 
   abstract onMouseDown(posInMatrix: Vector, event: InteractionEvent): this | undefined;
   abstract onMouseMove(posInMatrix: Vector, event: InteractionEvent): this | undefined;
@@ -68,11 +75,17 @@ export abstract class Interaction {
 export class ResizeFieldInteraction1 extends Interaction {
   private constructor(
     handler: DiagramInteractionHandler,
-    public dragFromPosInMatrix: Vector,
-    public leftField: FieldMemento,
-    public rightField: FieldMemento | undefined
+    readonly dragFromPosInMatrix: Vector,
+    readonly leftField: FieldMemento,
+    readonly rightField: FieldMemento | undefined
   ) {
     super(handler);
+
+    makeObservable(this, {
+      onMouseDown: override,
+      onMouseMove: override,
+      onMouseUp: override
+    });
   }
 
   onMouseDown(posInMatrix: Vector, event: InteractionEvent): this | undefined {
@@ -157,11 +170,17 @@ export class ResizeFieldInteraction1 extends Interaction {
 export class ResizeFieldInteraction2 extends Interaction {
   private constructor(
     handler: DiagramInteractionHandler,
-    public dragFromYInMatrix: number,
-    public topField: FieldMemento,
-    public bottomField: FieldMemento | undefined
+    readonly dragFromYInMatrix: number,
+    readonly topField: FieldMemento,
+    readonly bottomField: FieldMemento | undefined
   ) {
     super(handler);
+
+    makeObservable(this, {
+      onMouseDown: override,
+      onMouseMove: override,
+      onMouseUp: override
+    });
   }
 
   onMouseDown(posInMatrix: Vector, event: InteractionEvent): this | undefined {
@@ -231,9 +250,121 @@ export class ResizeFieldInteraction2 extends Interaction {
   }
 }
 
-export class DeleteFieldInteraction extends Interaction {
-  private constructor(handler: DiagramInteractionHandler, public field: Field) {
+export class RenameFieldInteraction extends Interaction {
+  /**
+   * 0 = First mouse down
+   * 1 = First mouse up
+   * 2 = Second mouse down
+   * 3 = Second mouse up (show text field)
+   * 4 = Third mouse down (hide text field)
+   */
+  public clickSequence: 0 | 1 | 2 | 3 | 4 = 0;
+
+  private constructor(
+    handler: DiagramInteractionHandler,
+    readonly field: Field,
+    readonly originMatrixPos: Vector,
+    readonly originClientPos: Vector,
+    readonly startTime: number
+  ) {
     super(handler);
+
+    makeObservable(this, {
+      clickSequence: observable,
+      onMouseDown: override,
+      onMouseMove: override,
+      onMouseUp: override
+    });
+  }
+
+  onMouseDown(posInMatrix: Vector, event: InteractionEvent): this | undefined {
+    if (event.button !== 0) return undefined; // handle left click only
+
+    const currClientPos = new Vector(event.clientX, event.clientY);
+    const nowTime = Date.now();
+
+    if (this.clickSequence === 1) {
+      if (
+        posInMatrix.distance(this.originMatrixPos) > 1 ||
+        currClientPos.distance(this.originClientPos) > 16 ||
+        nowTime - this.startTime > 1000
+      ) {
+        return undefined;
+      } else {
+        this.clickSequence++;
+        return this;
+      }
+    } else if (this.clickSequence === 3) {
+      this.clickSequence++;
+      return this;
+    } else {
+      return undefined;
+    }
+  }
+
+  onMouseMove(posInMatrix: Vector, event: InteractionEvent): this | undefined {
+    return this;
+  }
+
+  onMouseUp(posInMatrix: Vector, event: InteractionEvent): this | undefined {
+    if (event.button !== 0) return undefined; // handle left click only
+
+    const currClientPos = new Vector(event.clientX, event.clientY);
+    const nowTime = Date.now();
+
+    if (this.clickSequence === 0 || this.clickSequence === 2) {
+      if (
+        posInMatrix.distance(this.originMatrixPos) > 1 ||
+        currClientPos.distance(this.originClientPos) > 16 ||
+        nowTime - this.startTime > 1000
+      ) {
+        return undefined;
+      } else {
+        this.clickSequence++;
+        return this;
+      }
+    } else {
+      return undefined;
+    }
+  }
+
+  static onMouseDown(
+    handler: DiagramInteractionHandler,
+    posInMatrix: Vector,
+    event: InteractionEvent
+  ): RenameFieldInteraction | undefined {
+    if (event.button !== 0) return undefined; // handle left click only
+
+    const matrix = handler.diagram.renderMatrix;
+
+    const element = matrix.get(posInMatrix.x, posInMatrix.y);
+
+    if (element instanceof RowSegment || element instanceof DividerSegment) {
+      const field = handler.diagram.fields.find(field => field.uid === element.represent?.uid);
+      if (field !== undefined) {
+        return new RenameFieldInteraction(
+          handler,
+          field,
+          posInMatrix,
+          new Vector(event.clientX, event.clientY),
+          Date.now()
+        );
+      }
+    }
+
+    return undefined;
+  }
+}
+
+export class DeleteFieldInteraction extends Interaction {
+  private constructor(handler: DiagramInteractionHandler, readonly field: Field) {
+    super(handler);
+
+    makeObservable(this, {
+      onMouseDown: override,
+      onMouseMove: override,
+      onMouseUp: override
+    });
   }
 
   onMouseDown(posInMatrix: Vector, event: InteractionEvent): this | undefined {
@@ -316,7 +447,15 @@ export class DiagramCanvasController implements DiagramInteractionHandler {
 
   container: HTMLElement | null = null;
 
-  interaction: Interaction | undefined = undefined;
+  private _interaction: Interaction | undefined = undefined;
+
+  get interaction(): Interaction | undefined {
+    return this._interaction;
+  }
+
+  set interaction(interaction: Interaction | undefined) {
+    this._interaction = interaction;
+  }
 
   get viewOffset() {
     return new Vector((this.canvasSize.x - this.diagramSize.x) / 2, 0);
@@ -448,7 +587,8 @@ export class DiagramCanvasController implements DiagramInteractionHandler {
       this.interaction?.onMouseDown(posInMatrix, evt) ||
       ResizeFieldInteraction1.onMouseDown(this, posInMatrix, evt) ||
       ResizeFieldInteraction2.onMouseDown(this, posInMatrix, evt) ||
-      DeleteFieldInteraction.onMouseDown(this, posInMatrix, evt);
+      DeleteFieldInteraction.onMouseDown(this, posInMatrix, evt) ||
+      RenameFieldInteraction.onMouseDown(this, posInMatrix, evt);
 
     if (evt.button === 1) {
       // middle click
@@ -562,6 +702,7 @@ export const DiagramCanvas = observer(() => {
 
   const controller = useBetterMemo(() => new DiagramCanvasController(), []);
   const stageRef = React.useRef<Konva.Stage>(null);
+  const inputFieldRef = React.useRef<HTMLInputElement>(null);
   const diagramEditor = app.diagramEditor;
 
   const diagramText = app.diagram.toString();
@@ -576,7 +717,11 @@ export const DiagramCanvas = observer(() => {
 
   controller.container = stageRef.current?.container() ?? null;
 
-  useEventListener(document, "mouseup", evt => controller.onMouseUpStage(evt));
+  useEventListener(document, "mouseup", evt => {
+    const target = evt.target as HTMLElement;
+    if (inputFieldRef.current === target) return;
+    controller.onMouseUpStage(evt);
+  });
 
   function onMouseMoveOrMouseDragOrTouchDragStage(event: Konva.KonvaEventObject<DragEvent | MouseEvent | TouchEvent>) {
     /*
@@ -621,6 +766,8 @@ export const DiagramCanvas = observer(() => {
     }
   }
 
+  const interaction = controller.interaction;
+
   return (
     <Box sx={{ position: "fixed", top: 0, left: 0, bottom: 0, right: 0 }}>
       <Stage
@@ -635,7 +782,6 @@ export const DiagramCanvas = observer(() => {
         onWheel={event => controller.onWheelStage(event.evt)}
         onMouseDown={event => controller.onMouseDownStage(event.evt)}
         onMouseMove={action(onMouseMoveOrMouseDragOrTouchDragStage)}
-        // onMouseUp={event => controller.onMouseUpStage(event)}
         onDragMove={action(onMouseMoveOrMouseDragOrTouchDragStage)}
         onDragEnd={action(onDragEndStage)}>
         <Layer>
@@ -645,20 +791,65 @@ export const DiagramCanvas = observer(() => {
         </Layer>
       </Stage>
 
+      {interaction instanceof RenameFieldInteraction && interaction.clickSequence === 3 && (
+        <DiagramInput
+          ref={inputFieldRef}
+          clientXY={interaction.originClientPos}
+          label="Enter to rename"
+          getValue={() => interaction.field.name}
+          setValue={value => {
+            const oldName = interaction.field.name;
+            interaction.field.name = value;
+
+            controller.commitChange(success('Renamed field from "' + oldName + '" to "' + value + '".'));
+            controller.interaction = undefined;
+          }}
+          isValidIntermediate={() => true}
+          isValidValue={() => true}
+        />
+      )}
+    </Box>
+  );
+});
+
+type DiagramInputProps = StylelessObserverInputProps &
+  React.InputHTMLAttributes<HTMLInputElement> & {
+    clientXY: Vector;
+    label?: string;
+  };
+
+const DiagramInput = observer(
+  forwardRef<HTMLInputElement, DiagramInputProps>((props: DiagramInputProps, ref) => {
+    const inputRef = React.useRef<HTMLInputElement>(null);
+    const { getRootProps } = useStylelessObserverInput(props);
+    const { clientXY, label, ...rest } = getRootProps();
+
+    React.useEffect(() => {
+      if (inputRef.current === null) return;
+
+      inputRef.current.focus();
+      inputRef.current.setSelectionRange(0, inputRef.current.value.length);
+    }, [inputRef.current]);
+
+    React.useImperativeHandle(ref, () => inputRef.current!);
+
+    return (
       <Box
         sx={{
           position: "fixed",
-          top: 0,
-          left: 0,
+          top: clientXY.y + 16 + "px",
+          left: clientXY.x + 16 + "px",
           width: "150px",
-          height: "26px",
+          height: label !== undefined ? "44px" : "28px",
           backgroundColor: "rgb(250, 250, 250)",
           border: "1px solid rgba(0, 0, 0, 0.23)",
           display: "flex",
           justifyContent: "center",
-          alignItems: "center"
+          alignItems: "center",
+          flexDirection: "column"
         }}>
         <input
+          ref={inputRef}
           style={{
             border: "none",
             outline: "none",
@@ -668,8 +859,17 @@ export const DiagramCanvas = observer(() => {
             lineHeight: "18px",
             fontSize: "16px"
           }}
+          {...rest}
         />
+        {label && (
+          <Typography
+            variant="caption"
+            sx={{ color: "rgba(0, 0, 0, 0.54)", paddingLeft: "5px", width: "calc(100% - 5px)" }}>
+            {label}
+          </Typography>
+        )}
       </Box>
-    </Box>
-  );
-});
+    );
+  })
+);
+
