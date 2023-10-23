@@ -1,6 +1,7 @@
 import { action, makeAutoObservable, makeObservable, observable, override } from "mobx";
 import { observer } from "mobx-react-lite";
-import { Box, Typography } from "@mui/material";
+import { Box, IconButton, Typography } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
 import { Layer, Stage, Text } from "react-konva";
 import { Vector } from "../core/Vector";
 import { clamp, getWindowSize } from "../core/Util";
@@ -9,13 +10,12 @@ import React, { forwardRef } from "react";
 import Konva from "konva";
 import { getRootStore } from "../core/Root";
 import { Connector, DividerSegment, RowSegment, RowTail } from "../diagram/render/Segment";
-import { CancellableCommand, Command, DeleteCommand } from "../command/Commands";
-import { buildParameters, Parameter } from "../token/Tokens";
+import { CancellableCommand, Command } from "../command/Commands";
 import { Matrix } from "../diagram/render/Matrix";
 import { Field } from "../diagram/Field";
 import { Diagram } from "../diagram/Diagram";
 import { HandleResult, success } from "../command/HandleResult";
-import { ObserverInputProps, StylelessObserverInputProps, useStylelessObserverInput } from "../component/ObserverInput";
+import { StylelessObserverInputProps, useStylelessObserverInput } from "../component/ObserverInput";
 
 export function isKonvaTouchEvent(event: Konva.KonvaEventObject<unknown>): event is Konva.KonvaEventObject<TouchEvent> {
   return !!window.TouchEvent && event.evt instanceof TouchEvent;
@@ -418,6 +418,30 @@ export class DeleteFieldInteraction extends Interaction {
   }
 }
 
+export class AddFieldInteraction extends Interaction {
+  private constructor(handler: DiagramInteractionHandler, readonly clientXY: Vector) {
+    super(handler);
+
+    makeObservable(this, {
+      onMouseDown: override,
+      onMouseMove: override,
+      onMouseUp: override
+    });
+  }
+
+  onMouseDown(posInMatrix: Vector, event: InteractionEvent): this | undefined {
+    return undefined;
+  }
+
+  onMouseMove(posInMatrix: Vector, event: InteractionEvent): this | undefined {
+    return this;
+  }
+
+  onMouseUp(posInMatrix: Vector, event: InteractionEvent): this | undefined {
+    return undefined;
+  }
+}
+
 export interface DiagramInteractionHandler {
   get diagram(): Diagram;
   commitChange(result: HandleResult): void;
@@ -671,6 +695,32 @@ export class DiagramCanvasController implements DiagramInteractionHandler {
     return this.getUnboundedPxFromNativeEvent(event.evt, useOffset, useScale);
   }
 
+  toUnboundedPx(posInMatrix: Vector): Vector {
+    const { app } = getRootStore();
+    const diagram = app.diagram;
+    const yOffset = diagram.header == "" ? 0 : 2;
+
+    const rtn = posInMatrix.add(new Vector(0, yOffset)).multiply(new Vector(12, 16));
+
+    return rtn;
+  }
+
+  toClientXY(posInPx: Vector, useOffset = true, useScale = true): Vector | undefined {
+    const { app } = getRootStore();
+
+    const canvasPos = this.container?.getBoundingClientRect();
+    if (canvasPos === undefined) return;
+
+    const offset = useOffset ? app.diagramEditor.offset.subtract(this.viewOffset) : 0;
+
+    const scale = useScale ? app.diagramEditor.scale : 1;
+
+    const rtn = posInPx.subtract(offset).multiply(scale);
+
+    // UX: Calculate the position of the control point by the client mouse position
+    return rtn.add(new Vector(canvasPos.left, canvasPos.top));
+  }
+
   get isGrabAndMove() {
     return this.offsetStart !== undefined;
   }
@@ -791,6 +841,8 @@ export const DiagramCanvas = observer(() => {
         </Layer>
       </Stage>
 
+      {interaction === undefined && <DiagramAddFieldButton controller={controller} />}
+
       {interaction instanceof RenameFieldInteraction && interaction.clickSequence === 3 && (
         <DiagramInput
           ref={inputFieldRef}
@@ -874,4 +926,49 @@ const DiagramInput = observer(
     );
   })
 );
+
+const DiagramAddFieldButton = observer((props: { controller: DiagramCanvasController }) => {
+  const { app } = getRootStore();
+  const diagram = app.diagram;
+  const matrix = diagram.renderMatrix;
+
+  React.useEffect(() => {
+    // noop
+  }, [diagram.fields.map(field => ({ ...field })), diagram.config.options.forEach(option => option.getValue())]);
+
+  // find the last row segment but not row tail
+  let i = matrix.elements.length - 1;
+  for (; i >= 0; i--) {
+    const element = matrix.elements[i];
+    if (element instanceof RowSegment && element instanceof RowTail === false) {
+      i += 2;
+      break;
+    }
+  }
+
+  const posInMatrix = new Vector(i % matrix.width, Math.floor(i / matrix.width));
+  const posInPx = props.controller.toUnboundedPx(posInMatrix);
+  const posInClient = props.controller.toClientXY(posInPx);
+  if (posInClient === undefined) return null;
+
+  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+    // TODO
+  };
+
+  return (
+    <IconButton
+      sx={{
+        position: "fixed",
+        top: posInClient.y - 8 + "px", // TODO
+        left: posInClient.x + "px",
+        width: "32px",
+        height: "32px",
+        backgroundColor: "rgb(250, 250, 250)"
+      }}
+      size="small"
+      onClick={handleClick}>
+      <AddIcon />
+    </IconButton>
+  );
+});
 
