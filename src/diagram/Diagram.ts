@@ -8,8 +8,47 @@ import { RowSegment, Segment } from "./render/Segment";
 import { Matrix } from "./render/Matrix";
 import { AsciiStyle, AsciiVerboseStyle, UTF8CornerStyle, UTF8HeaderStyle, UTF8Style } from "./render/Style";
 import { action, makeObservable, observable } from "mobx";
-import { IsArray, IsObject, ValidateNested } from "class-validator";
-import { Exclude, Expose, Type } from "class-transformer";
+import {
+  IsArray,
+  IsObject,
+  ValidateNested,
+  ValidationArguments,
+  ValidationOptions,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
+  registerDecorator
+} from "class-validator";
+import { Expose, Type, instanceToPlain, Exclude } from "class-transformer";
+
+@ValidatorConstraint({ async: true })
+export class IsAllConfigConstraint implements ValidatorConstraintInterface {
+  validate(config: unknown, args: ValidationArguments) {
+    if (config instanceof Configuration) {
+      if (config.options.length !== 4) return false;
+      let options = config.getOption("bit");
+      if (!(options instanceof RangeOption)) return false;
+      options = config.getOption("diagram-style");
+      if (!(options instanceof EnumOption)) return false;
+      options = config.getOption("header-style");
+      if (!(options instanceof EnumOption)) return false;
+      options = config.getOption("left-space-placeholder");
+      if (!(options instanceof BooleanOption)) return false;
+      return true;
+    } else return false;
+  }
+}
+
+export function IsAllConfig(validationOptions?: ValidationOptions) {
+  return function (object: Object, propertyName: string) {
+    registerDecorator({
+      target: object.constructor,
+      propertyName: propertyName,
+      options: validationOptions,
+      constraints: [],
+      validator: IsAllConfigConstraint
+    });
+  };
+}
 
 /**
  * Distinguish whether the command will manipulate the diagram instance
@@ -73,6 +112,7 @@ export class Diagram {
   @IsObject()
   @ValidateNested()
   @Type(() => Configuration)
+  @IsAllConfig()
   @Expose()
   readonly config: Configuration;
 
@@ -263,6 +303,11 @@ export class Diagram {
 ${svgLines}</text>
 </svg>`;
   }
+
+  toJson(): string {
+    const p = instanceToPlain(this);
+    return JSON.stringify(p);
+  }
 }
 
 /**
@@ -437,4 +482,3 @@ export function generateHeader(elements: Element[], bit: number, headerStyle: He
 
   return rtn;
 }
-

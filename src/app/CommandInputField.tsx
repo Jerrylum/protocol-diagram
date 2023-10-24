@@ -1,19 +1,21 @@
 import { TextField } from "@mui/material";
 import { observer } from "mobx-react-lite";
 import { CommandLine, CodePointBuffer } from "../token/Tokens";
-import {
-  CancellableCommand,
-  Command} from "../command/Commands";
+import { CancellableCommand, Command } from "../command/Commands";
 import { HandleResult } from "../command/HandleResult";
 import { getRootStore } from "../core/Root";
 import { isDiagramModifier } from "../diagram/Diagram";
 import React from "react";
 import { BottomPanelController } from "./BottomPanel";
-import { action } from "mobx";
+import { action, observable } from "mobx";
+import { useBetterMemo } from "../core/Hook";
 
 export const CommandInputField = observer((props: { controller: BottomPanelController }) => {
   const { app, logger } = getRootStore();
   const controller = props.controller;
+  const lastCmdIndex = useBetterMemo(() => observable.box(0), []);
+  const isUsingPrevCommand = useBetterMemo(() => observable.box(false), []);
+  const lastCmd = useBetterMemo(() => observable([] as string[]), []);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const input = e.target as HTMLInputElement;
@@ -24,6 +26,11 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
 
     if (e.key === "Enter") {
       e.preventDefault();
+      lastCmd.push(inputValue);
+      if (lastCmd[lastCmdIndex.get()] !== inputValue) {
+        lastCmdIndex.set(lastCmd.length - 1);
+      }
+      isUsingPrevCommand.set(false);
 
       if (line == null) {
         logger.error('Usage: <command> [arguments]\nPlease type "help" for more information.');
@@ -78,6 +85,14 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
         const nextIndex = selectedIndex === 0 ? autoCompletionValues.length - 1 : selectedIndex - 1;
 
         controller.selected = autoCompletionValues[nextIndex];
+      } else if (lastCmd.length > 0) {
+        e.preventDefault();
+
+        const nextLastCmdIndex = Math.max(lastCmdIndex.get() - (isUsingPrevCommand.get() ? 1 : 0), 0);
+        input.value = lastCmd[nextLastCmdIndex];
+        input.setSelectionRange(input.value.length, input.value.length);
+        lastCmdIndex.set(nextLastCmdIndex);
+        isUsingPrevCommand.set(true);
       }
       return;
     }
@@ -92,6 +107,14 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
         const nextIndex = selectedIndex === autoCompletionValues.length - 1 ? 0 : selectedIndex + 1;
 
         controller.selected = autoCompletionValues[nextIndex];
+      } else if (lastCmd.length > 0) {
+        e.preventDefault();
+
+        const nextLastCmdIndex = lastCmdIndex.get() + 1;
+        input.value = lastCmd[nextLastCmdIndex] ?? "";
+        input.setSelectionRange(input.value.length, input.value.length);
+        lastCmdIndex.set(Math.min(nextLastCmdIndex, lastCmd.length));
+        isUsingPrevCommand.set(true);
       }
       return;
     }
@@ -150,4 +173,3 @@ export const CommandInputField = observer((props: { controller: BottomPanelContr
     />
   );
 });
-

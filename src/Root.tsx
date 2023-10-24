@@ -17,7 +17,10 @@ import { checkForUpdates, promptUpdate } from "./core/Versioning";
 import * as SWR from "./core/ServiceWorkerRegistration";
 import { reaction } from "mobx";
 import { APP_VERSION_STRING } from "./Version";
-
+import { plainToClass } from "class-transformer";
+import { Diagram } from "./diagram/Diagram";
+import { validate } from "class-validator";
+import { ConfirmationPromptData } from "./core/Confirmation";
 (window as any)["checkForUpdates"] = checkForUpdates;
 
 export async function onLatestVersionChange(newVer: SemVer | null | undefined, oldVer: SemVer | null | undefined) {
@@ -45,8 +48,48 @@ export async function onLatestVersionChange(newVer: SemVer | null | undefined, o
   }
 }
 
+export async function handleDiagramParam(encodedDiagramParam: string) {
+  const { app, confirmation } = getRootStore();
+  // Replace URL-safe characters with base64 equivalents
+  const base64String = encodedDiagramParam.replaceAll("-", "+").replaceAll("_", "/");
+
+  try {
+    const diagramDataInJson = decodeURIComponent(escape(window.atob(base64String)));
+    const c = plainToClass(Diagram, JSON.parse(diagramDataInJson), {
+      excludeExtraneousValues: true,
+      exposeDefaultValues: true
+    });
+    await validate(c).then(errors => {
+      if (errors.length > 0) {
+        confirmation.prompt({
+          title: "Validation Error",
+          description: errors.map(e => e.toString()).join("\n"),
+          buttons: [{ label: "OK" }]
+        } as ConfirmationPromptData);
+        return;
+      }
+      app.diagram = c;
+    });
+  } catch (e) {
+    if (e instanceof Error) {
+      confirmation.prompt({
+        title: "Error Occured",
+        description: e.message,
+        buttons: [{ label: "OK" }]
+      } as ConfirmationPromptData);
+    }
+  }
+}
+
 const Root = observer(() => {
   const { app, modals } = getRootStore();
+
+  React.useEffect(() => {
+    const searchParams = new URLSearchParams(document.location.search);
+    const result = searchParams.get("diagram");
+    if (result === null) return;
+    handleDiagramParam(result);
+  }, []);
 
   React.useEffect(() => {
     const logger = Logger("Versioning");
@@ -117,4 +160,3 @@ const Root = observer(() => {
 });
 
 export default Root;
-
