@@ -651,7 +651,7 @@ export class DiagramCanvasController implements DiagramInteractionHandler {
   getPosInMatrix(posInPx: Vector): Vector {
     const { app } = getRootStore();
     const diagram = app.diagram;
-    const yOffset = diagram.header == "" ? 0 : 2;
+    const yOffset = diagram.header === "" ? 0 : 2;
 
     const floatingPosInScale = posInPx.divide(new Vector(12, 16)).subtract(new Vector(0, yOffset));
     const flooredPosInMatrix = new Vector(Math.floor(floatingPosInScale.x), Math.floor(floatingPosInScale.y));
@@ -698,7 +698,7 @@ export class DiagramCanvasController implements DiagramInteractionHandler {
   toUnboundedPx(posInMatrix: Vector): Vector {
     const { app } = getRootStore();
     const diagram = app.diagram;
-    const yOffset = diagram.header == "" ? 0 : 2;
+    const yOffset = diagram.header === "" ? 0 : 2;
 
     const rtn = posInMatrix.add(new Vector(0, yOffset)).multiply(new Vector(12, 16));
 
