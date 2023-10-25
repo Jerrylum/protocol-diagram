@@ -117,7 +117,7 @@ export class ResizeFieldInteraction1 extends Interaction {
   }
 
   onMouseUp(posInMatrix: Vector, event: InteractionEvent): this | undefined {
-    this.handler.commitChange(success("Moved fields(s)"));
+    this.handler.commitChange(success("Moved field(s)"));
 
     return undefined;
   }
@@ -209,7 +209,7 @@ export class ResizeFieldInteraction2 extends Interaction {
   }
 
   onMouseUp(posInMatrix: Vector, event: InteractionEvent): this | undefined {
-    this.handler.commitChange(success("Moved fields(s)"));
+    this.handler.commitChange(success("Moved field(s)"));
 
     return undefined;
   }
@@ -440,6 +440,10 @@ export class AddFieldInteraction extends Interaction {
   onMouseUp(posInMatrix: Vector, event: InteractionEvent): this | undefined {
     return undefined;
   }
+
+  static onAddButtonClick(handler: DiagramInteractionHandler, event: InteractionEvent): AddFieldInteraction {
+    return new AddFieldInteraction(handler, new Vector(event.clientX, event.clientY));
+  }
 }
 
 export interface DiagramInteractionHandler {
@@ -451,7 +455,7 @@ export class DiagramInteractionCommand extends Command implements CancellableCom
   readonly discriminator = "DiagramModifier";
 
   constructor(private result: HandleResult) {
-    super("not-callable", null, "not-callable");
+    super("interaction", null, "an interaction in the user interface");
   }
 
   execute(): void {
@@ -853,13 +857,34 @@ export const DiagramCanvas = observer(() => {
             const oldName = interaction.field.name;
             interaction.field.name = value;
 
-            if (oldName === value) {
+            if (oldName !== value) {
               controller.commitChange(success('Renamed field from "' + oldName + '" to "' + value + '".'));
             }
             controller.interaction = undefined;
           }}
           isValidIntermediate={() => true}
           isValidValue={() => true}
+        />
+      )}
+      {interaction instanceof AddFieldInteraction && (
+        <DiagramInput
+          ref={inputFieldRef}
+          clientXY={interaction.clientXY}
+          label="Enter to add field"
+          getValue={() => ""}
+          setValue={(value, debounceCheck) => {
+            if (debounceCheck === true) {
+              const suggestedLength = Math.min(Math.ceil(value.length / 2) + 1, 32);
+
+              app.diagram.addField(new Field(value, suggestedLength));
+
+              controller.commitChange(success('Added field "' + value + '".'));
+            }
+
+            controller.interaction = undefined;
+          }}
+          isValidIntermediate={() => true}
+          isValidValue={value => [value !== "", value !== ""]}
         />
       )}
     </Box>
@@ -932,9 +957,13 @@ const DiagramAddFieldButton = observer((props: { controller: DiagramCanvasContro
   const diagram = app.diagram;
   const matrix = diagram.renderMatrix;
 
+  const changeByFields = diagram.fields.map(field => ({ ...field }));
+  const changeByOptions = diagram.config.options.map(option => ({ ...option }));
+
+  // this effect is used to trigger re-render when any field or option is changed
   React.useEffect(() => {
     // noop
-  }, [diagram.fields.map(field => ({ ...field })), diagram.config.options.forEach(option => option.getValue())]);
+  }, [changeByFields, changeByOptions]);
 
   // find the last row segment but not row tail
   let i = matrix.elements.length - 1;
@@ -946,27 +975,59 @@ const DiagramAddFieldButton = observer((props: { controller: DiagramCanvasContro
     }
   }
 
-  const posInMatrix = new Vector(i % matrix.width, Math.floor(i / matrix.width));
+  const posInMatrix =
+    matrix.width === 0 ? new Vector(0, 0) : new Vector(i % matrix.width, Math.floor(i / matrix.width));
   const posInPx = props.controller.toUnboundedPx(posInMatrix);
   const posInClient = props.controller.toClientXY(posInPx);
-  if (posInClient === undefined) return null;
+  const buttonPos = posInClient?.add(new Vector(0, (app.diagramEditor.scale * (32 - 16)) / -2));
+  const buttonSize = 32 * app.diagramEditor.scale;
+  const buttonRef = React.useRef<HTMLButtonElement>(null);
 
-  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-    // TODO
-  };
+  useEventListener(document, "mousemove", evt => {
+    const button = buttonRef.current;
+    if (button === null) return;
+
+    const rect = button.getBoundingClientRect();
+    const center = new Vector(rect.left + rect.width / 2, rect.top + rect.height / 2);
+
+    const distance = center.distance(new Vector(evt.clientX, evt.clientY));
+
+    const minThreshold = 16;
+    const maxThreshold = 64;
+    const distanceCalc = Math.min(Math.max(distance, minThreshold), maxThreshold) - minThreshold;
+    const opacity = 1 - distanceCalc / (maxThreshold - minThreshold);
+
+    button.style.opacity = opacity.toString();
+  });
+
+  useEventListener(
+    buttonRef.current,
+    "wheel",
+    evt => {
+      evt.preventDefault();
+    },
+    { passive: false }
+  );
+
+  if (buttonPos === undefined) return null;
 
   return (
     <IconButton
+      ref={buttonRef}
       sx={{
         position: "fixed",
-        top: posInClient.y - 8 + "px", // TODO
-        left: posInClient.x + "px",
-        width: "32px",
-        height: "32px",
-        backgroundColor: "rgb(250, 250, 250)"
+        top: buttonPos.y + "px",
+        left: buttonPos.x + "px",
+        width: buttonSize + "px",
+        height: buttonSize + "px",
+        backgroundColor: "rgb(250, 250, 250)",
+        opacity: 0,
+        touchAction: "none"
       }}
       size="small"
-      onClick={handleClick}>
+      onClick={event => {
+        props.controller.interaction ??= AddFieldInteraction.onAddButtonClick(props.controller, event);
+      }}>
       <AddIcon />
     </IconButton>
   );
