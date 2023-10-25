@@ -21,6 +21,7 @@ import { plainToClass } from "class-transformer";
 import { Diagram } from "./diagram/Diagram";
 import { validate } from "class-validator";
 import { ConfirmationPromptData } from "./core/Confirmation";
+import { onOpen, onSave, onSaveAs, onNew } from "./core/InputOutput";
 (window as any)["checkForUpdates"] = checkForUpdates;
 
 export async function onLatestVersionChange(newVer: SemVer | null | undefined, oldVer: SemVer | null | undefined) {
@@ -144,6 +145,10 @@ const Root = observer(() => {
     enableOnFormTags: true
   };
 
+  useCustomHotkeys("Mod+P", onNew, ENABLE_ON_ALL_INPUT_FIELDS);
+  useCustomHotkeys("Mod+O", onOpen, ENABLE_ON_ALL_INPUT_FIELDS);
+  useCustomHotkeys("Mod+S", onSave, ENABLE_ON_ALL_INPUT_FIELDS);
+  useCustomHotkeys("Shift+Mod+S", onSaveAs, ENABLE_ON_ALL_INPUT_FIELDS);
   useCustomHotkeys("Mod+Add,Mod+Equal", () => (app.diagramEditor.scale += 0.5), ENABLE_ON_ALL_INPUT_FIELDS);
   useCustomHotkeys("Mod+Subtract,Mod+Minus", () => (app.diagramEditor.scale -= 0.5), ENABLE_ON_ALL_INPUT_FIELDS);
   useCustomHotkeys("Mod+0", () => app.diagramEditor.resetOffsetAndScale(), ENABLE_ON_ALL_INPUT_FIELDS);
@@ -160,3 +165,4 @@ const Root = observer(() => {
 });
 
 export default Root;
+
