@@ -7,6 +7,7 @@ import { APP_VERSION_STRING } from "../Version";
 import { DiagramEditor } from "./DiagramEditor";
 import { Logger } from "./Logger";
 
+
 export const APP_VERSION = new SemVer(APP_VERSION_STRING);
 
 const logger = Logger("App");

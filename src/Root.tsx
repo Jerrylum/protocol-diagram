@@ -11,6 +11,7 @@ import React from "react";
 import { ConfirmationModal } from "./app/Confirmation";
 import { enqueueErrorSnackbar, enqueueSuccessSnackbar, NoticeProvider } from "./app/Notice";
 import { SemVer } from "semver";
+import { useDragDropFile } from "./core/Hook";
 import { APP_VERSION } from "./core/MainApp";
 import { Logger } from "./core/Logger";
 import { checkForUpdates, promptUpdate } from "./core/Versioning";
@@ -21,7 +22,9 @@ import { plainToClass } from "class-transformer";
 import { Diagram } from "./diagram/Diagram";
 import { validate } from "class-validator";
 import { ConfirmationPromptData } from "./core/Confirmation";
-import { onOpen, onSave, onSaveAs, onNew } from "./core/InputOutput";
+import { onDropFile, onOpen, onSave, onSaveAs, onNew } from "./core/InputOutput";
+import { DragDropBackdrop } from "./app/DragDropBackdrop";
+import { TRUE } from "sass";
 (window as any)["checkForUpdates"] = checkForUpdates;
 
 export async function onLatestVersionChange(newVer: SemVer | null | undefined, oldVer: SemVer | null | undefined) {
@@ -84,6 +87,9 @@ export async function handleDiagramParam(encodedDiagramParam: string) {
 
 const Root = observer(() => {
   const { app, modals } = getRootStore();
+  // test
+  const isUsing = true;
+  const { isDraggingFile, onDragEnter, onDragLeave, onDragOver, onDrop } = useDragDropFile(isUsing, onDropFile);
 
   React.useEffect(() => {
     const searchParams = new URLSearchParams(document.location.search);
@@ -154,12 +160,13 @@ const Root = observer(() => {
   useCustomHotkeys("Mod+0", () => app.diagramEditor.resetOffsetAndScale(), ENABLE_ON_ALL_INPUT_FIELDS);
 
   return (
-    <Box id="root-container">
+    <Box id="root-container" {...{ onDragEnter, onDragOver, onDrop }}>
       <NoticeProvider />
       <DiagramCanvas />
       <BottomPanel />
       <HelpModal />
       <ConfirmationModal />
+      {isDraggingFile && <DragDropBackdrop {...{ onDragEnter, onDragLeave, onDragOver, onDrop }} />}
     </Box>
   );
 });
