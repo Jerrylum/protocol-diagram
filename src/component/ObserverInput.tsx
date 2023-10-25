@@ -54,8 +54,7 @@ export const useStylelessObserverInput = <TProps extends StylelessObserverInputP
       editingValue.set(parseFloat(getValue()) + 1 + "");
       onConfirm();
     } else if (event.code === "Escape") {
-      editingValue.set("");
-      onConfirm();
+      onConfirm(false);
       element.blur();
     } else {
       editingValue.set(element.value);
@@ -70,11 +69,11 @@ export const useStylelessObserverInput = <TProps extends StylelessObserverInputP
     rest.onBlur?.(event);
   }
 
-  function onConfirm() {
+  function onConfirm(valid: boolean = true) {
     const candidate = editingValue.get();
     let rtn: string;
 
-    const result = isValidValue(candidate);
+    const result = valid && isValidValue(candidate);
     const isValid = Array.isArray(result) ? result[0] : result;
     const payload = Array.isArray(result) ? result[1] : undefined;
     if (isValid === false) {
