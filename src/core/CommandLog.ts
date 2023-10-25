@@ -1,4 +1,5 @@
 import { makeAutoObservable } from "mobx";
+import { HandleResult } from "../command/HandleResult";
 
 export type LogLevel = "info" | "error";
 
@@ -9,6 +10,9 @@ export interface CommandLog {
 }
 
 export class CommandLogger {
+  log(result: HandleResult) {
+    throw new Error("Method not implemented.");
+  }
   private _logs: CommandLog[] = [];
   private _logCount = 0;
 
