@@ -68,9 +68,9 @@ export abstract class Interaction {
     });
   }
 
-  abstract onMouseDown(posInMatrix: Vector, event: InteractionEvent): this | undefined;
-  abstract onMouseMove(posInMatrix: Vector, event: InteractionEvent): this | undefined;
-  abstract onMouseUp(posInMatrix: Vector, event: InteractionEvent): this | undefined;
+  abstract onMouseDown(posInMatrix: Vector, event: InteractionEvent): Interaction | undefined;
+  abstract onMouseMove(posInMatrix: Vector, event: InteractionEvent): Interaction | undefined;
+  abstract onMouseUp(posInMatrix: Vector, event: InteractionEvent): Interaction | undefined;
 }
 
 export class ResizeFieldInteraction1 extends Interaction {
@@ -303,7 +303,15 @@ export class RenameFieldInteraction extends Interaction {
     }
   }
 
-  onMouseMove(posInMatrix: Vector, event: InteractionEvent): this | undefined {
+  onMouseMove(posInMatrix: Vector, event: InteractionEvent): Interaction | undefined {
+    const currClientPos = new Vector(event.clientX, event.clientY);
+
+    if (this.clickSequence === 0) {
+      console.log("RenameFieldInteraction.onMouseMove", currClientPos.distance(this.originClientPos));
+      if (currClientPos.distance(this.originClientPos) > 16)
+        return DragAndDropFieldInteraction.onStartDrag(this.handler, this.originMatrixPos, event);
+    }
+
     return this;
   }
 
@@ -476,6 +484,93 @@ export class InsertFieldInteraction extends Interaction {
     event: InteractionEvent
   ): InsertFieldInteraction {
     return new InsertFieldInteraction(handler, fieldUid, new Vector(event.clientX, event.clientY));
+  }
+}
+
+export class DragAndDropFieldInteraction extends Interaction {
+  public lastDragTime: number = 0;
+
+  private constructor(handler: DiagramInteractionHandler, readonly field: Field, readonly originIdx: number) {
+    super(handler);
+  }
+
+  onMouseDown(posInMatrix: Vector, event: InteractionEvent): Interaction | undefined {
+    return undefined;
+  }
+
+  onMouseMove(posInMatrix: Vector, event: InteractionEvent): Interaction | undefined {
+    // To prevent the field from being moved too fast
+    if (Date.now() - this.lastDragTime < 100) return this;
+    this.lastDragTime = Date.now();
+
+    const diagram = this.handler.diagram;
+    const matrix = diagram.renderMatrix;
+
+    const targetFieldIdx = diagram.fields.findIndex(field => field === this.field);
+
+    if ((posInMatrix.x <= 0 && posInMatrix.y === 1) || posInMatrix.y <= 0) {
+      // insert position before any fields
+      diagram.moveField(targetFieldIdx, 0);
+    } else if (
+      (posInMatrix.x >= matrix.width - 1 && posInMatrix.y === matrix.height - 2) ||
+      posInMatrix.y >= matrix.height - 1
+    ) {
+      // insert position after any fields
+      diagram.moveField(targetFieldIdx, diagram.size());
+    } else {
+      const insertPositions = getInsertPositions(matrix, true, true);
+
+      const find = getClosestPositionWithTheSameY(posInMatrix, insertPositions);
+      if (find === null) return this;
+
+      const destFieldIdx = diagram.fields.findIndex(field => field.uid === find.fieldUid);
+
+      if (destFieldIdx < targetFieldIdx && posInMatrix.x <= find.pos.x) {
+        diagram.moveField(targetFieldIdx, destFieldIdx);
+      } else if (targetFieldIdx <= destFieldIdx && find.pos.x < posInMatrix.x) {
+        diagram.moveField(targetFieldIdx, destFieldIdx + 1); // Add 1 to destFieldIdx because the field is removed from the array.
+      }
+    }
+
+    return this;
+  }
+
+  onMouseUp(posInMatrix: Vector, event: InteractionEvent): Interaction | undefined {
+    const diagram = this.handler.diagram;
+
+    const currentIdx = diagram.fields.findIndex(field => field === this.field);
+
+    if (currentIdx === this.originIdx) return undefined;
+
+    let msg: string;
+
+    if (currentIdx === 0) msg = 'Dragged field "' + this.field.name + '" to the beginning.';
+    else if (currentIdx === diagram.size() - 1) msg = 'Dragged field "' + this.field.name + '" to the end.';
+    else msg = 'Dragged field "' + this.field.name + '" after "' + diagram.getField(currentIdx - 1).name + '".';
+
+    this.handler.commitChange(success(msg));
+
+    return undefined;
+  }
+
+  static onStartDrag(
+    handler: DiagramInteractionHandler,
+    posInMatrix: Vector,
+    event: InteractionEvent
+  ): DragAndDropFieldInteraction | undefined {
+    if (event.button !== 0) return undefined; // handle right click only
+
+    const matrix = handler.diagram.renderMatrix;
+
+    const element = matrix.get(posInMatrix.x, posInMatrix.y);
+
+    if (element instanceof RowSegment || element instanceof DividerSegment) {
+      const field = handler.diagram.fields.find(field => field.uid === element.represent?.uid);
+      const fieldIdx = handler.diagram.fields.findIndex(field => field.uid === element.represent?.uid);
+      if (field !== undefined) {
+        return new DragAndDropFieldInteraction(handler, field, fieldIdx);
+      }
+    }
   }
 }
 
@@ -788,6 +883,7 @@ export const DiagramCanvas = observer(() => {
   const { app } = getRootStore();
 
   const controller = useBetterMemo(() => new DiagramCanvasController(), []);
+  const canvasContainerRef = React.useRef<HTMLDivElement>(null);
   const stageRef = React.useRef<Konva.Stage>(null);
   const inputFieldRef = React.useRef<HTMLInputElement>(null);
   const diagramEditor = app.diagramEditor;
@@ -804,59 +900,43 @@ export const DiagramCanvas = observer(() => {
 
   controller.container = stageRef.current?.container() ?? null;
 
-  useEventListener(document, "mouseup", evt => {
-    const target = evt.target as HTMLElement;
-    if (inputFieldRef.current === target) return;
-    controller.onMouseUpStage(evt);
+  useEventListener(
+    canvasContainerRef.current,
+    "wheel",
+    evt => {
+      controller.onWheelStage(evt);
+    },
+    { passive: false }
+  );
+
+  useEventListener(controller.container, "mousedown", evt => {
+    controller.onMouseDownStage(evt);
   });
 
-  function onMouseMoveOrMouseDragOrTouchDragStage(event: Konva.KonvaEventObject<DragEvent | MouseEvent | TouchEvent>) {
-    /*
-    UX:
-    Both mouse move and drag events will trigger this function. it allows users to perform area selection and 
-    "Grab & Move" outside the canvas. Both events are needed to maximize usability.
+  useEventListener(controller.container, "mousemove", evt => {
+    controller.onMouseMoveOrDragStage(evt);
+  });
 
-    Normally, both events will be triggered at the same time. (but I don't know why onDragMove returns MouseEvent)
-    After the mouse is dragged outside the canvas, only drag event will be triggered. Also, the dragging state will 
-    come to an end when any mouse button is down. When it is happened only mouse move event will be triggered.
-
-    In addition, touch drag event will also trigger this function. 
-    */
-
-    // UX: It is not actually dragged "stage", reset the position to (0, 0)
-    if (event.target instanceof Konva.Stage) event.target.setPosition(new Vector(0, 0));
-
-    if (isKonvaTouchEvent(event) === false) {
-      controller.onMouseMoveOrDragStage(event.evt as DragEvent | MouseEvent);
-    }
-  }
-
-  function onDragEndStage(event: Konva.KonvaEventObject<DragEvent | TouchEvent>) {
-    /*
-    UX:
-    If the mouse is down(any buttons), the drag end event is triggered.
-    After that, without dragging, we lose the information of the mouse position outside the canvas.
-    We reset everything if the mouse is down outside the canvas.
-    */
-
-    // UX: No need to call touchend event handler here
+  useEventListener(document, "mouseup", evt => {
+    const target = evt.target as HTMLElement;
 
     const rect = stageRef.current?.container().getBoundingClientRect();
     if (rect === undefined) return;
 
-    if (event.evt === undefined) return; // XXX: Drag end event from segment control
-
-    const { x: clientX, y: clientY } = getClientXY(event.evt);
+    const { x: clientX, y: clientY } = getClientXY(evt);
 
     if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) {
       controller.endGrabAndMove();
     }
-  }
+
+    if (inputFieldRef.current === target) return;
+    controller.onMouseUpStage(evt);
+  });
 
   const interaction = controller.interaction;
 
   return (
-    <Box sx={{ position: "fixed", top: 0, left: 0, bottom: 0, right: 0 }}>
+    <Box ref={canvasContainerRef} sx={{ position: "fixed", top: 0, left: 0, bottom: 0, right: 0 }}>
       <Stage
         className="diagram-canvas"
         ref={stageRef}
@@ -864,13 +944,7 @@ export const DiagramCanvas = observer(() => {
         height={canvasSize.y}
         scale={new Vector(diagramEditor.scale, diagramEditor.scale)}
         offset={diagramEditor.offset.subtract(controller.viewOffset)}
-        draggable
-        onContextMenu={e => e.evt.preventDefault()}
-        onWheel={event => controller.onWheelStage(event.evt)}
-        onMouseDown={event => controller.onMouseDownStage(event.evt)}
-        onMouseMove={action(onMouseMoveOrMouseDragOrTouchDragStage)}
-        onDragMove={action(onMouseMoveOrMouseDragOrTouchDragStage)}
-        onDragEnd={action(onDragEndStage)}>
+        onContextMenu={e => e.evt.preventDefault()}>
         <Layer>
           {diagramLines.map((line, index) => (
             <DiagramTextLineElement key={index} line={line} lineNumber={index} />
@@ -878,7 +952,7 @@ export const DiagramCanvas = observer(() => {
         </Layer>
       </Stage>
 
-      {interaction === undefined && <DiagramAddFieldButton controller={controller} />}
+      <DiagramAddFieldButton controller={controller} />
 
       {interaction instanceof RenameFieldInteraction && interaction.clickSequence === 3 && (
         <DiagramInput
@@ -950,12 +1024,12 @@ export const DiagramCanvas = observer(() => {
         />
       )}
 
-      {getInsertFieldPos(app.diagram).map(info => (
+      {getInsertPositions(app.diagram.renderMatrix, true, false).map(info => (
         <DiagramInsertFieldButton
           key={info.fieldUid ?? "null"}
           controller={controller}
           fieldUid={info.fieldUid}
-          posInMatrix={info.vector}
+          posInMatrix={info.pos.add(new Vector(0, 1))}
         />
       ))}
     </Box>
@@ -972,10 +1046,25 @@ const findField = (matrix: Matrix, index: number, direction: number): Field | un
   }
 };
 
-function getInsertFieldPos(diagram: Diagram) {
-  const matrix = diagram.renderMatrix;
+const getClosestPositionWithTheSameY = (target: Vector, positions: { fieldUid: number | null; pos: Vector }[]) => {
+  type Mapping = { fieldUid: number | null; pos: Vector };
 
-  const insertPos: { fieldUid: number | null; vector: Vector }[] = [];
+  let closet: [Mapping, number] | null = null;
+
+  for (let i = 0; i < positions.length; i++) {
+    const check = positions[i];
+    if (check.pos.x === target.x && check.pos.y === target.y) return check;
+
+    const distance = Math.abs(check.pos.x - target.x);
+    if ((closet === null || distance < closet[1]) && check.pos.y === target.y) closet = [check, distance];
+  }
+
+  if (closet === null) return null;
+  return closet[0];
+};
+
+const getInsertPositions = (matrix: Matrix, includeBeginning: boolean, includeEnd: boolean) => {
+  const insertPos: { fieldUid: number | null; pos: Vector }[] = [];
   for (let y = 1; y < matrix.height; y += 2) {
     for (let x = 0; x < matrix.width; x++) {
       const element = matrix.get(x, y);
@@ -988,21 +1077,21 @@ function getInsertFieldPos(diagram: Diagram) {
 
       const leftField = findField(matrix, index, -1);
       if (leftField === undefined) {
-        insertPos.push({ fieldUid: null, vector: new Vector(x, y + 1) });
+        if (includeBeginning) insertPos.push({ fieldUid: null, pos: new Vector(x, y) });
       } else {
         const rightField = findField(matrix, index, 1);
 
-        if (rightField === undefined) continue;
+        if (leftField.uid === rightField?.uid) continue;
 
-        if (leftField.uid === rightField.uid) continue;
+        if (rightField === undefined && includeEnd === false) continue;
 
-        insertPos.push({ fieldUid: leftField.uid, vector: new Vector(x, y + 1) });
+        insertPos.push({ fieldUid: leftField.uid, pos: new Vector(x, y) });
       }
     }
   }
 
   return insertPos;
-}
+};
 
 type DiagramInputProps = StylelessObserverInputProps &
   React.InputHTMLAttributes<HTMLInputElement> & {
@@ -1202,3 +1291,4 @@ const useDiagramButton = (buttonRef: React.RefObject<HTMLButtonElement>) => {
     { passive: false }
   );
 };
+
