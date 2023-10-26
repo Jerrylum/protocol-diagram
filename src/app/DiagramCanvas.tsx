@@ -2,6 +2,7 @@ import { action, makeAutoObservable, makeObservable, observable, override } from
 import { observer } from "mobx-react-lite";
 import { Box, IconButton, Typography } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import { Layer, Stage, Text } from "react-konva";
 import { Vector } from "../core/Vector";
 import { clamp, getWindowSize } from "../core/Util";
@@ -446,6 +447,38 @@ export class AddFieldInteraction extends Interaction {
   }
 }
 
+export class InsertFieldInteraction extends Interaction {
+  private constructor(handler: DiagramInteractionHandler, readonly fieldUid: number | null, readonly clientXY: Vector) {
+    super(handler);
+
+    makeObservable(this, {
+      onMouseDown: override,
+      onMouseMove: override,
+      onMouseUp: override
+    });
+  }
+
+  onMouseDown(posInMatrix: Vector, event: InteractionEvent): this | undefined {
+    return undefined;
+  }
+
+  onMouseMove(posInMatrix: Vector, event: InteractionEvent): this | undefined {
+    return this;
+  }
+
+  onMouseUp(posInMatrix: Vector, event: InteractionEvent): this | undefined {
+    return undefined;
+  }
+
+  static onInsertButtonClick(
+    handler: DiagramInteractionHandler,
+    fieldUid: number | null,
+    event: InteractionEvent
+  ): InsertFieldInteraction {
+    return new InsertFieldInteraction(handler, fieldUid, new Vector(event.clientX, event.clientY));
+  }
+}
+
 export interface DiagramInteractionHandler {
   get diagram(): Diagram;
   commitChange(result: HandleResult): void;
@@ -887,9 +920,89 @@ export const DiagramCanvas = observer(() => {
           isValidValue={value => [value !== "", value !== ""]}
         />
       )}
+      {interaction instanceof InsertFieldInteraction && (
+        <DiagramInput
+          ref={inputFieldRef}
+          clientXY={interaction.clientXY}
+          label="Enter to insert field"
+          getValue={() => ""}
+          setValue={(value, debounceCheck) => {
+            if (debounceCheck === true) {
+              const suggestedLength = Math.min(Math.ceil(value.length / 2) + 1, 32);
+
+              const afterFieldUid = interaction.fieldUid;
+              const fieldIndex = app.diagram.fields.findIndex(field => field.uid === afterFieldUid);
+              const insertIndex = fieldIndex + 1;
+
+              app.diagram.insertField(insertIndex, new Field(value, suggestedLength));
+
+              let msg: string;
+              if (insertIndex === 0) msg = 'Inserted field "' + value + '" to the beginning.';
+              else msg = 'Inserted field "' + value + '" after "' + app.diagram.getField(insertIndex - 1).name + '".';
+
+              controller.commitChange(success(msg));
+            }
+
+            controller.interaction = undefined;
+          }}
+          isValidIntermediate={() => true}
+          isValidValue={value => [value !== "", value !== ""]}
+        />
+      )}
+
+      {getInsertFieldPos(app.diagram).map(info => (
+        <DiagramInsertFieldButton
+          key={info.fieldUid ?? "null"}
+          controller={controller}
+          fieldUid={info.fieldUid}
+          posInMatrix={info.vector}
+        />
+      ))}
     </Box>
   );
 });
+
+const findField = (matrix: Matrix, index: number, direction: number): Field | undefined => {
+  let searchIndex = index;
+  while (true) {
+    const searchElement = matrix.elements[(searchIndex += direction)];
+    if (searchElement === undefined) return undefined;
+    if (searchElement instanceof RowTail) return undefined;
+    if (searchElement instanceof RowSegment) return searchElement.represent;
+  }
+};
+
+function getInsertFieldPos(diagram: Diagram) {
+  const matrix = diagram.renderMatrix;
+
+  const insertPos: { fieldUid: number | null; vector: Vector }[] = [];
+  for (let y = 1; y < matrix.height; y += 2) {
+    for (let x = 0; x < matrix.width; x++) {
+      const element = matrix.get(x, y);
+      if (element instanceof Connector === false) continue;
+
+      const conn = element as Connector;
+      if (conn.value !== (Connector.TOP | Connector.BOTTOM)) continue;
+
+      const index = matrix.index(x, y);
+
+      const leftField = findField(matrix, index, -1);
+      if (leftField === undefined) {
+        insertPos.push({ fieldUid: null, vector: new Vector(x, y + 1) });
+      } else {
+        const rightField = findField(matrix, index, 1);
+
+        if (rightField === undefined) continue;
+
+        if (leftField.uid === rightField.uid) continue;
+
+        insertPos.push({ fieldUid: leftField.uid, vector: new Vector(x, y + 1) });
+      }
+    }
+  }
+
+  return insertPos;
+}
 
 type DiagramInputProps = StylelessObserverInputProps &
   React.InputHTMLAttributes<HTMLInputElement> & {
@@ -983,6 +1096,86 @@ const DiagramAddFieldButton = observer((props: { controller: DiagramCanvasContro
   const buttonSize = 32 * app.diagramEditor.scale;
   const buttonRef = React.useRef<HTMLButtonElement>(null);
 
+  useDiagramButton(buttonRef);
+
+  if (buttonPos === undefined) return null;
+
+  return (
+    <IconButton
+      ref={buttonRef}
+      sx={{
+        position: "fixed",
+        top: buttonPos.y + "px",
+        left: buttonPos.x + "px",
+        width: buttonSize + "px",
+        height: buttonSize + "px",
+        backgroundColor: "rgb(250, 250, 250)",
+        opacity: 0,
+        touchAction: "none"
+      }}
+      size="small"
+      onClick={event => {
+        props.controller.interaction ??= AddFieldInteraction.onAddButtonClick(props.controller, event);
+      }}>
+      <AddIcon color="primary" />
+    </IconButton>
+  );
+});
+
+const DiagramInsertFieldButton = observer(
+  (props: { controller: DiagramCanvasController; fieldUid: number | null; posInMatrix: Vector }) => {
+    const { app } = getRootStore();
+    const diagram = app.diagram;
+
+    const changeByFields = diagram.fields.map(field => ({ ...field }));
+    const changeByOptions = diagram.config.options.map(option => ({ ...option }));
+
+    // this effect is used to trigger re-render when any field or option is changed
+    React.useEffect(() => {
+      // noop
+    }, [changeByFields, changeByOptions]);
+
+    const posInPx = props.controller.toUnboundedPx(props.posInMatrix);
+    const posInClient = props.controller.toClientXY(posInPx);
+    const buttonPos = posInClient?.add(new Vector(0, (app.diagramEditor.scale * (16 - 16)) / -2));
+    const buttonSize = 16 * app.diagramEditor.scale;
+    const buttonRef = React.useRef<HTMLButtonElement>(null);
+
+    useDiagramButton(buttonRef);
+
+    if (buttonPos === undefined) return null;
+
+    return (
+      <IconButton
+        ref={buttonRef}
+        sx={{
+          position: "fixed",
+          top: buttonPos.y + "px",
+          left: buttonPos.x + "px",
+          width: buttonSize + "px",
+          height: buttonSize + "px",
+          backgroundColor: "rgb(250, 250, 250)",
+          opacity: 0,
+          touchAction: "none",
+          "&:hover": {
+            backgroundColor: "rgb(250, 250, 250)"
+          }
+        }}
+        size="small"
+        onClick={event => {
+          props.controller.interaction ??= InsertFieldInteraction.onInsertButtonClick(
+            props.controller,
+            props.fieldUid,
+            event
+          );
+        }}>
+        <ExpandLessIcon color="primary" />
+      </IconButton>
+    );
+  }
+);
+
+const useDiagramButton = (buttonRef: React.RefObject<HTMLButtonElement>) => {
   useEventListener(document, "mousemove", evt => {
     const button = buttonRef.current;
     if (button === null) return;
@@ -1008,28 +1201,4 @@ const DiagramAddFieldButton = observer((props: { controller: DiagramCanvasContro
     },
     { passive: false }
   );
-
-  if (buttonPos === undefined) return null;
-
-  return (
-    <IconButton
-      ref={buttonRef}
-      sx={{
-        position: "fixed",
-        top: buttonPos.y + "px",
-        left: buttonPos.x + "px",
-        width: buttonSize + "px",
-        height: buttonSize + "px",
-        backgroundColor: "rgb(250, 250, 250)",
-        opacity: 0,
-        touchAction: "none"
-      }}
-      size="small"
-      onClick={event => {
-        props.controller.interaction ??= AddFieldInteraction.onAddButtonClick(props.controller, event);
-      }}>
-      <AddIcon />
-    </IconButton>
-  );
-});
-
+};
