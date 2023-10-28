@@ -780,3 +780,8 @@ export class CommandLine extends CommandParameterList {
     }
   }
 }
+
+export function buildParameters(...validArguments: (boolean | number | string)[]): Parameter<ParameterType>[] {
+  return validArguments.map(args => Parameter.parse(new CodePointBuffer(args + ""))!);
+}
+

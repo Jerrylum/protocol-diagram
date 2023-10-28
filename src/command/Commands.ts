@@ -291,7 +291,7 @@ export class DeleteCommand extends CancellableCommand {
 
     this.execute();
 
-    return success('Deleted field "' + f.name + ".");
+    return success('Deleted field "' + f.name + "'.");
   }
 
   execute() {
@@ -844,3 +844,4 @@ export class CommandLineSpec implements InputSpec<typeof StringT> {
 export function buildInputSpecByCommands(commands: Command[]): InputSpec<typeof StringT> | null {
   return new CommandLineSpec(commands);
 }
+
