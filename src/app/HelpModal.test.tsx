@@ -21,7 +21,7 @@ test("Render HelpModal", () => {
     modals.open(HelpModalSymbol);
   });
 
-  result.rerender(components);
+  
   expect(result.container).toMatchSnapshot();
 
   const container2 = document.querySelector(".modal-container");
@@ -31,7 +31,7 @@ test("Render HelpModal", () => {
     modals.close();
   });
 
-  result.rerender(components);
+  
 
   const container3 = document.querySelector(".modal-container");
   expect(container3).not.toBeInTheDocument();

@@ -24,19 +24,16 @@ test("Render Confirmation", () => {
   act(() => {
     fireEvent.keyDown(container!, { key: "ArrowLeft", code: "ArrowLeft" });
   });
-  result.rerender(components);
 
   act(() => {
     fireEvent.keyDown(container!, { key: "ArrowRight", code: "ArrowRight" });
   });
-  result.rerender(components);
 
   let observerInput = result.container.querySelector("input");
   act(() => {
     fireEvent.input(observerInput!, { target: { value: "test" } });
     fireEvent.keyDown(observerInput!, { key: "Enter", code: "Enter" });
   });
-  result.rerender(components);
 
   confirmation.prompt({
     title: "title1",
@@ -56,7 +53,6 @@ test("Render Confirmation", () => {
     fireEvent.input(observerInput!, { target: { value: "test" } });
     fireEvent.keyDown(observerInput!, { key: "NumpadEnter", code: "NumpadEnter" });
   });
-  result.rerender(components);
 
   confirmation.prompt({
     title: "title1",
@@ -75,10 +71,8 @@ test("Render Confirmation", () => {
   act(() => {
     fireEvent.keyDown(container!, { key: "Enter", code: "Enter" });
   });
-  result.rerender(components);
 
   act(() => {
     fireEvent.keyDown(container!, { key: "Escape", code: "Escape" });
   });
-  result.rerender(components);
 });

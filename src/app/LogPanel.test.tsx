@@ -22,7 +22,7 @@ test("Render LogPanel with focused", () => {
   act(() => {
     fireEvent.mouseEnter(logPanel!);
   });
-  result.rerender(components);
+
   act(() => {
     fireEvent.mouseLeave(logPanel!);
   });

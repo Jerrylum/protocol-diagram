@@ -28,57 +28,57 @@ test("Arrow up/down for last executed command line", () => {
     fireEvent.keyDown(controller.inputElement!, { key: "Enter", code: "Enter" });
     fireEvent.keyDown(controller.inputElement!, { key: "ArrowUp", code: "ArrowUp" });
   });
-  result.rerender(components);
+
   expect(controller.inputElement!.value).toBe("e");
   act(() => {
     fireEvent.keyDown(controller.inputElement!, { key: "ArrowUp", code: "ArrowUp" });
   });
-  result.rerender(components);
+
   expect(controller.inputElement!.value).toBe("d");
   act(() => {
     fireEvent.keyDown(controller.inputElement!, { key: "ArrowUp", code: "ArrowUp" });
   });
-  result.rerender(components);
+
   expect(controller.inputElement!.value).toBe("c");
   act(() => {
     fireEvent.keyDown(controller.inputElement!, { key: "ArrowUp", code: "ArrowUp" });
   });
-  result.rerender(components);
+
   expect(controller.inputElement!.value).toBe("b");
   act(() => {
     fireEvent.keyDown(controller.inputElement!, { key: "ArrowUp", code: "ArrowUp" });
   });
-  result.rerender(components);
+
   expect(controller.inputElement!.value).toBe("a");
   act(() => {
     fireEvent.keyDown(controller.inputElement!, { key: "ArrowUp", code: "ArrowUp" });
   });
-  result.rerender(components);
+
   expect(controller.inputElement!.value).toBe("a");
   act(() => {
     fireEvent.keyDown(controller.inputElement!, { key: "ArrowDown", code: "ArrowDown" });
   });
-  result.rerender(components);
+
   expect(controller.inputElement!.value).toBe("b");
   act(() => {
     fireEvent.keyDown(controller.inputElement!, { key: "ArrowDown", code: "ArrowDown" });
   });
-  result.rerender(components);
+
   expect(controller.inputElement!.value).toBe("c");
   act(() => {
     fireEvent.keyDown(controller.inputElement!, { key: "ArrowDown", code: "ArrowDown" });
   });
-  result.rerender(components);
+
   expect(controller.inputElement!.value).toBe("d");
   act(() => {
     fireEvent.keyDown(controller.inputElement!, { key: "ArrowDown", code: "ArrowDown" });
   });
-  result.rerender(components);
+
   expect(controller.inputElement!.value).toBe("e");
   act(() => {
     fireEvent.keyDown(controller.inputElement!, { key: "ArrowDown", code: "ArrowDown" });
   });
-  result.rerender(components);
+
   expect(controller.inputElement!.value).toBe("");
   act(() => {
     fireEvent.keyDown(controller.inputElement!, { key: "ArrowUp", code: "ArrowUp" });
@@ -89,51 +89,51 @@ test("Arrow up/down for last executed command line", () => {
     fireEvent.keyDown(controller.inputElement!, { key: "Escape", code: "Escape" });
     fireEvent.keyDown(controller.inputElement!, { key: "ArrowUp", code: "ArrowUp" });
   });
-  result.rerender(components);
+
   expect(controller.inputElement!.value).toBe("c");
   act(() => {
     fireEvent.keyDown(controller.inputElement!, { key: "ArrowUp", code: "ArrowUp" });
   });
-  result.rerender(components);
+
   expect(controller.inputElement!.value).toBe("b");
   act(() => {
     fireEvent.keyDown(controller.inputElement!, { key: "ArrowUp", code: "ArrowUp" });
   });
-  result.rerender(components);
+
   expect(controller.inputElement!.value).toBe("a");
   act(() => {
     fireEvent.keyDown(controller.inputElement!, { key: "ArrowDown", code: "ArrowDown" });
   });
-  result.rerender(components);
+
   expect(controller.inputElement!.value).toBe("b");
   act(() => {
     fireEvent.keyDown(controller.inputElement!, { key: "ArrowDown", code: "ArrowDown" });
   });
-  result.rerender(components);
+
   expect(controller.inputElement!.value).toBe("c");
   act(() => {
     fireEvent.keyDown(controller.inputElement!, { key: "ArrowDown", code: "ArrowDown" });
   });
-  result.rerender(components);
+
   expect(controller.inputElement!.value).toBe("d");
   act(() => {
     fireEvent.keyDown(controller.inputElement!, { key: "ArrowDown", code: "ArrowDown" });
   });
-  result.rerender(components);
+
   expect(controller.inputElement!.value).toBe("e");
   act(() => {
     fireEvent.keyDown(controller.inputElement!, { key: "ArrowDown", code: "ArrowDown" });
   });
-  result.rerender(components);
+
   expect(controller.inputElement!.value).toBe("c");
   act(() => {
     fireEvent.keyDown(controller.inputElement!, { key: "ArrowDown", code: "ArrowDown" });
   });
-  result.rerender(components);
+
   expect(controller.inputElement!.value).toBe("");
 });
 
-test ("handleTextFieldCaretChange", () => {
+test("handleTextFieldCaretChange", () => {
   const controller = new BottomPanelController();
   const components = (
     <div id="root-container">
@@ -149,11 +149,11 @@ test ("handleTextFieldCaretChange", () => {
   act(() => {
     fireEvent.input(controller.inputElement!, { target: { value: "" } });
   });
-  result.rerender(components);
+
   expect(controller.mapping).toBeNull();
 });
 
-test ("handleOnblur", () => {
+test("handleOnblur", () => {
   const controller = new BottomPanelController();
   const components = (
     <div id="root-container">
@@ -170,11 +170,11 @@ test ("handleOnblur", () => {
   act(() => {
     fireEvent.blur(controller.inputElement!);
   });
-  result.rerender(components);
+
   expect(controller.mapping).toBeNull();
 });
 
-test ("handleKeyDown Enter", () => {
+test("handleKeyDown Enter", () => {
   const controller = new BottomPanelController();
   const components = (
     <div id="root-container">
@@ -187,20 +187,20 @@ test ("handleKeyDown Enter", () => {
     fireEvent.input(controller.inputElement!, { target: { value: "" } });
     fireEvent.keyDown(controller.inputElement!, { key: "Enter", code: "Enter" });
   });
-  result.rerender(components);
-  const {logger} = getRootStore();
-  expect(logger.logs[logger.logs.length-1].level).toBe("error");
+
+  const { logger } = getRootStore();
+  expect(logger.logs[logger.logs.length - 1].level).toBe("error");
 
   act(() => {
     fireEvent.input(controller.inputElement!, { target: { value: "config bit 64" } });
     fireEvent.keyDown(controller.inputElement!, { key: "Enter", code: "Enter" });
   });
-  result.rerender(components);
-  const {app} = getRootStore();
+
+  const { app } = getRootStore();
   expect(app.diagram!.config.getOption("bit")?.getValue()).toBe(64);
 });
 
-test ("handleKeyDown Tab", () => {
+test("handleKeyDown Tab", () => {
   const controller = new BottomPanelController();
   const components = (
     <div id="root-container">
@@ -213,16 +213,15 @@ test ("handleKeyDown Tab", () => {
     fireEvent.input(controller.inputElement!, { target: { value: "a" } });
     fireEvent.keyDown(controller.inputElement!, { key: "Tab", code: "Tab" });
   });
-  result.rerender(components);
+
   expect(controller.inputElement!.value).toBe("add ");
 
   act(() => {
     fireEvent.keyDown(controller.inputElement!, { key: "l", code: "l" });
   });
-  result.rerender(components);
 });
 
-test ("handle keydown ArrowUp/ArrowDown", () => {
+test("handle keydown ArrowUp/ArrowDown", () => {
   const controller = new BottomPanelController();
   const components = (
     <div id="root-container">
@@ -236,7 +235,7 @@ test ("handle keydown ArrowUp/ArrowDown", () => {
     fireEvent.keyDown(controller.inputElement!, { key: "ArrowUp", code: "ArrowUp" });
     fireEvent.keyDown(controller.inputElement!, { key: "Tab", code: "Tab" });
   });
-  result.rerender(components);
+
   expect(controller.inputElement!.value).toBe("resize ");
   act(() => {
     fireEvent.input(controller.inputElement!, { target: { value: "r" } });
@@ -245,7 +244,7 @@ test ("handle keydown ArrowUp/ArrowDown", () => {
     fireEvent.keyDown(controller.inputElement!, { key: "ArrowUp", code: "ArrowUp" });
     fireEvent.keyDown(controller.inputElement!, { key: "Tab", code: "Tab" });
   });
-  result.rerender(components);
+
   expect(controller.inputElement!.value).toBe("rename ");
 
   act(() => {
@@ -253,14 +252,13 @@ test ("handle keydown ArrowUp/ArrowDown", () => {
     fireEvent.keyDown(controller.inputElement!, { key: "ArrowUp", code: "ArrowUp" });
     fireEvent.keyDown(controller.inputElement!, { key: "Tab", code: "Tab" });
   });
-  result.rerender(components);
+
   expect(controller.inputElement!.value).toBe("add ");
   act(() => {
     fireEvent.input(controller.inputElement!, { target: { value: "a" } });
     fireEvent.keyDown(controller.inputElement!, { key: "ArrowDown", code: "ArrowDown" });
     fireEvent.keyDown(controller.inputElement!, { key: "Tab", code: "Tab" });
   });
-  result.rerender(components);
+
   expect(controller.inputElement!.value).toBe("add ");
 });
-
