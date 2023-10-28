@@ -1,6 +1,7 @@
 import { Box, Typography } from "@mui/material";
 import { observer } from "mobx-react-lite";
 import React from "react";
+import { isFirefox } from "../core/Util";
 import { Vector } from "../core/Vector";
 import { BottomPanelController } from "./BottomPanel";
 
@@ -65,8 +66,7 @@ export function getMirrorDiv(reference: HTMLInputElement | HTMLTextAreaElement):
   // transfer the element's properties to the div
   MIRROR_PROPERTIES.forEach(prop => ((mirrorStyle as any)[prop] = (referenceStyle as any)[prop]));
 
-  const isFirefox = !((window as any)["mozInnerScreenX"] === undefined);
-  if (isFirefox) {
+  if (isFirefox()) {
     mirrorStyle.width = parseInt(referenceStyle.width) - 2 + "px"; // Firefox adds 2 pixels to the padding - https://bugzilla.mozilla.org/show_bug.cgi?id=753662
     // Firefox lies about the overflow property for textareas: https://bugzilla.mozilla.org/show_bug.cgi?id=984275
     if (reference.scrollHeight > parseInt(referenceStyle.height)) mirrorStyle.overflowY = "scroll";
