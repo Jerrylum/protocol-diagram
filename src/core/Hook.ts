@@ -149,7 +149,7 @@ export function useCustomHotkeys<T extends HTMLElement>(
 
 export function useDragDropFile(enable: boolean, onDrop: (file: File) => void) {
   const [isDraggingFile, setIsDraggingFile] = React.useState(false);
-  // console.log('useDragDropFile')
+
   return {
     isDraggingFile,
     onDragEnter: (e: React.DragEvent<HTMLDivElement>) => {

@@ -2,7 +2,7 @@ import "./Root.scss";
 import "@fontsource/ubuntu-mono";
 import { observer } from "mobx-react-lite";
 import { DiagramCanvas } from "./app/DiagramCanvas";
-import { UndoCommand } from "./command/Commands";
+import { RedoCommand, UndoCommand } from "./command/Commands";
 import { Box } from "@mui/material";
 import { BottomPanel } from "./app/BottomPanel";
 import { useCustomHotkeys } from "./core/Hook";
@@ -25,18 +25,8 @@ import { validate } from "class-validator";
 import { ConfirmationPromptData } from "./core/Confirmation";
 import { onDropFile, onOpen, onSave, onSaveAs, onNew } from "./core/InputOutput";
 import { DragDropBackdrop } from "./app/DragDropBackdrop";
-import { TRUE } from "sass";
-(window as any)["checkForUpdates"] = checkForUpdates;
 
-// undo
-const undoCommand = new UndoCommand();
-export async function handleUndo() {
-  const result = undoCommand.handle([]);
-  // console.log(result); 
-  const { logger } = getRootStore();
-  if (result.message) logger.info(result.message);
-  else if (result.message) logger.error(result.message);
-};
+(window as any)["checkForUpdates"] = checkForUpdates;
 
 export async function onLatestVersionChange(newVer: SemVer | null | undefined, oldVer: SemVer | null | undefined) {
   const logger = Logger("Versioning");
@@ -61,6 +51,24 @@ export async function onLatestVersionChange(newVer: SemVer | null | undefined, o
       enqueueSuccessSnackbar(logger, "There are currently no updates available", 5000);
     }
   }
+}
+
+export async function handleUndo() {
+  const { logger } = getRootStore();
+
+  const result = new UndoCommand().handle([]);
+
+  if (result.message) logger.info(result.message);
+  else if (result.message) logger.error(result.message);
+}
+
+export async function handleRedo() {
+  const { logger } = getRootStore();
+
+  const result = new RedoCommand().handle([]);
+
+  if (result.message) logger.info(result.message);
+  else if (result.message) logger.error(result.message);
 }
 
 export async function handleDiagramParam(encodedDiagramParam: string) {
@@ -88,7 +96,7 @@ export async function handleDiagramParam(encodedDiagramParam: string) {
   } catch (e) {
     if (e instanceof Error) {
       confirmation.prompt({
-        title: "Error Occured",
+        title: "Error Occurred",
         description: e.message,
         buttons: [{ label: "OK" }]
       } as ConfirmationPromptData);
@@ -107,8 +115,6 @@ const Root = observer(() => {
     if (result === null) return;
     handleDiagramParam(result);
   }, []);
-
-
 
   React.useEffect(() => {
     const logger = Logger("Versioning");
@@ -172,8 +178,9 @@ const Root = observer(() => {
   useCustomHotkeys("Mod+Subtract,Mod+Minus", () => (app.diagramEditor.scale -= 0.5), ENABLE_ON_ALL_INPUT_FIELDS);
   useCustomHotkeys("Mod+0", () => app.diagramEditor.resetOffsetAndScale(), ENABLE_ON_ALL_INPUT_FIELDS);
 
-  // undo
-  useCustomHotkeys("Mod+Z", handleUndo, ENABLE_ON_ALL_INPUT_FIELDS);
+  useCustomHotkeys("Mod+Z", handleUndo, ENABLE_EXCEPT_INPUT_FIELDS);
+  useCustomHotkeys("Mod+Y", handleRedo, ENABLE_EXCEPT_INPUT_FIELDS);
+  useCustomHotkeys("Shift+Mod+Z", handleRedo, ENABLE_EXCEPT_INPUT_FIELDS);
 
   return (
     <Box id="root-container" {...{ onDragEnter, onDragOver, onDrop }}>
