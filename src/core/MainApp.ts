@@ -46,6 +46,7 @@ export class MainApp extends Timeline<CancellableCommand> {
 
   set diagram(diagram: Diagram) {
     this._diagram = diagram;
+    this.resetHistory();
   }
 
   newDiagram() {
