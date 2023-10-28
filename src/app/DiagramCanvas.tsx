@@ -879,7 +879,7 @@ export const DiagramTextLineElement = observer((props: { line: string; lineNumbe
   );
 });
 
-export const DiagramCanvas = observer(() => {
+export const DiagramCanvas = observer((props: {enableCanvas?: boolean}) => {
   const { app } = getRootStore();
 
   const controller = useBetterMemo(() => new DiagramCanvasController(), []);
@@ -945,7 +945,7 @@ export const DiagramCanvas = observer(() => {
         offset={diagramEditor.offset.subtract(controller.viewOffset)}
         onContextMenu={e => e.evt.preventDefault()}>
         <Layer>
-          {diagramLines.map((line, index) => (
+          {props.enableCanvas !== false && diagramLines.map((line, index) => (
             <DiagramTextLineElement key={index} line={line} lineNumber={index} />
           ))}
         </Layer>
