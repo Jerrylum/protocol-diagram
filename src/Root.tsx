@@ -22,7 +22,7 @@ import { plainToClass } from "class-transformer";
 import { Diagram } from "./diagram/Diagram";
 import { validate } from "class-validator";
 import { ConfirmationPromptData } from "./core/Confirmation";
-import { onDropFile, onOpen, onSave, onSaveAs, onNew } from "./core/InputOutput";
+import { onDropFile, onOpen, onSave, onSaveAs, onNew, onDownload, onDownloadAs } from "./core/InputOutput";
 import { DragDropBackdrop, useDragDropFile } from "./app/DragDropBackdrop";
 
 (window as any)["checkForUpdates"] = checkForUpdates;
@@ -76,30 +76,21 @@ export async function handleDiagramParam(encodedDiagramParam: string) {
   const base64String = encodedDiagramParam.replaceAll("-", "+").replaceAll("_", "/");
 
   try {
-    const diagramDataInJson = decodeURIComponent(escape(window.atob(base64String)));
-    const c = plainToClass(Diagram, JSON.parse(diagramDataInJson), {
-      excludeExtraneousValues: true,
-      exposeDefaultValues: true
-    });
-    await validate(c).then(errors => {
-      if (errors.length > 0) {
-        confirmation.prompt({
-          title: "Validation Error",
-          description: errors.map(e => e.toString()).join("\n"),
-          buttons: [{ label: "OK" }]
-        } as ConfirmationPromptData);
-        return;
-      }
-      app.diagram = c;
-    });
-  } catch (e) {
-    if (e instanceof Error) {
+    const diagramJsonString = decodeURIComponent(escape(window.atob(base64String)));
+    const result = await app.importDiagram(diagramJsonString);
+    if (result.success === false) {
       confirmation.prompt({
-        title: "Error Occurred",
-        description: e.message,
+        title: "Validation Error",
+        description: result.message,
         buttons: [{ label: "OK" }]
-      } as ConfirmationPromptData);
+      });
     }
+  } catch (e) {
+    confirmation.prompt({
+      title: "Error Occurred",
+      description: "" + e,
+      buttons: [{ label: "OK" }]
+    });
   }
 }
 
@@ -148,6 +139,9 @@ const Root = observer(() => {
   useCustomHotkeys("Mod+P", onNew, ENABLE_ON_ALL_INPUT_FIELDS);
   useCustomHotkeys("Mod+O", onOpen, ENABLE_ON_ALL_INPUT_FIELDS);
   useCustomHotkeys("Mod+S", onSave, ENABLE_ON_ALL_INPUT_FIELDS);
+  useCustomHotkeys("Shift+Mod+S", onSaveAs, ENABLE_ON_ALL_INPUT_FIELDS);
+  useCustomHotkeys("Mod+D", onDownload, ENABLE_ON_ALL_INPUT_FIELDS);
+  useCustomHotkeys("Shift+Mod+D", onDownloadAs, ENABLE_ON_ALL_INPUT_FIELDS);
 
   useCustomHotkeys("Shift+Mod+S", onSaveAs, ENABLE_ON_ALL_INPUT_FIELDS);
   useCustomHotkeys("Mod+Add,Mod+Equal", () => (app.diagramEditor.scale += 0.5), ENABLE_ON_ALL_INPUT_FIELDS);
@@ -155,8 +149,7 @@ const Root = observer(() => {
   useCustomHotkeys("Mod+0", () => app.diagramEditor.resetOffsetAndScale(), ENABLE_ON_ALL_INPUT_FIELDS);
 
   useCustomHotkeys("Mod+Z", handleUndo, ENABLE_EXCEPT_INPUT_FIELDS);
-  useCustomHotkeys("Mod+Y", handleRedo, ENABLE_EXCEPT_INPUT_FIELDS);
-  useCustomHotkeys("Shift+Mod+Z", handleRedo, ENABLE_EXCEPT_INPUT_FIELDS);
+  useCustomHotkeys("Mod+Y,Shift+Mod+Z", handleRedo, ENABLE_EXCEPT_INPUT_FIELDS);
 
   return (
     <Box id="root-container" {...{onDragEnter, onDragOver, onDrop}}>
