@@ -73,7 +73,7 @@ export const ConfirmationModal = observer(() => {
           <Box sx={{ width: "100%" }}>
             <ObserverInput
               label={cfm.inputLabel}
-              getValue={() => cfm.input ?? ""}
+              getValue={() => cfm.input!}
               setValue={value => (cfm.input = value)}
               isValidIntermediate={() => true}
               isValidValue={() => true}
@@ -102,4 +102,3 @@ export const ConfirmationModal = observer(() => {
     </Modal>
   );
 });
-

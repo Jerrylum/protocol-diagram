@@ -2,7 +2,7 @@ import { action, runInAction } from "mobx";
 import React, { DependencyList } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { HotkeyCallback, HotkeysEvent, Options, RefType, Trigger } from "react-hotkeys-hook/dist/types";
-import { IS_MAC_OS } from "./Util";
+import { isMacOS } from "./Util";
 
 export function useTimeout(callback: () => void, delay: number | null, dependencies: DependencyList = []) {
   React.useEffect(() => {
@@ -90,7 +90,7 @@ export function useCustomHotkeys<T extends HTMLElement>(
         The debounce times are randomly chosen.
         */
 
-      const isMacMetaHotkey = IS_MAC_OS && kvEvt.metaKey;
+      const isMacMetaHotkey = isMacOS(navigator.userAgent) && kvEvt.metaKey;
 
       if (kvEvt.type === "keyup") {
         timeRef.current = null;
@@ -115,7 +115,6 @@ export function useCustomHotkeys<T extends HTMLElement>(
       preventDefault: false,
       enabled: (kvEvt: KeyboardEvent, hkEvt: HotkeysEvent): boolean => {
         let rtn: boolean;
-
         const enabledOptions: Trigger | undefined = options?.enabled;
         if (enabledOptions === undefined) {
           rtn = true;

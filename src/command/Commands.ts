@@ -223,7 +223,7 @@ export class RedoCommand extends Command {
  * this command is responsible in setting the value of the specified option by its key name
  */
 export class ConfigCommand extends Command implements DiagramModifier {
-  discriminator!: "DiagramModifier";
+  readonly discriminator = "DiagramModifier";
 
   /**
    * the key of the specified option
@@ -291,7 +291,7 @@ export class DeleteCommand extends CancellableCommand {
 
     this.execute();
 
-    return success('Deleted field "' + f.name + ".");
+    return success('Deleted field "' + f.name + "'.");
   }
 
   execute() {
@@ -844,3 +844,4 @@ export class CommandLineSpec implements InputSpec<typeof StringT> {
 export function buildInputSpecByCommands(commands: Command[]): InputSpec<typeof StringT> | null {
   return new CommandLineSpec(commands);
 }
+

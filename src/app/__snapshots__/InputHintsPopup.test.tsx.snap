@@ -1,0 +1,63 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Render InputHintsPopup 1`] = `
+<div>
+  <div
+    id="root-container"
+  >
+    <div
+      class="MuiBox-root css-1sgq4p7"
+    >
+      <div
+        class="MuiBox-root css-a35xdc"
+      >
+        <div
+          class="MuiBox-root css-13w71a5"
+        >
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-oldu9d-MuiTypography-root"
+          >
+            c
+          </p>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-1kvvwtc-MuiTypography-root"
+          >
+            lear
+          </p>
+        </div>
+        <div
+          class="MuiBox-root css-m7mt60"
+        >
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-oldu9d-MuiTypography-root"
+          >
+            c
+          </p>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-1kvvwtc-MuiTypography-root"
+          >
+            onfig
+          </p>
+        </div>
+      </div>
+      <p
+        class="MuiTypography-root MuiTypography-body2 css-1gkecma-MuiTypography-root"
+      >
+        the command to execute
+      </p>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`getMirrorDiv 1`] = `
+<div
+  style="white-space: pre-wrap; position: absolute; visibility: hidden; border-top-width: 2px; border-right-width: 2px; border-bottom-width: 2px; border-left-width: 2px; padding: 1px 1px 1px 1px; line-height: normal; font-family: -webkit-small-control; text-align: start; text-transform: none; text-indent: 0; letter-spacing: normal; word-spacing: normal; overflow: hidden;"
+/>
+`;
+
+exports[`getMirrorDiv 2`] = `
+<div
+  style="white-space: pre-wrap; word-wrap: break-word; position: absolute; visibility: hidden; width: 8px; height: 1px; overflow-y: scroll; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; padding: 2px 2px 2px 2px; line-height: normal; font-family: -webkit-small-control; text-align: start; text-transform: none; text-indent: 0; letter-spacing: normal; word-spacing: normal;"
+/>
+`;

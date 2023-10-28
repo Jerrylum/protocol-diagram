@@ -4,8 +4,6 @@ export async function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-export const IS_MAC_OS = isMacOS(navigator.userAgent);
-
 export function isMacOS(userAgent: string): boolean {
   if (userAgent.search("Windows") !== -1) {
     return false;
@@ -25,4 +23,3 @@ export function getWindowSize(): Vector {
 export function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
-
