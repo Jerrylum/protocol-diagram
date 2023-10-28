@@ -893,7 +893,7 @@ export const DiagramCanvas = observer(() => {
   const canvasSize = controller.canvasSize;
 
   const diagramLines = diagramText.split("\n");
-  const diagramLineLength = diagramLines[0].length ?? 0;
+  const diagramLineLength = diagramLines[0].length;
 
   const diagramSize = new Vector(diagramLineLength * 12, diagramLines.length * 16);
   controller.diagramSize = diagramSize;
@@ -920,8 +920,7 @@ export const DiagramCanvas = observer(() => {
   useEventListener(document, "mouseup", evt => {
     const target = evt.target as HTMLElement;
 
-    const rect = stageRef.current?.container().getBoundingClientRect();
-    if (rect === undefined) return;
+    const rect = stageRef.current!.container().getBoundingClientRect();
 
     const { x: clientX, y: clientY } = getClientXY(evt);
 
