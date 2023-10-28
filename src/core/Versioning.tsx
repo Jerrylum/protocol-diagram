@@ -35,21 +35,13 @@ export async function fetchLatestVersionViaAPI(): Promise<SemVer | undefined> {
 }
 
 export async function refreshLatestVersion() {
-  return new Promise<void>((resolve, reject) => {
-    runInAction(async () => {
-      const { app } = getRootStore();
+  const { app } = getRootStore();
 
-      // Reset to null to indicate that we are fetching the latest version
-      app.latestVersion = null;
-      // Fetch the latest version, can be undefined indicating that the latest version is not available
-      const version = (await SWR.getWaitingSWVersion()) || (await fetchLatestVersionViaAPI());
-
-      runInAction(() => {
-        app.latestVersion = version;
-        resolve();
-      });
-    });
-  });
+  // Reset to null to indicate that we are fetching the latest version
+  app.latestVersion = null;
+  // Fetch the latest version, can be undefined indicating that the latest version is not available
+  const version = (await SWR.getWaitingSWVersion()) || (await fetchLatestVersionViaAPI());
+  app.latestVersion = version;
 }
 
 export async function checkForUpdates() {
@@ -160,4 +152,3 @@ async function doPromptUpdate() {
 
   await doPromptUpdate();
 }
-

@@ -19,7 +19,7 @@ export class MainApp extends Timeline<CancellableCommand> {
   readonly diagramEditor = new DiagramEditor();
 
   // null = loading, undefined = not available
-  public latestVersion: SemVer | null | undefined = undefined;
+  private _latestVersion: SemVer | null | undefined = undefined;
 
   constructor() {
     super(new Diagram());
@@ -28,7 +28,7 @@ export class MainApp extends Timeline<CancellableCommand> {
     makeObservable<MainApp, "sourceCurrentMemento" | "isModifiedFlag" | "latestVersion">(this, {
       sourceCurrentMemento: observable,
       isModifiedFlag: observable,
-      latestVersion: observable,
+      latestVersion: computed,
       diagram: override,
       newDiagram: action,
       isModified: action,
@@ -37,6 +37,14 @@ export class MainApp extends Timeline<CancellableCommand> {
     });
 
     logger.log("Version", APP_VERSION_STRING);
+  }
+
+  get latestVersion(): SemVer | null | undefined {
+    return this._latestVersion;
+  }
+
+  set latestVersion(version: SemVer | null | undefined) {
+    this._latestVersion = version;
   }
 
   get diagram(): Diagram {

@@ -11,14 +11,7 @@ import {
 
 const logger = Logger("Service Worker Registration");
 
-const isLocalhost = Boolean(
-  window.location.hostname === "localhost" ||
-    // [::1] is the IPv6 localhost address.
-    window.location.hostname === "[::1]" ||
-    // 127.0.0.0/8 are considered localhost for IPv4.
-    window.location.hostname.match(/^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/)
-);
-
+const isLocalhost = () => { return window.location.hostname === "localhost" || window.location.hostname === "[::1]" || window.location.hostname.match(/^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/) };
 let wb: Workbox | undefined = undefined;
 
 let isUsingServiceWorker = false;
@@ -80,7 +73,7 @@ export async function isInstalling(): Promise<boolean> {
 
 export function register() {
   // if (process.env.NODE_ENV !== "production") return; // TEST: disable this line to test service worker in development
-  if (isLocalhost) return unregister(); // TEST: disable this line to test service worker in localhost
+  if (isLocalhost()) return unregister(); // TEST: disable this line to test service worker in localhost
   if ("serviceWorker" in navigator === false) return;
 
   const publicUrl = new URL(process.env.PUBLIC_URL, window.location.href);
