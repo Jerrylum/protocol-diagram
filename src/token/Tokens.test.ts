@@ -22,7 +22,8 @@ import {
   ParameterType,
   Token,
   CommandParameter,
-  CommandParameterList
+  CommandParameterList,
+  buildParameters
 } from "./Tokens";
 
 export function cpb(s: string): CodePointBuffer {
@@ -578,3 +579,31 @@ test("Token", () => {
   expect(Token.parse(cpb("target"))).toBeNull();
   expect(BooleanT.parse(cpb("true"))?.equals(BooleanT.parse(cpb("true")))).toBe(true);
 });
+
+test("buildParameters", () => {
+  let params: Parameter<ParameterType>[] = [];
+
+  expect(buildParameters()).toStrictEqual([]);
+
+  params.push(new Parameter(new StringT("target")));
+  expect(buildParameters("target")).toStrictEqual(params);
+
+  params.push(new Parameter(new StringT("value1")));
+  expect(buildParameters("target", "value1")).toStrictEqual(params);
+
+  params.push(new Parameter(new StringT("'value2'", "value2")));
+  expect(buildParameters("target", "value1", "'value2'")).toStrictEqual(params);
+
+  params.push(new Parameter(new StringT('"value3"', "value3")));
+  expect(buildParameters("target", "value1", "'value2'", '"value3"')).toStrictEqual(params);
+
+  params.push(new Parameter(new BooleanT("True", true)));
+  expect(buildParameters("target", "value1", "'value2'", '"value3"', "True")).toStrictEqual(params);
+
+  params.push(new Parameter(new BooleanT("False", false)));
+  expect(buildParameters("target", "value1", "'value2'", '"value3"', "True", "False")).toStrictEqual(params);
+
+  params.push(new Parameter(new NumberT("123", true, false)));
+  expect(buildParameters("target", "value1", "'value2'", '"value3"', "True", "False", "123")).toStrictEqual(params);
+});
+
