@@ -14,6 +14,10 @@ export function isMacOS(userAgent: string): boolean {
   }
 }
 
+export function isFirefox() {
+  return !((window as any)["mozInnerScreenX"] === undefined);
+}
+
 export function getWindowSize(): Vector {
   // UX: innerHeight is only used in the first render
   // UX: clientWidth is better than innerWidth because it is accurate when the web page is zoomed

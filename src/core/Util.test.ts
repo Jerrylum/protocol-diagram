@@ -16,6 +16,18 @@ test("isMacOS", () => {
   expect(isMacOS("Linux")).toBe(false);
 });
 
+test("isFirefox", () => {
+  expect(isFirefox()).toBe(false);
+
+  // Mock
+  (window as any)["mozInnerScreenX"] = 0;
+
+  expect(isFirefox()).toBe(true);
+
+  // Restore
+  delete (window as any)["mozInnerScreenX"];
+});
+
 test("getWindowSize", () => {
   expect(getWindowSize()); // Expect to have no error
 });
