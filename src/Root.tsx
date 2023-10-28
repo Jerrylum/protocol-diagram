@@ -18,10 +18,6 @@ import { checkForUpdates, promptUpdate } from "./core/Versioning";
 import * as SWR from "./core/ServiceWorkerRegistration";
 import { reaction } from "mobx";
 import { APP_VERSION_STRING } from "./Version";
-import { plainToClass } from "class-transformer";
-import { Diagram } from "./diagram/Diagram";
-import { validate } from "class-validator";
-import { ConfirmationPromptData } from "./core/Confirmation";
 import { onDropFile, onOpen, onSave, onSaveAs, onNew, onDownload, onDownloadAs } from "./core/InputOutput";
 import { DragDropBackdrop, useDragDropFile } from "./app/DragDropBackdrop";
 
@@ -119,6 +115,23 @@ const Root = observer(() => {
       disposer();
     };
   }, [app]);
+
+  React.useEffect(() => {
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (app.isModified()) {
+        // Cancel the event and show alert that
+        // the unsaved changes would be lost
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+
+    window.addEventListener("beforeunload", onBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", onBeforeUnload);
+    };
+  }, [app.diagram]);
 
   const isUsingEditor = !modals.isOpen;
   const { isDraggingFile, getRootProps: getRootPropsForDragDropBackdrop } = useDragDropFile(isUsingEditor, onDropFile);
