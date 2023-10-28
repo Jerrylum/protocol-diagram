@@ -223,7 +223,7 @@ export class RedoCommand extends Command {
  * this command is responsible in setting the value of the specified option by its key name
  */
 export class ConfigCommand extends Command implements DiagramModifier {
-  discriminator!: "DiagramModifier";
+  readonly discriminator = "DiagramModifier";
 
   /**
    * the key of the specified option
