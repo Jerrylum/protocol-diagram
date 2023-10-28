@@ -3,10 +3,10 @@ import { BooleanT, CommandParameter } from "../token/Tokens";
 import { cpb } from "../token/Tokens.test";
 import { BottomPanelController } from "./BottomPanel";
 
-test ("BottomPanelController", () => {
+test("BottomPanelController", () => {
   const bottomPanelController = new BottomPanelController();
   expect(bottomPanelController.insertAutoCompletionValue("test")).toBe(false);
-  bottomPanelController.updateMapping()
+  bottomPanelController.updateMapping();
 
   const inspec = buildInputSpecByUsages([
     {
