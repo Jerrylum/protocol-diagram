@@ -1,10 +1,23 @@
-import { enqueueErrorSnackbar, enqueueSuccessSnackbar } from "../app/Notice";
 import { Logger } from "./Logger";
 import { IOFileHandle } from "./MainApp";
 import { getRootStore } from "./Root";
 import { isFirefox, runInActionAsync } from "./Util";
 
-const logger = Logger("I/O");
+const consoleLogger = Logger("I/O");
+
+export function readText(fileReader: FileReader, file: File): Promise<string> {
+  return new Promise<string>((resolve, reject) => {
+    fileReader.onerror = () => {
+      fileReader.abort();
+      reject(new DOMException("Problem parsing input file."));
+    };
+
+    fileReader.onload = () => {
+      resolve(fileReader.result as string);
+    };
+    fileReader.readAsText(file);
+  });
+}
 
 async function saveConfirm(callback: () => void) {
   const { app, confirmation } = getRootStore();
@@ -70,7 +83,7 @@ async function fileNameConfirm(description: string, callback: () => void) {
 }
 
 async function writeFile(contents: string): Promise<boolean> {
-  const { app } = getRootStore();
+  const { app, logger } = getRootStore();
 
   try {
     const file = app.mountingFile;
@@ -83,17 +96,22 @@ async function writeFile(contents: string): Promise<boolean> {
     await writable.write(contents);
     await writable.close();
 
-    enqueueSuccessSnackbar(logger, "Saved");
+    logger.info("Saved");
+
     return true;
   } catch (err) {
-    if (err instanceof DOMException) enqueueErrorSnackbar(logger, "Failed to save file");
-    else enqueueErrorSnackbar(logger, err);
+    if (err instanceof DOMException === false) {
+      consoleLogger.error(err);
+      logger.error("" + err);
+    } else {
+      consoleLogger.error("" + err);
+    }
     return false;
   }
 }
 
 async function readFile(): Promise<string | undefined> {
-  const { app } = getRootStore();
+  const { app, logger } = getRootStore();
 
   const options = {
     types: [{ description: "Protocol Diagram", accept: { "application/json": [] } }],
@@ -112,8 +130,12 @@ async function readFile(): Promise<string | undefined> {
 
     return contents;
   } catch (err) {
-    if (err instanceof DOMException === false) enqueueErrorSnackbar(logger, err);
-    else logger.error(err); // UX: Do not show DOMException to user, usually means user cancelled
+    if (err instanceof DOMException === false) {
+      consoleLogger.error(err);
+      logger.error("" + err);
+    } else {
+      consoleLogger.error("" + err); // UX: Do not show DOMException to user, usually means user cancelled
+    }
 
     return undefined;
   }
@@ -169,7 +191,7 @@ function downloadFile(contents: string) {
 }
 
 async function choiceSave(): Promise<boolean> {
-  const { app } = getRootStore();
+  const { app, logger } = getRootStore();
 
   const options = {
     types: [{ description: "Protocol Diagram", accept: { "application/json": [] } }],
@@ -186,7 +208,9 @@ async function choiceSave(): Promise<boolean> {
 
     return true;
   } catch (err) {
-    logger.error(err); // ignore error
+    consoleLogger.error(err);
+    logger.error("" + err);
+
     return false;
   }
 }
@@ -240,7 +264,7 @@ export async function onSaveAs(): Promise<boolean> {
 }
 
 export async function onOpen(saveCheck: boolean = true, interactive: boolean = true): Promise<boolean> {
-  const { app, confirmation } = getRootStore();
+  const { app, confirmation, logger } = getRootStore();
 
   if (saveCheck && app.isModified()) return saveConfirm(onOpen.bind(null, false, false));
 
@@ -261,7 +285,9 @@ export async function onOpen(saveCheck: boolean = true, interactive: boolean = t
     await app.importDiagram(contents);
     return true;
   } catch (err) {
-    enqueueErrorSnackbar(logger, err);
+    consoleLogger.error(err);
+    logger.error("" + err);
+
     return false;
   }
 }
@@ -292,7 +318,7 @@ export async function onDownloadAs(fallback: boolean = false): Promise<boolean> 
 }
 
 export async function onDropFile(file: File, saveCheck: boolean = true): Promise<boolean> {
-  const { app } = getRootStore();
+  const { app, logger } = getRootStore();
 
   if (saveCheck && app.isModified()) return saveConfirm(onDropFile.bind(null, file, false));
 
@@ -302,20 +328,13 @@ export async function onDropFile(file: File, saveCheck: boolean = true): Promise
     app.mountingFile.isNameSet = true;
   });
 
-  const reader = new FileReader();
-  reader.readAsText(file);
-
-  const contents = await new Promise<string | undefined>((resolve, reject) => {
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = () => resolve(undefined);
-  });
-  if (contents === undefined) return false;
-
   try {
-    await app.importDiagram(contents);
+    await app.importDiagram(await readText(new FileReader(), file));
     return true;
   } catch (err) {
-    enqueueErrorSnackbar(logger, err);
+    consoleLogger.error(err);
+    logger.error("" + err);
+
     return false;
   }
 }
