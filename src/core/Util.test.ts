@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { clamp, getWindowSize, isMacOS, sleep } from "./Util";
+import { clamp, getWindowSize, isFirefox, isMacOS, runInActionAsync, sleep } from "./Util";
 import { Vector } from "./Vector";
 import isEqual from "lodash.isequal";
 
@@ -54,4 +54,9 @@ test("clamp", () => {
   expect(clamp(2, 0, 2)).toBe(2);
   expect(clamp(3, 0, 2)).toBe(2);
   expect(clamp(-1, 0, 2)).toBe(0);
+});
+
+test("runInActionAsync", async () => {
+  const result = await runInActionAsync(() => 1);
+  expect(result).toBe(1);
 });

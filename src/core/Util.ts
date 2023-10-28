@@ -1,3 +1,4 @@
+import { runInAction } from "mobx";
 import { Vector } from "./Vector";
 
 export async function sleep(ms: number) {
@@ -26,4 +27,8 @@ export function getWindowSize(): Vector {
 
 export function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
+}
+
+export async function runInActionAsync<T>(action: () => T): Promise<T> {
+  return new Promise(resolve => runInAction(() => resolve(action())));
 }
