@@ -81,7 +81,7 @@ test("DiagramCanvasController", () => {
   controller.onMouseDownStage(new MouseEvent("mousedown", { button: 1 }));
   controller.onMouseMoveOrDragStage(new MouseEvent("mousedown", { button: 1 }));
   controller.onMouseUpStage(new MouseEvent("mousedown", { button: 1 }));
-  
+
   controller.container = document.createElement("div");
   expect(controller.toClientXY(new Vector(1, 1), false, false)).toStrictEqual(new Vector(1, 1));
   const offset = app.diagramEditor.offset.subtract(controller.viewOffset);
@@ -93,16 +93,16 @@ test("DiagramCanvasController", () => {
   expect(controller.getPosInMatrix(new Vector(12, 8))).toStrictEqual(new Vector(1, -2));
   expect(controller.getPosInMatrix(new Vector(12, 16))).toStrictEqual(new Vector(1, -1));
 
-  controller.commitChange(new HandleResult(false, null))
-  controller.commitChange(HandleResult.NOT_HANDLED)
+  controller.commitChange(new HandleResult(false, null));
+  controller.commitChange(HandleResult.NOT_HANDLED);
 
   expect(logger.logs.length).toBe(0);
-  controller.commitChange(new HandleResult(true, "test"))
+  controller.commitChange(new HandleResult(true, "test"));
   expect(logger.logs.length).toBe(1);
   expect(logger.logs[0].message).toBe("test");
   expect(logger.logs[0].level).toBe("info");
 
-  controller.commitChange(new HandleResult(false, "test2"))
+  controller.commitChange(new HandleResult(false, "test2"));
   expect(logger.logs.length).toBe(2);
   expect(logger.logs[1].message).toBe("test2");
   expect(logger.logs[1].level).toBe("error");
@@ -163,7 +163,7 @@ test("DiagramCanvas add field", async () => {
 
   const component = (
     <div id="root-container">
-      <DiagramCanvas enableCanvas={false}/>
+      <DiagramCanvas enableCanvas={false} />
     </div>
   );
   const result = render(component);
