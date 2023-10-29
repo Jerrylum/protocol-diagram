@@ -624,8 +624,8 @@ export class DiagramCanvasController implements DiagramInteractionHandler {
   commitChange(result: HandleResult): void {
     const { app, logger } = getRootStore();
     if (result === HandleResult.NOT_HANDLED || result.message === null) return;
-    if (result.success) logger.info(result.message ?? "");
-    else logger.error(result.message ?? "");
+    if (result.success) logger.info(result.message);
+    else logger.error(result.message);
 
     app.operate(new DiagramInteractionCommand(result));
   }
@@ -819,14 +819,6 @@ export class DiagramCanvasController implements DiagramInteractionHandler {
     return this.getUnboundedPx(getClientXY(event), useOffset, useScale);
   }
 
-  getUnboundedPxFromEvent(
-    event: Konva.KonvaEventObject<DragEvent | MouseEvent | TouchEvent>,
-    useOffset = true,
-    useScale = true
-  ): Vector | undefined {
-    return this.getUnboundedPxFromNativeEvent(event.evt, useOffset, useScale);
-  }
-
   toUnboundedPx(posInMatrix: Vector): Vector {
     const { app } = getRootStore();
     const diagram = app.diagram;
@@ -879,7 +871,7 @@ export const DiagramTextLineElement = observer((props: { line: string; lineNumbe
   );
 });
 
-export const DiagramCanvas = observer((props: {enableCanvas?: boolean}) => {
+export const DiagramCanvas = observer((props: { enableCanvas?: boolean }) => {
   const { app } = getRootStore();
 
   const controller = useBetterMemo(() => new DiagramCanvasController(), []);
@@ -945,9 +937,8 @@ export const DiagramCanvas = observer((props: {enableCanvas?: boolean}) => {
         offset={diagramEditor.offset.subtract(controller.viewOffset)}
         onContextMenu={e => e.evt.preventDefault()}>
         <Layer>
-          {props.enableCanvas !== false && diagramLines.map((line, index) => (
-            <DiagramTextLineElement key={index} line={line} lineNumber={index} />
-          ))}
+          {props.enableCanvas !== false &&
+            diagramLines.map((line, index) => <DiagramTextLineElement key={index} line={line} lineNumber={index} />)}
         </Layer>
       </Stage>
 
@@ -1035,7 +1026,7 @@ export const DiagramCanvas = observer((props: {enableCanvas?: boolean}) => {
   );
 });
 
-const findField = (matrix: Matrix, index: number, direction: number): Field | undefined => {
+export const findField = (matrix: Matrix, index: number, direction: number): Field | undefined => {
   let searchIndex = index;
   while (true) {
     const searchElement = matrix.elements[(searchIndex += direction)];
@@ -1045,7 +1036,10 @@ const findField = (matrix: Matrix, index: number, direction: number): Field | un
   }
 };
 
-const getClosestPositionWithTheSameY = (target: Vector, positions: { fieldUid: number | null; pos: Vector }[]) => {
+export const getClosestPositionWithTheSameY = (
+  target: Vector,
+  positions: { fieldUid: number | null; pos: Vector }[]
+) => {
   type Mapping = { fieldUid: number | null; pos: Vector };
 
   let closet: [Mapping, number] | null = null;
@@ -1062,7 +1056,7 @@ const getClosestPositionWithTheSameY = (target: Vector, positions: { fieldUid: n
   return closet[0];
 };
 
-const getInsertPositions = (matrix: Matrix, includeBeginning: boolean, includeEnd: boolean) => {
+export const getInsertPositions = (matrix: Matrix, includeBeginning: boolean, includeEnd: boolean) => {
   const insertPos: { fieldUid: number | null; pos: Vector }[] = [];
   for (let y = 1; y < matrix.height; y += 2) {
     for (let x = 0; x < matrix.width; x++) {
@@ -1098,7 +1092,7 @@ type DiagramInputProps = StylelessObserverInputProps &
     label?: string;
   };
 
-const DiagramInput = observer(
+export const DiagramInput = observer(
   forwardRef<HTMLInputElement, DiagramInputProps>((props: DiagramInputProps, ref) => {
     const inputRef = React.useRef<HTMLInputElement>(null);
     const { getRootProps } = useStylelessObserverInput(props);
@@ -1153,7 +1147,7 @@ const DiagramInput = observer(
   })
 );
 
-const DiagramAddFieldButton = observer((props: { controller: DiagramCanvasController }) => {
+export const DiagramAddFieldButton = observer((props: { controller: DiagramCanvasController }) => {
   const { app } = getRootStore();
   const diagram = app.diagram;
   const matrix = diagram.renderMatrix;
@@ -1210,7 +1204,7 @@ const DiagramAddFieldButton = observer((props: { controller: DiagramCanvasContro
   );
 });
 
-const DiagramInsertFieldButton = observer(
+export const DiagramInsertFieldButton = observer(
   (props: { controller: DiagramCanvasController; fieldUid: number | null; posInMatrix: Vector }) => {
     const { app } = getRootStore();
     const diagram = app.diagram;
@@ -1263,7 +1257,7 @@ const DiagramInsertFieldButton = observer(
   }
 );
 
-const useDiagramButton = (buttonRef: React.RefObject<HTMLButtonElement>) => {
+export const useDiagramButton = (buttonRef: React.RefObject<HTMLButtonElement>) => {
   useEventListener(document, "mousemove", evt => {
     const button = buttonRef.current;
     if (button === null) return;
@@ -1290,4 +1284,3 @@ const useDiagramButton = (buttonRef: React.RefObject<HTMLButtonElement>) => {
     { passive: false }
   );
 };
-
