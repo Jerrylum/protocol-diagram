@@ -1,8 +1,8 @@
 import { fireEvent } from "@testing-library/react";
 import { Diagram } from "../diagram/Diagram";
 import { Field } from "../diagram/Field";
-import { onDownload, onDownloadAs, onDropFile, onOpen, onSaveAs, readText } from "./InputOutput";
-import { IOFileHandle, MainApp } from "./MainApp";
+import { onDownload, onDownloadAs, onDropFile, onNew, onOpen, onSave, onSaveAs, readText } from "./InputOutput";
+import { IOFileHandle } from "./MainApp";
 import { getRootStore } from "./Root";
 
 function createDiagramFile(): File {
@@ -62,13 +62,266 @@ test("readText", async () => {
     });
 });
 
-test("onSaveAs & isFileSystemSupported = false", async () => {
+test("onNew", async () => {
   const { app, confirmation } = getRootStore();
 
-  //////// No modification
+  app.diagram = new Diagram();
+  const mountingFile = new IOFileHandle();
+  app.mountingFile = mountingFile;
+  confirmation.close();
+
+  expect(app.mountingFile).toBe(mountingFile);
+
+  await onNew();
+
+  expect(app.mountingFile).not.toBe(mountingFile);
+
+  ////////
+  app.diagram = new Diagram();
+  const mountingFile2 = new IOFileHandle();
+  app.mountingFile = mountingFile2;
+  confirmation.close();
+
+  expect(app.mountingFile).toBe(mountingFile2);
+
+  await onNew();
+
+  expect(app.mountingFile).not.toBe(mountingFile2);
+
+  ////////
+  app.diagram = new Diagram();
+  const mountingFile3 = new IOFileHandle();
+  app.mountingFile = mountingFile3;
+  confirmation.close();
+
+  expect(app.mountingFile).toBe(mountingFile3);
+
+  app.setModified(true);
+  await onNew(false);
+
+  expect(app.mountingFile).not.toBe(mountingFile3);
+});
+
+test("onNew & saveConfirm", async () => {
+  const { app, confirmation } = getRootStore();
+
   app.diagram = new Diagram();
   app.mountingFile = new IOFileHandle();
   confirmation.close();
+  (window as any)["showOpenFilePicker"] = () => {};
+  (window as any)["showSaveFilePicker"] = () => {};
+  const writeFn = jest.fn(async () => {});
+  const closeFn = jest.fn(async () => {});
+  app.mountingFile.handle = {
+    createWritable: () => ({
+      write: writeFn,
+      close: closeFn
+    }),
+    requestPermission(descriptor?: FileSystemHandlePermissionDescriptor): Promise<PermissionState> {
+      return Promise.resolve("granted");
+    }
+  } as any;
+
+  expect(confirmation.isOpen).toBe(false);
+
+  app.setModified(true);
+  const promise = onNew();
+
+  confirmation.buttons[0].onClick?.();
+
+  expect(confirmation.isOpen).toBe(true);
+
+  expect(await promise).toBe(true);
+
+  ////////
+  app.diagram = new Diagram();
+  app.mountingFile = new IOFileHandle();
+  confirmation.close();
+  app.mountingFile.handle = {
+    requestPermission(descriptor?: FileSystemHandlePermissionDescriptor): Promise<PermissionState> {
+      throw new DOMException("test");
+    }
+  } as any;
+
+  expect(confirmation.isOpen).toBe(false);
+
+  app.setModified(true);
+  const promise1 = onNew();
+
+  confirmation.buttons[0].onClick?.();
+
+  expect(await promise1).toBe(false);
+
+  ////////
+  app.diagram = new Diagram();
+  app.mountingFile = new IOFileHandle();
+  confirmation.close();
+
+  expect(confirmation.isOpen).toBe(false);
+
+  app.setModified(true);
+  const promise2 = onNew();
+
+  confirmation.buttons[1].onClick?.();
+
+  expect(await promise2).toBe(true);
+
+  ////////
+  app.diagram = new Diagram();
+  app.mountingFile = new IOFileHandle();
+  confirmation.close();
+
+  expect(confirmation.isOpen).toBe(false);
+
+  app.setModified(true);
+  const promise3 = onNew();
+
+  confirmation.buttons[2].onClick?.();
+
+  expect(await promise3).toBe(false);
+});
+
+test("onSave & writeFile", async () => {
+  const { app, confirmation } = getRootStore();
+
+  app.diagram = new Diagram();
+  app.mountingFile = new IOFileHandle();
+  confirmation.close();
+  (window as any)["showOpenFilePicker"] = () => {};
+  (window as any)["showSaveFilePicker"] = () => {};
+  const writeFn = jest.fn(async () => {});
+  const closeFn = jest.fn(async () => {});
+  app.mountingFile.handle = {
+    createWritable: () => ({
+      write: writeFn,
+      close: closeFn
+    }),
+    kind: "file",
+    name: "test.json",
+    requestPermission(descriptor?: FileSystemHandlePermissionDescriptor): Promise<PermissionState> {
+      return Promise.resolve("granted");
+    },
+    isFile: true,
+    isDirectory: false
+  } as any;
+
+  expect(confirmation.isOpen).toBe(false);
+
+  app.setModified(true);
+  expect(await onSave()).toBe(true);
+  expect(writeFn).toBeCalledTimes(1);
+  expect(closeFn).toBeCalledTimes(1);
+  expect(app.isModified()).toBe(false);
+
+  expect(confirmation.isOpen).toBe(false);
+
+  ////////
+  app.mountingFile.handle = {
+    createWritable: () => ({
+      write: writeFn,
+      close: closeFn
+    }),
+    kind: "file",
+    name: "test.json",
+    requestPermission(descriptor?: FileSystemHandlePermissionDescriptor): Promise<PermissionState> {
+      throw new DOMException("test");
+    },
+    isFile: true,
+    isDirectory: false
+  } as any;
+
+  expect(await onSave()).toBe(false);
+});
+
+test("onSave & isFileSystemSupported = false", async () => {
+  const { app, confirmation } = getRootStore();
+
+  app.diagram = new Diagram();
+  app.mountingFile = new IOFileHandle();
+  confirmation.close();
+  delete (window as any)["showOpenFilePicker"];
+  delete (window as any)["showSaveFilePicker"];
+
+  expect(confirmation.isOpen).toBe(false);
+
+  onSave();
+
+  expect(confirmation.isOpen).toBe(true);
+  expect(confirmation.title).toBe("Download");
+});
+
+test("onSave & isFileSystemSupported = true", async () => {
+  const { app, confirmation } = getRootStore();
+
+  app.diagram = new Diagram();
+  app.mountingFile = new IOFileHandle();
+  confirmation.close();
+  (window as any)["showOpenFilePicker"] = jest.fn(async () => ({}));
+  const savePicker = jest.fn(async () => ({}));
+  (window as any)["showSaveFilePicker"] = savePicker;
+
+  expect(confirmation.isOpen).toBe(false);
+
+  onSave();
+
+  expect(confirmation.isOpen).toBe(false);
+  expect(savePicker).toBeCalledTimes(1);
+});
+
+test("onSaveAs & writeFile", async () => {
+  const { app, confirmation, logger } = getRootStore();
+
+  app.diagram = new Diagram();
+  app.mountingFile = new IOFileHandle();
+  confirmation.close();
+  logger.clear();
+  const writeFn = jest.fn(async () => {});
+  const closeFn = jest.fn(async () => {});
+  (window as any)["showOpenFilePicker"] = jest.fn(async () => ({}));
+  (window as any)["showSaveFilePicker"] = jest.fn(async () => ({
+    createWritable: () => ({ write: writeFn, close: closeFn }),
+    kind: "file",
+    name: "test.json",
+    requestPermission(descriptor?: FileSystemHandlePermissionDescriptor): Promise<PermissionState> {
+      return Promise.resolve("granted");
+    },
+    isFile: true,
+    isDirectory: false
+  }));
+
+  expect(await onSaveAs()).toBe(true);
+  expect(writeFn).toBeCalledTimes(1);
+  expect(closeFn).toBeCalledTimes(1);
+
+  ////////
+  app.diagram = new Diagram();
+  app.mountingFile = new IOFileHandle();
+  confirmation.close();
+  logger.clear();
+  (window as any)["showOpenFilePicker"] = jest.fn(async () => ({}));
+  (window as any)["showSaveFilePicker"] = jest.fn(async () => ({
+    createWritable: () => ({ write: writeFn, close: closeFn }),
+    kind: "file",
+    name: "test.json",
+    requestPermission(descriptor?: FileSystemHandlePermissionDescriptor): Promise<PermissionState> {
+      throw new DOMException("test");
+    },
+    isFile: true,
+    isDirectory: false
+  }));
+
+  expect(await onSaveAs()).toBe(false);
+  expect(logger.logs.length).toBe(0);
+});
+
+test("onSaveAs & isFileSystemSupported = false", async () => {
+  const { app, confirmation } = getRootStore();
+
+  app.diagram = new Diagram();
+  app.mountingFile = new IOFileHandle();
+  confirmation.close();
+  delete (window as any)["showOpenFilePicker"];
+  delete (window as any)["showSaveFilePicker"];
 
   expect(confirmation.isOpen).toBe(false);
 
@@ -79,9 +332,8 @@ test("onSaveAs & isFileSystemSupported = false", async () => {
 });
 
 test("onSaveAs & isFileSystemSupported = true", async () => {
-  const { app, confirmation } = getRootStore();
+  const { app, confirmation, logger } = getRootStore();
 
-  //////// No modification
   app.diagram = new Diagram();
   app.mountingFile = new IOFileHandle();
   confirmation.close();
@@ -90,11 +342,35 @@ test("onSaveAs & isFileSystemSupported = true", async () => {
 
   expect(confirmation.isOpen).toBe(false);
 
-  onSaveAs();
+  expect(await onSaveAs()).toBe(false);
 
   expect(confirmation.isOpen).toBe(false);
-  
-  // TODO: choiceSave
+
+  ////////
+  app.diagram = new Diagram();
+  app.mountingFile = new IOFileHandle();
+  confirmation.close();
+  logger.clear();
+  (window as any)["showSaveFilePicker"] = jest.fn(async () => {
+    throw new DOMException("test");
+  });
+
+  expect(await onSaveAs()).toBe(false);
+
+  expect(logger.logs.length).toBe(0);
+
+  ////////
+  app.diagram = new Diagram();
+  app.mountingFile = new IOFileHandle();
+  confirmation.close();
+  logger.clear();
+  (window as any)["showSaveFilePicker"] = jest.fn(async () => {
+    throw new Error("test");
+  });
+
+  expect(await onSaveAs()).toBe(false);
+
+  expect(logger.logs.length).toBe(1);
 });
 
 test("onOpen & saveCheck", async () => {

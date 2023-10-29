@@ -87,12 +87,12 @@ async function writeFile(contents: string): Promise<boolean> {
 
   try {
     const file = app.mountingFile;
-    if (file.handle === null) throw new Error("fileHandle is undefined");
 
-    // XXX
-    await file.handle.requestPermission({ mode: "readwrite" });
+    // File handle must be set
 
-    const writable = await file.handle.createWritable();
+    await file.handle!.requestPermission({ mode: "readwrite" });
+
+    const writable = await file.handle!.createWritable();
     await writable.write(contents);
     await writable.close();
 
