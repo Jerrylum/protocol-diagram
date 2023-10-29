@@ -57,7 +57,7 @@ async function saveConfirm(callback: () => void) {
 async function fileNameConfirm(description: string, callback: () => void) {
   const { app, confirmation } = getRootStore();
 
-  return new Promise<void>((resolve, reject) => {
+  return new Promise<boolean>((resolve, reject) => {
     confirmation.prompt({
       title: "Download",
       description,
@@ -71,10 +71,10 @@ async function fileNameConfirm(description: string, callback: () => void) {
             app.mountingFile.name = candidate;
             app.mountingFile.isNameSet = true;
             callback();
-            resolve();
+            resolve(true);
           }
         },
-        { label: "Cancel", onClick: () => resolve() }
+        { label: "Cancel", onClick: () => resolve(false) }
       ],
       inputLabel: "File Name",
       inputDefaultValue: app.mountingFile.name
@@ -126,7 +126,7 @@ async function readFile(): Promise<string | undefined> {
     app.mountingFile.isNameSet = true;
 
     const file = await fileHandle.getFile();
-    const contents = await file.text();
+    const contents = await readText(new FileReader(), file);
 
     return contents;
   } catch (err) {
@@ -154,15 +154,16 @@ async function readFileFromInput(): Promise<string | undefined> {
 
   document.body.appendChild(input);
 
-  await new Promise(resolve => {
-    input.addEventListener("change", resolve, { once: true });
+  const file = await new Promise<File | undefined>(resolve => {
+    input.addEventListener("change", (evt: Event) => resolve((evt.target as HTMLInputElement).files?.[0]), {
+      once: true
+    });
     input.click();
   });
 
   // ALGO: Remove polyfill input[type=file] elements, including elements from last time
   document.querySelectorAll("body > input[type=file]").forEach(input => input.remove());
 
-  const file = input.files?.[0];
   if (file === undefined) return undefined;
 
   await runInActionAsync(() => {
@@ -171,13 +172,7 @@ async function readFileFromInput(): Promise<string | undefined> {
     app.mountingFile.isNameSet = true;
   });
 
-  const reader = new FileReader();
-  reader.readAsText(file);
-
-  return new Promise<string | undefined>((resolve, reject) => {
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = () => resolve(undefined);
-  });
+  return await readText(new FileReader(), file);
 }
 
 function downloadFile(contents: string) {
@@ -208,8 +203,12 @@ async function choiceSave(): Promise<boolean> {
 
     return true;
   } catch (err) {
-    consoleLogger.error(err);
-    logger.error("" + err);
+    if (err instanceof DOMException === false) {
+      consoleLogger.error(err);
+      logger.error("" + err);
+    } else {
+      consoleLogger.error("" + err); // UX: Do not show DOMException to user, usually means user cancelled
+    }
 
     return false;
   }
@@ -309,12 +308,10 @@ export async function onDownloadAs(fallback: boolean = false): Promise<boolean> 
 
   const output = app.exportDiagram();
 
-  fileNameConfirm(
+  return fileNameConfirm(
     fallback ? "Writing file to the disk is not supported in this browser. Falling back to download." : "",
     downloadFile.bind(null, output)
   );
-
-  return true;
 }
 
 export async function onDropFile(file: File, saveCheck: boolean = true): Promise<boolean> {
