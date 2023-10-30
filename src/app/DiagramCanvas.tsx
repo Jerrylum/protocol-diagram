@@ -307,7 +307,6 @@ export class RenameFieldInteraction extends Interaction {
     const currClientPos = new Vector(event.clientX, event.clientY);
 
     if (this.clickSequence === 0) {
-      console.log("RenameFieldInteraction.onMouseMove", currClientPos.distance(this.originClientPos));
       if (currClientPos.distance(this.originClientPos) > 16)
         return DragAndDropFieldInteraction.onStartDrag(this.handler, this.originMatrixPos, event);
     }
@@ -488,8 +487,6 @@ export class InsertFieldInteraction extends Interaction {
 }
 
 export class DragAndDropFieldInteraction extends Interaction {
-  public lastDragTime: number = 0;
-
   private constructor(handler: DiagramInteractionHandler, readonly field: Field, readonly originIdx: number) {
     super(handler);
   }
@@ -499,10 +496,6 @@ export class DragAndDropFieldInteraction extends Interaction {
   }
 
   onMouseMove(posInMatrix: Vector, event: InteractionEvent): Interaction | undefined {
-    // To prevent the field from being moved too fast
-    if (Date.now() - this.lastDragTime < 100) return this;
-    this.lastDragTime = Date.now();
-
     const diagram = this.handler.diagram;
     const matrix = diagram.renderMatrix;
 
@@ -520,16 +513,10 @@ export class DragAndDropFieldInteraction extends Interaction {
     } else {
       const insertPositions = getInsertPositions(matrix, true, true);
 
-      const find = getClosestPositionWithTheSameY(posInMatrix, insertPositions);
-      if (find === null) return this;
+      const insertIdx = insertPositions.findIndex(info => info.pos.x === posInMatrix.x && info.pos.y === posInMatrix.y);
+      if (insertIdx === -1 || insertIdx === targetFieldIdx || insertIdx === targetFieldIdx + 1) return this;
 
-      const destFieldIdx = diagram.fields.findIndex(field => field.uid === find.fieldUid);
-
-      if (destFieldIdx < targetFieldIdx && posInMatrix.x <= find.pos.x) {
-        diagram.moveField(targetFieldIdx, destFieldIdx);
-      } else if (targetFieldIdx <= destFieldIdx && find.pos.x < posInMatrix.x) {
-        diagram.moveField(targetFieldIdx, destFieldIdx + 1); // Add 1 to destFieldIdx because the field is removed from the array.
-      }
+      diagram.moveField(targetFieldIdx, targetFieldIdx < insertIdx ? insertIdx - 1 : insertIdx);
     }
 
     return this;
@@ -942,6 +929,15 @@ export const DiagramCanvas = observer((props: { enableCanvas?: boolean }) => {
         </Layer>
       </Stage>
 
+      {getInsertPositions(app.diagram.renderMatrix, true, false).map(info => (
+        <DiagramInsertFieldButton
+          key={info.fieldUid ?? "null"}
+          controller={controller}
+          fieldUid={info.fieldUid}
+          posInMatrix={info.pos.add(new Vector(0, 1))}
+        />
+      ))}
+
       <DiagramAddFieldButton controller={controller} />
 
       {interaction instanceof RenameFieldInteraction && interaction.clickSequence === 3 && (
@@ -1013,15 +1009,6 @@ export const DiagramCanvas = observer((props: { enableCanvas?: boolean }) => {
           isValidValue={value => [value !== "", value !== ""]}
         />
       )}
-
-      {getInsertPositions(app.diagram.renderMatrix, true, false).map(info => (
-        <DiagramInsertFieldButton
-          key={info.fieldUid ?? "null"}
-          controller={controller}
-          fieldUid={info.fieldUid}
-          posInMatrix={info.pos.add(new Vector(0, 1))}
-        />
-      ))}
     </Box>
   );
 });
@@ -1034,26 +1021,6 @@ export const findField = (matrix: Matrix, index: number, direction: number): Fie
     if (searchElement instanceof RowTail) return undefined;
     if (searchElement instanceof RowSegment) return searchElement.represent;
   }
-};
-
-export const getClosestPositionWithTheSameY = (
-  target: Vector,
-  positions: { fieldUid: number | null; pos: Vector }[]
-) => {
-  type Mapping = { fieldUid: number | null; pos: Vector };
-
-  let closet: [Mapping, number] | null = null;
-
-  for (let i = 0; i < positions.length; i++) {
-    const check = positions[i];
-    if (check.pos.x === target.x && check.pos.y === target.y) return check;
-
-    const distance = Math.abs(check.pos.x - target.x);
-    if ((closet === null || distance < closet[1]) && check.pos.y === target.y) closet = [check, distance];
-  }
-
-  if (closet === null) return null;
-  return closet[0];
 };
 
 export const getInsertPositions = (matrix: Matrix, includeBeginning: boolean, includeEnd: boolean) => {
@@ -1284,3 +1251,4 @@ export const useDiagramButton = (buttonRef: React.RefObject<HTMLButtonElement>) 
     { passive: false }
   );
 };
+
