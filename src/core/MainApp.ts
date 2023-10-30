@@ -1,6 +1,9 @@
-import { action, computed, makeObservable, observable, override } from "mobx";
+import { plainToClass } from "class-transformer";
+import { validate } from "class-validator";
+import { action, computed, makeAutoObservable, makeObservable, observable, override } from "mobx";
 import { SemVer } from "semver";
 import { CancellableCommand } from "../command/Commands";
+import { HandleResult, success, fail } from "../command/HandleResult";
 import { Diagram, Memento } from "../diagram/Diagram";
 import { Timeline } from "../diagram/Timeline";
 import { APP_VERSION_STRING } from "../Version";
@@ -11,6 +14,13 @@ export const APP_VERSION = new SemVer(APP_VERSION_STRING);
 
 const logger = Logger("App");
 
+export class IOFileHandle {
+  public isNameSet: boolean = false;
+  constructor(public handle: FileSystemFileHandle | null = null, public name: string = "protocol-diagram.json") {
+    makeAutoObservable(this);
+  }
+}
+
 export class MainApp extends Timeline<CancellableCommand> {
   // The current memento saved in the file or the first memento in the timeline
   private sourceCurrentMemento!: Memento | null;
@@ -20,6 +30,8 @@ export class MainApp extends Timeline<CancellableCommand> {
 
   // null = loading, undefined = not available
   private _latestVersion: SemVer | null | undefined = undefined;
+
+  public mountingFile: IOFileHandle = new IOFileHandle(null); // This is intended to be modified outside the class
 
   constructor() {
     super(new Diagram());
@@ -53,11 +65,36 @@ export class MainApp extends Timeline<CancellableCommand> {
 
   set diagram(diagram: Diagram) {
     this._diagram = diagram;
+    this.resetHistory();
   }
 
   newDiagram() {
     this.diagram = new Diagram();
     this.resetHistory();
+  }
+
+  async importDiagram(diagramJsonString: string): Promise<HandleResult> {
+    try {
+      const c = plainToClass(Diagram, JSON.parse(diagramJsonString), {
+        excludeExtraneousValues: true,
+        exposeDefaultValues: true
+      });
+
+      const errors = await validate(c);
+
+      if (errors.length > 0) {
+        return fail(errors.map(e => e.toString()).join("\n"));
+      }
+
+      this.diagram = c;
+      return success("Diagram imported successfully");
+    } catch (e: unknown) {
+      throw e;
+    }
+  }
+
+  exportDiagram(): string {
+    return this.diagram.toJson();
   }
 
   /**
@@ -68,6 +105,15 @@ export class MainApp extends Timeline<CancellableCommand> {
    */
   isModified(): boolean {
     return this.isModifiedFlag || this.sourceCurrentMemento !== this.getLatestMemento();
+  }
+
+  /**
+   * a method that saves the current memento as the source memento, and sets the
+   * flag `isModified` to false
+   */
+  save() {
+    this.sourceCurrentMemento = this.getLatestMemento();
+    this.isModifiedFlag = false;
   }
 
   /**

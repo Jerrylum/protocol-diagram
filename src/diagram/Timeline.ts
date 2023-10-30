@@ -7,7 +7,7 @@ export class Snapshot<T extends Cancellable> {
 }
 
 export class Timeline<T extends Cancellable> {
-  private latest!: Memento;
+  protected latest!: Memento;
   private undoStack: Snapshot<T>[] = [];
   private redoStack: T[] = [];
 

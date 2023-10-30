@@ -56,8 +56,6 @@ export const useStylelessObserverInput = <TProps extends StylelessObserverInputP
     } else if (event.code === "Escape") {
       onConfirm(false);
       element.blur();
-    } else {
-      editingValue.set(element.value);
     }
 
     rest.onKeyDown?.(event);

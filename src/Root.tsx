@@ -2,6 +2,7 @@ import "./Root.scss";
 import "@fontsource/ubuntu-mono";
 import { observer } from "mobx-react-lite";
 import { DiagramCanvas } from "./app/DiagramCanvas";
+import { RedoCommand, UndoCommand } from "./command/Commands";
 import { Box } from "@mui/material";
 import { BottomPanel } from "./app/BottomPanel";
 import { useCustomHotkeys } from "./core/Hook";
@@ -17,10 +18,9 @@ import { checkForUpdates, promptUpdate } from "./core/Versioning";
 import * as SWR from "./core/ServiceWorkerRegistration";
 import { reaction } from "mobx";
 import { APP_VERSION_STRING } from "./Version";
-import { plainToClass } from "class-transformer";
-import { Diagram } from "./diagram/Diagram";
-import { validate } from "class-validator";
-import { ConfirmationPromptData } from "./core/Confirmation";
+import { onDropFile, onOpen, onSave, onSaveAs, onNew, onDownload, onDownloadAs } from "./core/InputOutput";
+import { DragDropBackdrop, useDragDropFile } from "./app/DragDropBackdrop";
+
 (window as any)["checkForUpdates"] = checkForUpdates;
 
 export async function onLatestVersionChange(newVer: SemVer | null | undefined, oldVer: SemVer | null | undefined) {
@@ -48,36 +48,45 @@ export async function onLatestVersionChange(newVer: SemVer | null | undefined, o
   }
 }
 
+export async function handleUndo() {
+  const { logger } = getRootStore();
+
+  const result = new UndoCommand().handle([]);
+
+  if (result.message) logger.info(result.message);
+  else if (result.message) logger.error(result.message);
+}
+
+export async function handleRedo() {
+  const { logger } = getRootStore();
+
+  const result = new RedoCommand().handle([]);
+
+  if (result.message) logger.info(result.message);
+  else if (result.message) logger.error(result.message);
+}
+
 export async function handleDiagramParam(encodedDiagramParam: string) {
   const { app, confirmation } = getRootStore();
   // Replace URL-safe characters with base64 equivalents
   const base64String = encodedDiagramParam.replaceAll("-", "+").replaceAll("_", "/");
 
   try {
-    const diagramDataInJson = decodeURIComponent(escape(window.atob(base64String)));
-    const c = plainToClass(Diagram, JSON.parse(diagramDataInJson), {
-      excludeExtraneousValues: true,
-      exposeDefaultValues: true
-    });
-    await validate(c).then(errors => {
-      if (errors.length > 0) {
-        confirmation.prompt({
-          title: "Validation Error",
-          description: errors.map(e => e.toString()).join("\n"),
-          buttons: [{ label: "OK" }]
-        } as ConfirmationPromptData);
-        return;
-      }
-      app.diagram = c;
-    });
-  } catch (e) {
-    if (e instanceof Error) {
+    const diagramJsonString = decodeURIComponent(escape(window.atob(base64String)));
+    const result = await app.importDiagram(diagramJsonString);
+    if (result.success === false) {
       confirmation.prompt({
-        title: "Error Occured",
-        description: e.message,
+        title: "Validation Error",
+        description: result.message,
         buttons: [{ label: "OK" }]
-      } as ConfirmationPromptData);
+      });
     }
+  } catch (e) {
+    confirmation.prompt({
+      title: "Error Occurred",
+      description: "" + e,
+      buttons: [{ label: "OK" }]
+    });
   }
 }
 
@@ -107,30 +116,26 @@ const Root = observer(() => {
     };
   }, [app]);
 
-  // React.useEffect(() => {
-  // getRootStore().modals.open(HelpModalSymbol);
-  // getRootStore().confirmation.prompt({
-  //   title: "Welcome to Diagrams",
-  //   description: "This is a diagram editor. You can use it to create diagrams.",
-  //   buttons: [
-  //     {
-  //       label: "OK",
-  //       hotkey: "Enter",
-  //       onClick: () => {},
-  //       color: "success"
-  //     },
-  //     {
-  //       label: "Cancel",
-  //       onClick: () => {},
-  //       color: "error"
-  //     }
-  //   ],
-  //   inputLabel: "Name",
-  //   inputDefaultValue: "John",
-  // });
-  // }, []);
+  React.useEffect(() => {
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (app.isModified()) {
+        // Cancel the event and show alert that
+        // the unsaved changes would be lost
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+
+    window.addEventListener("beforeunload", onBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", onBeforeUnload);
+    };
+  }, [app.diagram]);
 
   const isUsingEditor = !modals.isOpen;
+  const { isDraggingFile, getRootProps: getRootPropsForDragDropBackdrop } = useDragDropFile(isUsingEditor, onDropFile);
+  const { onDragEnter, onDragLeave, onDragOver, onDrop } = getRootPropsForDragDropBackdrop();
 
   const ENABLE_EXCEPT_INPUT_FIELDS = { enabled: isUsingEditor };
 
@@ -144,19 +149,32 @@ const Root = observer(() => {
     enableOnFormTags: true
   };
 
+  useCustomHotkeys("Mod+P", onNew, ENABLE_ON_ALL_INPUT_FIELDS);
+  useCustomHotkeys("Mod+O", onOpen, ENABLE_ON_ALL_INPUT_FIELDS);
+  useCustomHotkeys("Mod+S", onSave, ENABLE_ON_ALL_INPUT_FIELDS);
+  useCustomHotkeys("Shift+Mod+S", onSaveAs, ENABLE_ON_ALL_INPUT_FIELDS);
+  useCustomHotkeys("Mod+D", onDownload, ENABLE_ON_ALL_INPUT_FIELDS);
+  useCustomHotkeys("Shift+Mod+D", onDownloadAs, ENABLE_ON_ALL_INPUT_FIELDS);
+
+  useCustomHotkeys("Shift+Mod+S", onSaveAs, ENABLE_ON_ALL_INPUT_FIELDS);
   useCustomHotkeys("Mod+Add,Mod+Equal", () => (app.diagramEditor.scale += 0.5), ENABLE_ON_ALL_INPUT_FIELDS);
   useCustomHotkeys("Mod+Subtract,Mod+Minus", () => (app.diagramEditor.scale -= 0.5), ENABLE_ON_ALL_INPUT_FIELDS);
   useCustomHotkeys("Mod+0", () => app.diagramEditor.resetOffsetAndScale(), ENABLE_ON_ALL_INPUT_FIELDS);
 
+  useCustomHotkeys("Mod+Z", handleUndo, ENABLE_EXCEPT_INPUT_FIELDS);
+  useCustomHotkeys("Mod+Y,Shift+Mod+Z", handleRedo, ENABLE_EXCEPT_INPUT_FIELDS);
+
   return (
-    <Box id="root-container">
+    <Box id="root-container" {...{onDragEnter, onDragOver, onDrop}}>
       <NoticeProvider />
       <DiagramCanvas />
       <BottomPanel />
       <HelpModal />
       <ConfirmationModal />
+      {isDraggingFile && <DragDropBackdrop {...{onDragEnter, onDragLeave, onDragOver, onDrop}} />}
     </Box>
   );
 });
 
 export default Root;
+
