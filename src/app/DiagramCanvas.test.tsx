@@ -309,36 +309,78 @@ test("DiagramCanvas insert field", async () => {
   result.unmount();
 });
 
-// test("DiagramCanvas drag to change field length", () => {
-//   const { app } = getRootStore();
+test("DiagramCanvasController calculation", () => {
+  const component = (
+    <div id="root-container">
+      <div id="main" style={{ width: "100%", height: "100%" }}></div>
+    </div>
+  );
+  const result = render(component);
 
-//   const component = (
-//     <div id="root-container">
-//       <DiagramCanvas enableCanvas={false} />
-//     </div>
-//   );
-//   app.diagram = new Diagram();
-//   const result = render(component);
-//   act(() => {
-//     app.diagram.addField(new Field("test1", 12));
-//     app.diagram.addField(new Field("test2", 12));
-//   });
+  const controller = new DiagramCanvasController();
+  controller.container = document.querySelector("#main");
 
-//   const eventTargetKonva = result.container.querySelector("#root-container > div > div > div") as HTMLElement;
-//   const controller = new DiagramCanvasController();
-//   controller.container = eventTargetKonva;
+  const a = controller.toClientXY(new Vector(24, 1))!;
+  const b = controller.getUnboundedPx(a)!;
 
-//   const pos_24_1 = controller.toClientXY(controller.toUnboundedPx(new Vector(24, 1)))!;
-//   const pos_24_2 = controller.toClientXY(controller.toUnboundedPx(new Vector(20, 1)))!;
+  expect(new Vector(24, 1)).toStrictEqual(b);
+});
 
-//   act(() => {
-//     fireEvent.mouseDown(eventTargetKonva as Element, { clientX: pos_24_1.x, clientY: pos_24_1.y, button: 1 });
-//     fireEvent.mouseMove(eventTargetKonva as Element, { clientX: pos_24_2.x, clientY: pos_24_2.y });
-//     fireEvent.mouseUp(eventTargetKonva as Element, { clientX: pos_24_2.x, clientY: pos_24_2.y, button: 1 });
-//   });
+test("DiagramCanvas drag to change field length", () => {
+  const { app } = getRootStore();
 
-//   expect(app.diagram.fields[0].length).not.toBe(12);
-// });
+  const component = (
+    <div id="root-container">
+      <DiagramCanvas enableCanvas={false} />
+    </div>
+  );
+  app.diagram = new Diagram();
+  const result = render(component);
+  act(() => {
+    app.diagram.addField(new Field("test1", 12));
+    app.diagram.addField(new Field("test2", 12));
+  });
+
+  const eventTargetKonva = result.container.querySelector("#root-container > div > div > div") as HTMLElement;
+  const controller = new DiagramCanvasController();
+  {
+    const diagramText = app.diagram.toString();
+
+    const diagramLines = diagramText.split("\n");
+    const diagramLineLength = diagramLines[0].length;
+    controller.diagramSize = new Vector(diagramLineLength * 12, diagramLines.length * 16);
+  }
+  controller.container = eventTargetKonva;
+
+  const pos_24_1 = controller.toClientXY(controller.toUnboundedPx(new Vector(24, 1)))!;
+  const pos_20_1 = controller.toClientXY(controller.toUnboundedPx(new Vector(24 - 4, 1)))!;
+
+  act(() => {
+    fireEvent.mouseDown(eventTargetKonva as Element, { clientX: pos_24_1.x, clientY: pos_24_1.y, button: 0 });
+    fireEvent.mouseMove(eventTargetKonva as Element, { clientX: pos_20_1.x, clientY: pos_20_1.y });
+    fireEvent.mouseUp(eventTargetKonva as Element, { clientX: pos_20_1.x, clientY: pos_20_1.y, button: 0 });
+  });
+
+  expect(app.diagram.fields[0].length).toBe(12 - 2); // not - 4, because the diagram is displayed in the center
+
+  {
+    const diagramText = app.diagram.toString();
+
+    const diagramLines = diagramText.split("\n");
+    const diagramLineLength = diagramLines[0].length;
+    controller.diagramSize = new Vector(diagramLineLength * 12, diagramLines.length * 16);
+  }
+  const pos_1_2 = controller.toClientXY(controller.toUnboundedPx(new Vector(1, 2.5)))!;
+  const pos_1_4 = controller.toClientXY(controller.toUnboundedPx(new Vector(1, 4)))!;
+
+  act(() => {
+    fireEvent.mouseDown(eventTargetKonva as Element, { clientX: pos_1_2.x, clientY: pos_1_2.y, button: 0 });
+    fireEvent.mouseMove(eventTargetKonva as Element, { clientX: pos_1_4.x, clientY: pos_1_4.y });
+    fireEvent.mouseUp(eventTargetKonva as Element, { clientX: pos_1_4.x, clientY: pos_1_4.y, button: 0 });
+  });
+
+  expect(app.diagram.fields[0].length).toBe(12 - 2 + 32);
+});
 
 test("render DiagramInput", () => {
   const { app } = getRootStore();
@@ -350,9 +392,7 @@ test("render DiagramInput", () => {
         ref={ref}
         clientXY={new Vector(0, 0)}
         getValue={() => "getValue"}
-        setValue={value => {
-          console.log(value);
-        }}
+        setValue={() => {}}
         isValidIntermediate={() => true}
         isValidValue={() => true}
       />
@@ -404,3 +444,4 @@ test("wheelZoom", () => {
     fireEvent.wheel(eventTargetKonva as any, { deltaY: 1, ctrlKey: true });
   });
 });
+

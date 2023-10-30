@@ -307,7 +307,6 @@ export class RenameFieldInteraction extends Interaction {
     const currClientPos = new Vector(event.clientX, event.clientY);
 
     if (this.clickSequence === 0) {
-      console.log("RenameFieldInteraction.onMouseMove", currClientPos.distance(this.originClientPos));
       if (currClientPos.distance(this.originClientPos) > 16)
         return DragAndDropFieldInteraction.onStartDrag(this.handler, this.originMatrixPos, event);
     }
