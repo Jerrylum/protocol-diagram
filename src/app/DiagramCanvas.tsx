@@ -942,6 +942,15 @@ export const DiagramCanvas = observer((props: { enableCanvas?: boolean }) => {
         </Layer>
       </Stage>
 
+      {getInsertPositions(app.diagram.renderMatrix, true, false).map(info => (
+        <DiagramInsertFieldButton
+          key={info.fieldUid ?? "null"}
+          controller={controller}
+          fieldUid={info.fieldUid}
+          posInMatrix={info.pos.add(new Vector(0, 1))}
+        />
+      ))}
+
       <DiagramAddFieldButton controller={controller} />
 
       {interaction instanceof RenameFieldInteraction && interaction.clickSequence === 3 && (
@@ -1013,15 +1022,6 @@ export const DiagramCanvas = observer((props: { enableCanvas?: boolean }) => {
           isValidValue={value => [value !== "", value !== ""]}
         />
       )}
-
-      {getInsertPositions(app.diagram.renderMatrix, true, false).map(info => (
-        <DiagramInsertFieldButton
-          key={info.fieldUid ?? "null"}
-          controller={controller}
-          fieldUid={info.fieldUid}
-          posInMatrix={info.pos.add(new Vector(0, 1))}
-        />
-      ))}
     </Box>
   );
 });

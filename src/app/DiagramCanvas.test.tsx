@@ -274,7 +274,7 @@ test("DiagramCanvas insert field", async () => {
   const controller = new DiagramCanvasController();
   controller.container = eventTargetKonva;
 
-  const insertBtn1 = result.container.querySelectorAll("button")[1];
+  const insertBtn1 = result.container.querySelectorAll("button")[0];
 
   act(() => {
     fireEvent.click(insertBtn1 as Element);
@@ -290,7 +290,7 @@ test("DiagramCanvas insert field", async () => {
   expect(app.diagram.fields[0].name).toBe("test2");
   expect(app.diagram.fields[1].name).toBe("test1");
 
-  const insertBtn2 = result.container.querySelectorAll("button")[2];
+  const insertBtn2 = result.container.querySelectorAll("button")[1];
 
   act(() => {
     fireEvent.click(insertBtn2 as Element);
