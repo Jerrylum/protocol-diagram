@@ -53,8 +53,10 @@ export async function handleUndo() {
 
   const result = new UndoCommand().handle([]);
 
-  if (result.message) logger.info(result.message);
-  else if (result.message) logger.error(result.message);
+  if (result.message === null) return;
+  if (result.success) logger.info(result.message);
+  else logger.error(result.message);
+
 }
 
 export async function handleRedo() {
@@ -62,8 +64,9 @@ export async function handleRedo() {
 
   const result = new RedoCommand().handle([]);
 
-  if (result.message) logger.info(result.message);
-  else if (result.message) logger.error(result.message);
+  if (result.message === null) return;
+  if (result.success) logger.info(result.message);
+  else logger.error(result.message);
 }
 
 export async function handleDiagramParam(encodedDiagramParam: string) {
