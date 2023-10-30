@@ -488,8 +488,6 @@ export class InsertFieldInteraction extends Interaction {
 }
 
 export class DragAndDropFieldInteraction extends Interaction {
-  public lastDragTime: number = 0;
-
   private constructor(handler: DiagramInteractionHandler, readonly field: Field, readonly originIdx: number) {
     super(handler);
   }
@@ -499,10 +497,6 @@ export class DragAndDropFieldInteraction extends Interaction {
   }
 
   onMouseMove(posInMatrix: Vector, event: InteractionEvent): Interaction | undefined {
-    // To prevent the field from being moved too fast
-    if (Date.now() - this.lastDragTime < 100) return this;
-    this.lastDragTime = Date.now();
-
     const diagram = this.handler.diagram;
     const matrix = diagram.renderMatrix;
 
@@ -520,16 +514,10 @@ export class DragAndDropFieldInteraction extends Interaction {
     } else {
       const insertPositions = getInsertPositions(matrix, true, true);
 
-      const find = getClosestPositionWithTheSameY(posInMatrix, insertPositions);
-      if (find === null) return this;
+      const insertIdx = insertPositions.findIndex(info => info.pos.x === posInMatrix.x && info.pos.y === posInMatrix.y);
+      if (insertIdx === -1 || insertIdx === targetFieldIdx || insertIdx === targetFieldIdx + 1) return this;
 
-      const destFieldIdx = diagram.fields.findIndex(field => field.uid === find.fieldUid);
-
-      if (destFieldIdx < targetFieldIdx && posInMatrix.x <= find.pos.x) {
-        diagram.moveField(targetFieldIdx, destFieldIdx);
-      } else if (targetFieldIdx <= destFieldIdx && find.pos.x < posInMatrix.x) {
-        diagram.moveField(targetFieldIdx, destFieldIdx + 1); // Add 1 to destFieldIdx because the field is removed from the array.
-      }
+      diagram.moveField(targetFieldIdx, targetFieldIdx < insertIdx ? insertIdx - 1 : insertIdx);
     }
 
     return this;
@@ -1284,3 +1272,4 @@ export const useDiagramButton = (buttonRef: React.RefObject<HTMLButtonElement>) 
     { passive: false }
   );
 };
+
