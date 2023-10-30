@@ -8,7 +8,9 @@ import {
   DiagramInput,
   DiagramInsertFieldButton,
   useDiagramButton,
-  ResizeFieldInteraction1
+  ResizeFieldInteraction1,
+  DiagramInteractionHandler,
+  InteractionEvent
 } from "./DiagramCanvas";
 import { Vector } from "../core/Vector";
 import { Diagram } from "../diagram/Diagram";
@@ -443,5 +445,31 @@ test("wheelZoom", () => {
   act(() => {
     fireEvent.wheel(eventTargetKonva as any, { deltaY: 1, ctrlKey: true });
   });
+});
+
+class DiagramInteractionHandlerTestStub implements DiagramInteractionHandler {
+  public diagram: Diagram = new Diagram();
+
+  commitChange(result: HandleResult): void {}
+}
+
+function doSomething(x: number, y: number): [Vector, InteractionEvent] {
+  return [
+    new Vector(0, 0),
+    {
+      clientX: x * 12,
+      clientY: y * 16
+    } as InteractionEvent
+  ];
+}
+
+test("ResizeFieldInteraction1", () => {
+  const handler = new DiagramInteractionHandlerTestStub();
+
+  handler.diagram.addField(new Field("test1", 1));
+  handler.diagram.addField(new Field("test1", 2));
+  handler.diagram.addField(new Field("test1", 3));
+
+  expect(ResizeFieldInteraction1.onMouseDown(handler, ...doSomething(0, 0))).toBe(undefined);
 });
 
