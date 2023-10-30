@@ -87,6 +87,8 @@ test("Add/Undo/Redo command integration test", () => {
     commandInputField.value = "add 1 aaa aaa";
     fireEvent.keyDown(commandInputField, { key: "Enter" });
   });
+
+  result.unmount();
 });
 
 test("handleDiagramParam", async () => {
@@ -128,6 +130,104 @@ test("handleDiagramParam", async () => {
 
   expect(app.diagram.fields.length).toBe(0);
   expect(app.diagram.config.options.length).toBe(4);
+});
+
+test("handleCustomHotkey", () => {
+  const { app, confirmation, logger } = getRootStore();
+  const component = (
+    <div id="root-container">
+      <Root enableCanvas={false} />
+    </div>
+  );
+  confirmation.close();
+  logger.clear();
+
+  const result = render(component);
+  expect(app.diagramEditor.scale).toBe(1);
+  act(() => {
+    fireEvent.keyDown(document.body, { key: "add", code: "add", ctrlKey: true });
+    fireEvent.keyUp(document.body, { key: "add", code: "add", ctrlKey: true });
+  });
+  expect(app.diagramEditor.scale).toBe(1.5);
+  act(() => {
+    fireEvent.keyDown(document.body, { key: "subtract", code: "subtract", ctrlKey: true });
+    fireEvent.keyUp(document.body, { key: "subtract", code: "subtract", ctrlKey: true });
+    fireEvent.keyDown(document.body, { key: "subtract", code: "subtract", ctrlKey: true });
+    fireEvent.keyUp(document.body, { key: "subtract", code: "subtract", ctrlKey: true });
+  });
+  expect(app.diagramEditor.scale).toBe(0.75);
+  act(() => {
+    fireEvent.keyDown(document.body, { key: "0", code: "0", ctrlKey: true });
+    fireEvent.keyUp(document.body, { key: "0", code: "0", ctrlKey: true });
+  });
+  expect(app.diagramEditor.scale).toBe(1);
+
+  const inputField = result.container.querySelector("input")!;
+
+  act(() => {
+    fireEvent.input(inputField, { target: { value: "add 1 testadd" } });
+    fireEvent.keyDown(inputField, { key: "Enter" });
+  });
+
+  expect(app.diagram.fields.length).toBe(1);
+  expect(app.diagram.fields[0].name).toBe("testadd");
+  expect(logger.logs.length).toBe(1);
+  expect(logger.logs[0].message).toBe('Added field "testadd".');
+
+  act(() => {
+    fireEvent.keyDown(document.body, { key: "z", code: "z", ctrlKey: true });
+    fireEvent.keyUp(document.body, { key: "z", code: "z", ctrlKey: true });
+  });
+
+  expect(app.diagram.fields.length).toBe(0);
+  expect(logger.logs.length).toBe(2);
+  expect(logger.logs[1].message).toBe("Undo add");
+
+  act(() => {
+    fireEvent.keyDown(document.body, { key: "z", code: "z", ctrlKey: true });
+    fireEvent.keyUp(document.body, { key: "z", code: "z", ctrlKey: true });
+  });
+
+  expect(app.diagram.fields.length).toBe(0);
+  expect(logger.logs.length).toBe(3);
+  expect(logger.logs[2].message).toBe("Nothing to undo");
+
+  act(() => {
+    fireEvent.keyDown(document.body, { key: "y", code: "y", ctrlKey: true });
+    fireEvent.keyUp(document.body, { key: "y", code: "y", ctrlKey: true });
+  });
+
+  expect(app.diagram.fields.length).toBe(1);
+  expect(app.diagram.fields[0].name).toBe("testadd");
+  expect(logger.logs.length).toBe(4);
+  expect(logger.logs[3].message).toBe("Redo add");
+
+  act(() => {
+    fireEvent.keyDown(document.body, { key: "y", code: "y", ctrlKey: true });
+    fireEvent.keyUp(document.body, { key: "y", code: "y", ctrlKey: true });
+  });
+
+  expect(app.diagram.fields.length).toBe(1);
+  expect(app.diagram.fields[0].name).toBe("testadd");
+  expect(logger.logs.length).toBe(5);
+  expect(logger.logs[4].message).toBe("Nothing to redo");
+
+  result.unmount();
+});
+
+test("OnDragEnter root-container", () => {
+  const { confirmation, logger, modals } = getRootStore();
+  const component = <Root enableCanvas={false} />;
+  confirmation.close();
+  logger.clear();
+  modals.close();
+
+  const result = render(component);
+  const rootContainerDiv = result.container.querySelector("#root-container")!;
+  act(() => {
+    fireEvent.dragEnter(rootContainerDiv, { dataTransfer: { types: ["Files"] } });
+  });
+  expect(result.container.querySelector(".modal-backdrop")).toBeInTheDocument();
 });
 
 test("Dummy", () => {});

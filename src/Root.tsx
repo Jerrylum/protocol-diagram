@@ -53,10 +53,8 @@ export async function handleUndo() {
 
   const result = new UndoCommand().handle([]);
 
-  if (result.message === null) return;
-  if (result.success) logger.info(result.message);
-  else logger.error(result.message);
-
+  if (result.success) logger.info(result.message!);
+  else logger.error(result.message!);
 }
 
 export async function handleRedo() {
@@ -64,9 +62,8 @@ export async function handleRedo() {
 
   const result = new RedoCommand().handle([]);
 
-  if (result.message === null) return;
-  if (result.success) logger.info(result.message);
-  else logger.error(result.message);
+  if (result.success) logger.info(result.message!);
+  else logger.error(result.message!);
 }
 
 export async function handleDiagramParam(encodedDiagramParam: string) {
@@ -93,7 +90,7 @@ export async function handleDiagramParam(encodedDiagramParam: string) {
   }
 }
 
-const Root = observer(() => {
+const Root = observer((props: { enableCanvas?: boolean }) => {
   const { app, modals } = getRootStore();
 
   React.useEffect(() => {
@@ -168,16 +165,15 @@ const Root = observer(() => {
   useCustomHotkeys("Mod+Y,Shift+Mod+Z", handleRedo, ENABLE_EXCEPT_INPUT_FIELDS);
 
   return (
-    <Box id="root-container" {...{onDragEnter, onDragOver, onDrop}}>
+    <Box id="root-container" {...{ onDragEnter, onDragOver, onDrop }}>
       <NoticeProvider />
-      <DiagramCanvas />
+      <DiagramCanvas enableCanvas={props.enableCanvas} />
       <BottomPanel />
       <HelpModal />
       <ConfirmationModal />
-      {isDraggingFile && <DragDropBackdrop {...{onDragEnter, onDragLeave, onDragOver, onDrop}} />}
+      {isDraggingFile && <DragDropBackdrop {...{ onDragEnter, onDragLeave, onDragOver, onDrop }} />}
     </Box>
   );
 });
 
 export default Root;
-
