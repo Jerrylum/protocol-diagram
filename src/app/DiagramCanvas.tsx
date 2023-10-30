@@ -1023,26 +1023,6 @@ export const findField = (matrix: Matrix, index: number, direction: number): Fie
   }
 };
 
-export const getClosestPositionWithTheSameY = (
-  target: Vector,
-  positions: { fieldUid: number | null; pos: Vector }[]
-) => {
-  type Mapping = { fieldUid: number | null; pos: Vector };
-
-  let closet: [Mapping, number] | null = null;
-
-  for (let i = 0; i < positions.length; i++) {
-    const check = positions[i];
-    if (check.pos.x === target.x && check.pos.y === target.y) return check;
-
-    const distance = Math.abs(check.pos.x - target.x);
-    if ((closet === null || distance < closet[1]) && check.pos.y === target.y) closet = [check, distance];
-  }
-
-  if (closet === null) return null;
-  return closet[0];
-};
-
 export const getInsertPositions = (matrix: Matrix, includeBeginning: boolean, includeEnd: boolean) => {
   const insertPos: { fieldUid: number | null; pos: Vector }[] = [];
   for (let y = 1; y < matrix.height; y += 2) {

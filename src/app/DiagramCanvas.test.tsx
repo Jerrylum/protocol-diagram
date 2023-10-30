@@ -10,7 +10,11 @@ import {
   useDiagramButton,
   ResizeFieldInteraction1,
   DiagramInteractionHandler,
-  InteractionEvent
+  InteractionEvent,
+  DiagramInteractionCommand,
+  ResizeFieldInteraction2,
+  AddFieldInteraction,
+  InsertFieldInteraction
 } from "./DiagramCanvas";
 import { Vector } from "../core/Vector";
 import { Diagram } from "../diagram/Diagram";
@@ -20,6 +24,8 @@ import { getRootStore } from "../core/Root";
 import { act } from "react-dom/test-utils";
 import React from "react";
 import { HandleResult } from "../command/HandleResult";
+import { satisfies } from "semver";
+import { buildParameters } from "../token/Tokens";
 
 test("isKonvaTouchEvent", () => {
   global.TouchEvent = jest.fn();
@@ -78,19 +84,25 @@ test("DiagramCanvasController", () => {
   app.diagram.addField(new Field("test1", 12));
   app.diagram.toString();
 
+  // Test zooming
   controller.onWheelStage(new WheelEvent("wheel", { ctrlKey: true, deltaY: 0 }));
   controller.onWheelStage(new WheelEvent("wheel", { ctrlKey: true, deltaY: 1 }));
+
+  // Test panning
   controller.onMouseDownStage(new MouseEvent("mousedown", { button: 1 }));
-  controller.onMouseMoveOrDragStage(new MouseEvent("mousedown", { button: 1 }));
-  controller.onMouseUpStage(new MouseEvent("mousedown", { button: 1 }));
+  controller.onMouseMoveOrDragStage(new MouseEvent("mousemove", { button: 1 }));
+  controller.onMouseUpStage(new MouseEvent("mouseup", { button: 1 }));
 
   controller.container = document.createElement("div");
   expect(controller.toClientXY(new Vector(1, 1), false, false)).toStrictEqual(new Vector(1, 1));
+
   const offset = app.diagramEditor.offset.subtract(controller.viewOffset);
   expect(controller.getUnboundedPx(new Vector(1, 1))).toStrictEqual(new Vector(1, 1).add(offset));
+
+  // Test panning
   controller.onMouseDownStage(new MouseEvent("mousedown", { button: 1 }));
-  controller.onMouseMoveOrDragStage(new MouseEvent("mousedown", { button: 1 }));
-  controller.onMouseUpStage(new MouseEvent("mousedown", { button: 1 }));
+  controller.onMouseMoveOrDragStage(new MouseEvent("mousemove", { button: 1 }));
+  controller.onMouseUpStage(new MouseEvent("mouseup", { button: 1 }));
 
   expect(controller.getPosInMatrix(new Vector(12, 8))).toStrictEqual(new Vector(1, -2));
   expect(controller.getPosInMatrix(new Vector(12, 16))).toStrictEqual(new Vector(1, -1));
@@ -453,13 +465,18 @@ class DiagramInteractionHandlerTestStub implements DiagramInteractionHandler {
   commitChange(result: HandleResult): void {}
 }
 
-function doSomething(x: number, y: number): [Vector, InteractionEvent] {
+function interact(x: number, y: number, button = 1, shift = true): [Vector, InteractionEvent] {
   return [
-    new Vector(0, 0),
+    new Vector(x, y),
     {
+      button,
+      altKey: false,
+      ctrlKey: false,
+      metaKey: false,
+      shiftKey: shift,
       clientX: x * 12,
       clientY: y * 16
-    } as InteractionEvent
+    } satisfies InteractionEvent
   ];
 }
 
@@ -468,8 +485,109 @@ test("ResizeFieldInteraction1", () => {
 
   handler.diagram.addField(new Field("test1", 1));
   handler.diagram.addField(new Field("test1", 2));
-  handler.diagram.addField(new Field("test1", 3));
+  handler.diagram.addField(new Field("test1", 10));
+  handler.diagram.config.setValue("bit", buildParameters("10")[0]);
+  handler.diagram.config.setValue("left-space-placeholder", buildParameters("true")[0]);
+  handler.diagram.toString();
 
-  expect(ResizeFieldInteraction1.onMouseDown(handler, ...doSomething(0, 0))).toBe(undefined);
+  // not left click
+  expect(ResizeFieldInteraction1.onMouseDown(handler, ...interact(0, 1, 1))).toBe(undefined);
+
+  // divider line
+  expect(ResizeFieldInteraction1.onMouseDown(handler, ...interact(0, 0, 0))).toBe(undefined);
+
+  // not connector
+  expect(ResizeFieldInteraction1.onMouseDown(handler, ...interact(1, 1, 0))).toBe(undefined);
+
+  // not connector with the correct shape
+  expect(ResizeFieldInteraction1.onMouseDown(handler, ...interact(20, 3, 0))).toBe(undefined);
+
+  // no left field
+  expect(ResizeFieldInteraction1.onMouseDown(handler, ...interact(0, 1, 0))).toBe(undefined);
+
+  // left == right
+  expect(ResizeFieldInteraction1.onMouseDown(handler, ...interact(20, 1, 0))).toBe(undefined);
+
+  // searchElement instanceof RowTail
+  handler.diagram.config.setValue("left-space-placeholder", buildParameters("false")[0]);
+  handler.diagram.toString();
+  expect(ResizeFieldInteraction1.onMouseDown(handler, ...interact(6, 3, 0))).not.toBe(undefined);
+
+  const interaction = ResizeFieldInteraction1.onMouseDown(handler, ...interact(6, 1, 0))!;
+
+  expect(interaction.onMouseDown(...interact(6, 1, 0))).toBe(undefined);
+
+  expect(interaction.onMouseMove(...interact(6, 2, 0))).toBe(interaction);
+
+  expect(interaction.onMouseMove(...interact(6, 1, 0))).toBe(interaction);
+
+  // too small for left field
+  expect(interaction.onMouseMove(...interact(1, 1, 0))).toBe(interaction);
+
+  expect(interaction.onMouseMove(...interact(8, 1, 0))).toBe(interaction);
+
+  expect(interaction.onMouseMove(...interact(8, 1, 0, true))).toBe(interaction);
+
+  // too small for right field
+  expect(interaction.onMouseMove(...interact(18, 3, 0, true))).toBe(interaction);
+
+  expect(interaction.onMouseUp(...interact(6, 1, 0))).toBe(undefined);
 });
 
+test("ResizeFieldInteraction2", () => {
+  const handler = new DiagramInteractionHandlerTestStub();
+
+  handler.diagram.addField(new Field("test1", 1));
+  handler.diagram.addField(new Field("test1", 2));
+  handler.diagram.addField(new Field("test1", 17));
+  handler.diagram.config.setValue("bit", buildParameters("10")[0]);
+  handler.diagram.config.setValue("left-space-placeholder", buildParameters("true")[0]);
+  handler.diagram.toString();
+
+  // not left click
+  expect(ResizeFieldInteraction2.onMouseDown(handler, ...interact(1, 2, 1))).toBe(undefined);
+
+  // not divider line
+  expect(ResizeFieldInteraction2.onMouseDown(handler, ...interact(1, 1, 0))).toBe(undefined);
+
+  // not divider
+  expect(ResizeFieldInteraction2.onMouseDown(handler, ...interact(0, 2, 0))).toBe(undefined);
+
+  // represents a field
+  expect(ResizeFieldInteraction2.onMouseDown(handler, ...interact(16, 2, 0))).toBe(undefined);
+
+  // TODO
+});
+
+test("RenameFieldInteraction", () => {
+  // TODO
+});
+
+test("AddFieldInteraction", () => {
+  const handler = new DiagramInteractionHandlerTestStub();
+
+  const interaction = AddFieldInteraction.onAddButtonClick(handler, interact(0, 0, 0)[1]);
+
+  interaction.onMouseDown(...interact(0, 0, 0));
+  interaction.onMouseMove(...interact(0, 0, 0));
+  interaction.onMouseUp(...interact(0, 0, 0));
+});
+
+test("InsertFieldInteraction", () => {
+  const handler = new DiagramInteractionHandlerTestStub();
+
+  const interaction = InsertFieldInteraction.onInsertButtonClick(handler, 0, interact(0, 0, 0)[1]);
+
+  interaction.onMouseDown(...interact(0, 0, 0));
+  interaction.onMouseMove(...interact(0, 0, 0));
+  interaction.onMouseUp(...interact(0, 0, 0));
+});
+
+test("DragAndDropFieldInteraction", () => {
+  // TODO
+});
+
+test("DiagramInteractionCommand", () => {
+  new DiagramInteractionCommand(HandleResult.HANDLED).execute();
+  new DiagramInteractionCommand(HandleResult.HANDLED).handle();
+});
