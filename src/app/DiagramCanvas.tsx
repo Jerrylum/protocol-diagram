@@ -514,6 +514,10 @@ export class DragAndDropFieldInteraction extends Interaction {
       const insertPositions = getInsertPositions(matrix, true, true);
 
       const insertIdx = insertPositions.findIndex(info => info.pos.x === posInMatrix.x && info.pos.y === posInMatrix.y);
+      /*   Field:  0 1 2 3
+                   A B C D
+                  ^ ^ ^ ^ ^
+      Insert Pos: 0 1 2 3 4*/
       if (insertIdx === -1 || insertIdx === targetFieldIdx || insertIdx === targetFieldIdx + 1) return this;
 
       diagram.moveField(targetFieldIdx, targetFieldIdx < insertIdx ? insertIdx - 1 : insertIdx);
@@ -545,7 +549,7 @@ export class DragAndDropFieldInteraction extends Interaction {
     posInMatrix: Vector,
     event: InteractionEvent
   ): DragAndDropFieldInteraction | undefined {
-    if (event.button !== 0) return undefined; // handle right click only
+    if (event.button !== 0) return undefined; // handle left click only
 
     const matrix = handler.diagram.renderMatrix;
 
@@ -558,6 +562,8 @@ export class DragAndDropFieldInteraction extends Interaction {
         return new DragAndDropFieldInteraction(handler, field, fieldIdx);
       }
     }
+
+    return undefined;
   }
 }
 
@@ -747,6 +753,9 @@ export class DiagramCanvasController implements DiagramInteractionHandler {
     const posInPx = this.getUnboundedPxFromNativeEvent(evt);
     if (posWithoutOffsetInPx === undefined || posInPx === undefined) return;
     const posInMatrix = this.getPosInMatrix(posInPx);
+    const { app } = getRootStore();
+    app.diagram.toString();
+    const matrix = app.diagram.renderMatrix;
 
     this.interaction = this.interaction?.onMouseMove(posInMatrix, evt);
 
@@ -1251,4 +1260,3 @@ export const useDiagramButton = (buttonRef: React.RefObject<HTMLButtonElement>) 
     { passive: false }
   );
 };
-

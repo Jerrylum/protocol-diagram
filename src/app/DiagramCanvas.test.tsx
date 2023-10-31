@@ -14,7 +14,10 @@ import {
   DiagramInteractionCommand,
   ResizeFieldInteraction2,
   AddFieldInteraction,
-  InsertFieldInteraction
+  InsertFieldInteraction,
+  RenameFieldInteraction,
+  DragAndDropFieldInteraction,
+  DeleteFieldInteraction
 } from "./DiagramCanvas";
 import { Vector } from "../core/Vector";
 import { Diagram } from "../diagram/Diagram";
@@ -26,6 +29,7 @@ import React from "react";
 import { HandleResult } from "../command/HandleResult";
 import { satisfies } from "semver";
 import { buildParameters } from "../token/Tokens";
+import exp from "constants";
 
 test("isKonvaTouchEvent", () => {
   global.TouchEvent = jest.fn();
@@ -491,31 +495,31 @@ test("ResizeFieldInteraction1", () => {
   handler.diagram.toString();
 
   // not left click
-  expect(ResizeFieldInteraction1.onMouseDown(handler, ...interact(0, 1, 1))).toBe(undefined);
+  expect(ResizeFieldInteraction1.onMouseDown(handler, ...interact(0, 1, 1))).toBeUndefined();
 
   // divider line
-  expect(ResizeFieldInteraction1.onMouseDown(handler, ...interact(0, 0, 0))).toBe(undefined);
+  expect(ResizeFieldInteraction1.onMouseDown(handler, ...interact(0, 0, 0))).toBeUndefined();
 
   // not connector
-  expect(ResizeFieldInteraction1.onMouseDown(handler, ...interact(1, 1, 0))).toBe(undefined);
+  expect(ResizeFieldInteraction1.onMouseDown(handler, ...interact(1, 1, 0))).toBeUndefined();
 
   // not connector with the correct shape
-  expect(ResizeFieldInteraction1.onMouseDown(handler, ...interact(20, 3, 0))).toBe(undefined);
+  expect(ResizeFieldInteraction1.onMouseDown(handler, ...interact(20, 3, 0))).toBeUndefined();
 
   // no left field
-  expect(ResizeFieldInteraction1.onMouseDown(handler, ...interact(0, 1, 0))).toBe(undefined);
+  expect(ResizeFieldInteraction1.onMouseDown(handler, ...interact(0, 1, 0))).toBeUndefined();
 
   // left == right
-  expect(ResizeFieldInteraction1.onMouseDown(handler, ...interact(20, 1, 0))).toBe(undefined);
+  expect(ResizeFieldInteraction1.onMouseDown(handler, ...interact(20, 1, 0))).toBeUndefined();
 
   // searchElement instanceof RowTail
   handler.diagram.config.setValue("left-space-placeholder", buildParameters("false")[0]);
   handler.diagram.toString();
-  expect(ResizeFieldInteraction1.onMouseDown(handler, ...interact(6, 3, 0))).not.toBe(undefined);
+  expect(ResizeFieldInteraction1.onMouseDown(handler, ...interact(6, 3, 0))).not.toBeUndefined();
 
   const interaction = ResizeFieldInteraction1.onMouseDown(handler, ...interact(6, 1, 0))!;
 
-  expect(interaction.onMouseDown(...interact(6, 1, 0))).toBe(undefined);
+  expect(interaction.onMouseDown(...interact(6, 1, 0))).toBeUndefined();
 
   expect(interaction.onMouseMove(...interact(6, 2, 0))).toBe(interaction);
 
@@ -531,10 +535,64 @@ test("ResizeFieldInteraction1", () => {
   // too small for right field
   expect(interaction.onMouseMove(...interact(18, 3, 0, true))).toBe(interaction);
 
-  expect(interaction.onMouseUp(...interact(6, 1, 0))).toBe(undefined);
+  expect(interaction.onMouseUp(...interact(6, 1, 0))).toBeUndefined();
 });
 
 test("ResizeFieldInteraction2", () => {
+  const handler = new DiagramInteractionHandlerTestStub();
+
+  handler.diagram.addField(new Field("test1", 1));
+  handler.diagram.addField(new Field("test1", 2));
+  handler.diagram.addField(new Field("test1", 32));
+  handler.diagram.config.setValue("bit", buildParameters("10")[0]);
+  handler.diagram.config.setValue("left-space-placeholder", buildParameters("true")[0]);
+  handler.diagram.toString();
+
+  // static onMouseDown
+
+  // not left click
+  expect(ResizeFieldInteraction2.onMouseDown(handler, ...interact(1, 2, 1))).toBeUndefined();
+
+  // not divider line
+  expect(ResizeFieldInteraction2.onMouseDown(handler, ...interact(1, 1, 0))).toBeUndefined();
+
+  // not divider
+  expect(ResizeFieldInteraction2.onMouseDown(handler, ...interact(0, 2, 0))).toBeUndefined();
+
+  // top is undefined
+  expect(ResizeFieldInteraction2.onMouseDown(handler, ...interact(3, 0, 0))).toBeUndefined();
+
+  // top is not represents a field, a divider segment below the row tail
+  expect(ResizeFieldInteraction2.onMouseDown(handler, ...interact(13, 8, 0))).toBeUndefined();
+
+  // a row segment
+  expect(ResizeFieldInteraction2.onMouseDown(handler, ...interact(13, 7, 0))).toBeUndefined();
+
+  // bottom is same field
+  expect(ResizeFieldInteraction2.onMouseDown(handler, ...interact(16, 2, 0))).toBeUndefined();
+
+  // bottom is not same field
+  expect(ResizeFieldInteraction2.onMouseDown(handler, ...interact(4, 2, 0))).not.toBeUndefined();
+
+  // bottom is row tail
+  expect(ResizeFieldInteraction2.onMouseDown(handler, ...interact(13, 6, 0))).not.toBeUndefined();
+
+  const interaction = ResizeFieldInteraction2.onMouseDown(handler, ...interact(4, 2, 0))!;
+
+  // interaction functions
+
+  // onMouseDown
+  expect(interaction.onMouseDown(...interact(4, 2, 0))).toBeUndefined();
+
+  // onMouseMove
+  expect(interaction.onMouseMove(...interact(4, -100, 0, true))).toBe(interaction);
+
+  expect(interaction.onMouseMove(...interact(4, 100, 0))).toBe(interaction);
+
+  expect(interaction.onMouseMove(...interact(4, 2, 0))).toBe(interaction);
+});
+
+test("RenameFieldInteraction", () => {
   const handler = new DiagramInteractionHandlerTestStub();
 
   handler.diagram.addField(new Field("test1", 1));
@@ -544,23 +602,124 @@ test("ResizeFieldInteraction2", () => {
   handler.diagram.config.setValue("left-space-placeholder", buildParameters("true")[0]);
   handler.diagram.toString();
 
+  // static onMouseDown
+
   // not left click
-  expect(ResizeFieldInteraction2.onMouseDown(handler, ...interact(1, 2, 1))).toBe(undefined);
+  expect(RenameFieldInteraction.onMouseDown(handler, ...interact(1, 2, 1))).toBeUndefined();
 
-  // not divider line
-  expect(ResizeFieldInteraction2.onMouseDown(handler, ...interact(1, 1, 0))).toBe(undefined);
+  // not a row/divider segment
+  expect(RenameFieldInteraction.onMouseDown(handler, ...interact(0, 0, 0))).toBeUndefined();
 
-  // not divider
-  expect(ResizeFieldInteraction2.onMouseDown(handler, ...interact(0, 2, 0))).toBe(undefined);
+  // a divider segment
+  expect(RenameFieldInteraction.onMouseDown(handler, ...interact(1, 0, 0))).toBeUndefined();
 
-  // represents a field
-  expect(ResizeFieldInteraction2.onMouseDown(handler, ...interact(16, 2, 0))).toBe(undefined);
+  const interaction = RenameFieldInteraction.onMouseDown(handler, ...interact(1, 1, 0))!;
 
-  // TODO
+  //a row segment
+  expect(RenameFieldInteraction.onMouseDown(handler, ...interact(1, 1, 0))).not.toBeUndefined();
+  expect(RenameFieldInteraction.onMouseDown(handler, ...interact(1, 1, 0)) instanceof RenameFieldInteraction).toBe(
+    true
+  );
+
+  // interaction functions
+
+  // not left click
+  expect(interaction.onMouseDown(...interact(1, 1, 1))).toBeUndefined();
+
+  // clickSequence != 1 or 3
+  interaction.clickSequence = 2;
+  expect(interaction.onMouseDown(...interact(1, 1, 0))).toBeUndefined();
+
+  // clickSequence === 1
+  interaction.clickSequence = 1;
+  expect(interaction.onMouseDown(...interact(1, 1, 0))).toBe(interaction);
+  expect(interaction.clickSequence).toBe(2);
+
+  // onMouseMove, clickSequence === 1, posInMatrix.distance(this.originMatrixPos) > 1
+  interaction.clickSequence = 1;
+  expect(interaction.onMouseDown(...interact(100, 100, 0))).toBeUndefined();
+
+  // onMouseMove, clickSequence === 3
+  interaction.clickSequence = 3;
+  expect(interaction.onMouseDown(...interact(1, 1, 0))).toBe(interaction);
+  expect(interaction.clickSequence).toBe(4);
+
+  // onMouseMove, clickSequence != 0
+  expect(interaction.onMouseMove(...interact(1, 1, 0))).toBe(interaction);
+
+  // onMouseMove, clickSequence === 0, currClientPos.distance(this.originClientPos) <= 16
+  interaction.clickSequence = 0;
+  expect(interaction.onMouseMove(...interact(1, 1, 0))).toBe(interaction);
+
+  // onMouseMove, clickSequence === 0, currClientPos.distance(this.originClientPos) > 16
+  interaction.clickSequence = 0;
+  expect(interaction.onMouseMove(...interact(100, 100, 0)) instanceof DragAndDropFieldInteraction).toBe(true);
+
+  // onMouseUp, not left click
+  expect(interaction.onMouseUp(...interact(1, 1, 1))).toBeUndefined();
+
+  // onMouseUp, clickSequence !== 0 or 2
+  interaction.clickSequence = 1;
+  expect(interaction.onMouseUp(...interact(1, 1, 0))).toBeUndefined();
+
+  // onMouseUp, clickSequence === 0
+  interaction.clickSequence = 0;
+  expect(interaction.onMouseUp(...interact(100, 100, 0))).toBeUndefined();
+
+  // onMouseUp, clickSequence === 2
+  interaction.clickSequence = 2;
+  expect(interaction.onMouseUp(...interact(1, 1, 0))).toBe(interaction);
+  expect(interaction.clickSequence).toBe(3);
 });
 
-test("RenameFieldInteraction", () => {
-  // TODO
+test("DeleteFieldInteraction", () => {
+  const handler = new DiagramInteractionHandlerTestStub();
+
+  handler.diagram.addField(new Field("test1", 1));
+  handler.diagram.addField(new Field("test1", 2));
+  handler.diagram.addField(new Field("test1", 17));
+  handler.diagram.config.setValue("bit", buildParameters("10")[0]);
+  handler.diagram.config.setValue("left-space-placeholder", buildParameters("true")[0]);
+  handler.diagram.toString();
+
+  // static onMouseDown
+
+  // not right click
+  expect(DeleteFieldInteraction.onMouseDown(handler, ...interact(1, 2, 1))).toBeUndefined();
+
+  // not a row/divider segment
+  expect(DeleteFieldInteraction.onMouseDown(handler, ...interact(0, 0, 2))).toBeUndefined();
+
+  // a divider segment
+  expect(DeleteFieldInteraction.onMouseDown(handler, ...interact(1, 0, 2))).toBeUndefined();
+
+  // a row segment
+  expect(DeleteFieldInteraction.onMouseDown(handler, ...interact(1, 1, 2)) instanceof DeleteFieldInteraction).toBe(
+    true
+  );
+
+  const interaction = DeleteFieldInteraction.onMouseDown(handler, ...interact(1, 1, 2))!;
+
+  // interaction functions
+
+  // onMouseDown
+  expect(interaction.onMouseDown(...interact(1, 1, 2))).toBeUndefined();
+
+  // onMouseMove
+  expect(interaction.onMouseMove(...interact(1, 1, 2))).toBe(interaction);
+
+  // onMouseUp, not right click
+  expect(interaction.onMouseUp(...interact(1, 1, 1))).toBe(interaction);
+
+  // onMouseUp, right click, a divider segment, not same field
+  expect(interaction.onMouseUp(...interact(1, 4, 2))).toBeUndefined();
+
+  // onMouseUp, right click, a row segment, not same field
+  expect(interaction.onMouseUp(...interact(8, 1, 2))).toBeUndefined();
+
+  // onMouseUp, right click, same field
+  expect(interaction.onMouseUp(...interact(1, 1, 2))).toBeUndefined();
+  expect(handler.diagram.fields.length).toBe(2);
 });
 
 test("AddFieldInteraction", () => {
@@ -584,7 +743,123 @@ test("InsertFieldInteraction", () => {
 });
 
 test("DragAndDropFieldInteraction", () => {
-  // TODO
+  const handler = new DiagramInteractionHandlerTestStub();
+
+  handler.diagram.addField(new Field("test1", 1));
+  handler.diagram.addField(new Field("test2", 2));
+  handler.diagram.addField(new Field("test3", 32));
+  handler.diagram.config.setValue("bit", buildParameters("10")[0]);
+  // handler.diagram.config.setValue("left-space-placeholder", buildParameters("true")[0]);
+  handler.diagram.toString();
+
+  // static onStartDrag
+
+  // not left click
+  expect(DragAndDropFieldInteraction.onStartDrag(handler, ...interact(1, 2, 1))).toBeUndefined();
+
+  // not a row/divider segment
+  expect(DragAndDropFieldInteraction.onStartDrag(handler, ...interact(0, 0, 0))).toBeUndefined();
+
+  // a divider segment, without represent
+  expect(DragAndDropFieldInteraction.onStartDrag(handler, ...interact(1, 0, 0))).toBeUndefined();
+
+  // a divider segment, with represent
+  expect(
+    DragAndDropFieldInteraction.onStartDrag(handler, ...interact(1, 4, 0)) instanceof DragAndDropFieldInteraction
+  ).toBe(true);
+
+  // a row segment
+  expect(
+    DragAndDropFieldInteraction.onStartDrag(handler, ...interact(1, 1, 0)) instanceof DragAndDropFieldInteraction
+  ).toBe(true);
+
+  // interaction functions
+
+  const interaction = DragAndDropFieldInteraction.onStartDrag(handler, ...interact(10, 1, 0))!;
+
+  // onMouseDown
+  expect(interaction.onMouseDown(...interact(1, 1, 0))).toBeUndefined();
+
+  // onMouseMove, posInMatrix.x <= 0 && posInMatrix.y === 1
+  expect(interaction.onMouseMove(...interact(0, 1, 0))).toBe(interaction);
+  expect(handler.diagram.fields[0].name).toBe("test3");
+  expect(handler.diagram.fields[1].name).toBe("test1");
+  expect(handler.diagram.fields[2].name).toBe("test2");
+
+  // onMouseMove, posInMatrix.y <= 0
+  expect(interaction.onMouseMove(...interact(0, 0, 0))).toBe(interaction);
+  expect(handler.diagram.fields[0].name).toBe("test3");
+  expect(handler.diagram.fields[1].name).toBe("test1");
+  expect(handler.diagram.fields[2].name).toBe("test2");
+
+  // onMouseMove, posInMatrix.x >= matrix.width - 1 && posInMatrix.y === matrix.height - 2
+  expect(interaction.onMouseMove(...interact(100, 7, 0))).toBe(interaction);
+  expect(handler.diagram.fields[0].name).toBe("test1");
+  expect(handler.diagram.fields[1].name).toBe("test2");
+  expect(handler.diagram.fields[2].name).toBe("test3");
+
+  // onMouseMove, posInMatrix.y >= matrix.height - 1
+  expect(interaction.onMouseMove(...interact(100, 8, 0))).toBe(interaction);
+  expect(handler.diagram.fields[0].name).toBe("test1");
+  expect(handler.diagram.fields[1].name).toBe("test2");
+  expect(handler.diagram.fields[2].name).toBe("test3");
+
+  const interaction2 = DragAndDropFieldInteraction.onStartDrag(handler, ...interact(3, 1, 0))!;
+
+  // onMouseMove, move to same index as insertPosition
+  expect(interaction2.onMouseMove(...interact(2, 1, 0))).toBe(interaction2);
+  expect(handler.diagram.fields[0].name).toBe("test1");
+  expect(handler.diagram.fields[1].name).toBe("test2");
+  expect(handler.diagram.fields[2].name).toBe("test3");
+
+  // onMouseMove, move to index + 1 as insertPosition
+  expect(interaction2.onMouseMove(...interact(6, 1, 0))).toBe(interaction2);
+  expect(handler.diagram.fields[0].name).toBe("test1");
+  expect(handler.diagram.fields[1].name).toBe("test2");
+  expect(handler.diagram.fields[2].name).toBe("test3");
+
+  // onMouseMove, move to index + 1 as insertPosition
+  handler.diagram.addField(new Field("test4", 32));
+  handler.diagram.toString();
+  expect(interaction2.onMouseMove(...interact(10, 7, 0))).toBe(interaction2);
+  expect(handler.diagram.fields[0].name).toBe("test1");
+  expect(handler.diagram.fields[1].name).toBe("test3");
+  expect(handler.diagram.fields[2].name).toBe("test2");
+  expect(handler.diagram.fields[3].name).toBe("test4");
+
+  // onMouseMove, move to pervious index as insertPosition
+  expect(interaction2.onMouseMove(...interact(2, 1, 0))).toBe(interaction2);
+  expect(handler.diagram.fields[0].name).toBe("test1");
+  expect(handler.diagram.fields[1].name).toBe("test2");
+  expect(handler.diagram.fields[2].name).toBe("test3");
+  expect(handler.diagram.fields[3].name).toBe("test4");
+
+  // onMouseUp, at the same position with interaction beginning
+  expect(interaction2.onMouseUp(...interact(2, 1, 0))).toBeUndefined();
+
+  // onMouseUp, at the non-beginning/non-end position with interaction beginning
+  expect(interaction2.onMouseMove(...interact(10, 7, 0))).toBe(interaction2);
+  expect(handler.diagram.fields[0].name).toBe("test1");
+  expect(handler.diagram.fields[1].name).toBe("test3");
+  expect(handler.diagram.fields[2].name).toBe("test2");
+  expect(handler.diagram.fields[3].name).toBe("test4");
+  expect(interaction2.onMouseUp(...interact(10, 7, 0))).toBeUndefined();
+
+  // onMouseUp, at the end position with interaction beginning
+  expect(interaction2.onMouseMove(...interact(14, 13, 0))).toBe(interaction2);
+  expect(handler.diagram.fields[0].name).toBe("test1");
+  expect(handler.diagram.fields[1].name).toBe("test3");
+  expect(handler.diagram.fields[2].name).toBe("test4");
+  expect(handler.diagram.fields[3].name).toBe("test2");
+  expect(interaction2.onMouseUp(...interact(14, 13, 0))).toBeUndefined();
+
+  // onMouseUp, at the beginning position with interaction beginning
+  expect(interaction2.onMouseMove(...interact(0, 1, 0))).toBe(interaction2);
+  expect(handler.diagram.fields[0].name).toBe("test2");
+  expect(handler.diagram.fields[1].name).toBe("test1");
+  expect(handler.diagram.fields[2].name).toBe("test3");
+  expect(handler.diagram.fields[3].name).toBe("test4");
+  expect(interaction2.onMouseUp(...interact(0, 1, 0))).toBeUndefined();
 });
 
 test("DiagramInteractionCommand", () => {
