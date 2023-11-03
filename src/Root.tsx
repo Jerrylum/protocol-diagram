@@ -20,6 +20,7 @@ import { reaction } from "mobx";
 import { APP_VERSION_STRING } from "./Version";
 import { onDropFile, onOpen, onSave, onSaveAs, onNew, onDownload, onDownloadAs } from "./core/InputOutput";
 import { DragDropBackdrop, useDragDropFile } from "./app/DragDropBackdrop";
+import { MainMenu } from "./app/MainMenu";
 
 (window as any)["checkForUpdates"] = checkForUpdates;
 
@@ -165,13 +166,14 @@ const Root = observer(() => {
   useCustomHotkeys("Mod+Y,Shift+Mod+Z", handleRedo, ENABLE_EXCEPT_INPUT_FIELDS);
 
   return (
-    <Box id="root-container" {...{onDragEnter, onDragOver, onDrop}}>
+    <Box id="root-container" {...{ onDragEnter, onDragOver, onDrop }}>
       <NoticeProvider />
       <DiagramCanvas />
       <BottomPanel />
+      <MainMenu />
       <HelpModal />
       <ConfirmationModal />
-      {isDraggingFile && <DragDropBackdrop {...{onDragEnter, onDragLeave, onDragOver, onDrop}} />}
+      {isDraggingFile && <DragDropBackdrop {...{ onDragEnter, onDragLeave, onDragOver, onDrop }} />}
     </Box>
   );
 });

@@ -1,0 +1,216 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`HotkeyTypography 1`] = `
+<div>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-r40f8v-MuiTypography-root"
+  >
+    Ctrl+C
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-r40f8v-MuiTypography-root"
+  >
+    Ctrl+Option
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-r40f8v-MuiTypography-root"
+  >
+    Ctrl+Option+Shift
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-r40f8v-MuiTypography-root"
+  >
+    Ctrl+Option+Shift+Ctrl
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-r40f8v-MuiTypography-root"
+  >
+    CapsLock
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-r40f8v-MuiTypography-root"
+  >
+    ArrowLeft
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-r40f8v-MuiTypography-root"
+  >
+    ArrowRight
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-r40f8v-MuiTypography-root"
+  >
+    ArrowUp
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-r40f8v-MuiTypography-root"
+  >
+    ArrowDown
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-r40f8v-MuiTypography-root"
+  >
+    Tab
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-r40f8v-MuiTypography-root"
+  >
+    Del
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-r40f8v-MuiTypography-root"
+  >
+     
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-r40f8v-MuiTypography-root"
+  >
+    Esc
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-r40f8v-MuiTypography-root"
+  >
+    +
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-r40f8v-MuiTypography-root"
+  >
+    Add
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-r40f8v-MuiTypography-root"
+  >
+    Equal
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-r40f8v-MuiTypography-root"
+  >
+    Subtract
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-r40f8v-MuiTypography-root"
+  >
+    Minus
+  </p>
+</div>
+`;
+
+exports[`HotkeyTypography in MacOS 1`] = `
+<div>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+  >
+    ⌘
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+  >
+    C
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+  >
+    ⌘
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+  >
+    ⌥
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+  >
+    ⌘
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+  >
+    ⌥
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+  >
+    ⇧
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+  >
+    ⌘
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+  >
+    ⌥
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+  >
+    ⇧
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+  >
+    ⌃
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+  >
+    ⇪
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+  >
+    ←
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+  >
+    →
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+  >
+    ↑
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+  >
+    ↓
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+  >
+    ⇥
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+  >
+    ⌫
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+  >
+    ␣
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+  >
+    +
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+  >
+    +
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+  >
+    -
+  </p>
+  <p
+    class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+  >
+    -
+  </p>
+</div>
+`;
