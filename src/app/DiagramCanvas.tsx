@@ -389,6 +389,8 @@ export class DeleteFieldInteraction extends Interaction {
 
     if (element instanceof RowSegment || element instanceof DividerSegment) {
       if (this.field.uid !== element.represent?.uid) return undefined;
+    } else {
+      return undefined;
     }
 
     const diagram = this.handler.diagram;
@@ -1039,11 +1041,10 @@ export const getInsertPositions = (matrix: Matrix, includeBeginning: boolean, in
       const index = matrix.index(x, y);
 
       const leftField = findField(matrix, index, -1);
+      const rightField = findField(matrix, index, 1);
       if (leftField === undefined) {
-        if (includeBeginning) insertPos.push({ fieldUid: null, pos: new Vector(x, y) });
+        if (rightField !== undefined && includeBeginning) insertPos.push({ fieldUid: null, pos: new Vector(x, y) });
       } else {
-        const rightField = findField(matrix, index, 1);
-
         if (leftField.uid === rightField?.uid) continue;
 
         if (rightField === undefined && includeEnd === false) continue;
@@ -1069,10 +1070,8 @@ export const DiagramInput = observer(
     const { clientXY, label, ...rest } = getRootProps();
 
     React.useEffect(() => {
-      if (inputRef.current === null) return;
-
-      inputRef.current.focus();
-      inputRef.current.setSelectionRange(0, inputRef.current.value.length);
+      inputRef.current?.focus();
+      inputRef.current?.setSelectionRange(0, inputRef.current.value.length);
     }, [inputRef.current]);
 
     React.useImperativeHandle(ref, () => inputRef.current!);
@@ -1254,3 +1253,4 @@ export const useDiagramButton = (buttonRef: React.RefObject<HTMLButtonElement>) 
     { passive: false }
   );
 };
+

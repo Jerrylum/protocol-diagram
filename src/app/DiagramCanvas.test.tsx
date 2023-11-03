@@ -17,7 +17,8 @@ import {
   RenameFieldInteraction,
   DragAndDropFieldInteraction,
   DeleteFieldInteraction,
-  useDiagramButton
+  useDiagramButton,
+  getInsertPositions
 } from "./DiagramCanvas";
 import { Vector } from "../core/Vector";
 import { Diagram } from "../diagram/Diagram";
@@ -398,8 +399,17 @@ test("DiagramCanvas drag to change field length", () => {
   expect(app.diagram.fields[0].length).toBe(12 - 2 + 32);
 });
 
+test("getInsertPositions", () => {
+  const diagram = new Diagram();
+  diagram.addField(new Field("test1", 12));
+  diagram.toString();
+
+  expect(getInsertPositions(diagram.renderMatrix, true, false).length).toBe(1);
+  expect(getInsertPositions(diagram.renderMatrix, false, false).length).toBe(0);
+  expect(getInsertPositions(diagram.renderMatrix, false, true).length).toBe(1);
+});
+
 test("render DiagramInput", () => {
-  const { app } = getRootStore();
   const ref = React.createRef<HTMLInputElement>();
 
   const component = (
@@ -417,10 +427,6 @@ test("render DiagramInput", () => {
 
   const result = render(component);
   result.unmount();
-
-  // act(() => {
-  //   (ref as any).current = null;
-  // });
 });
 
 test("render DiagramInsertFieldButton", () => {
@@ -712,6 +718,9 @@ test("DeleteFieldInteraction", () => {
   // onMouseUp, right click, a row segment, not same field
   expect(interaction.onMouseUp(...interact(8, 1, 2))).toBeUndefined();
 
+  // onMouseUp, right click, a connector
+  expect(interaction.onMouseUp(...interact(0, 0, 2))).toBeUndefined();
+
   // onMouseUp, right click, same field
   expect(interaction.onMouseUp(...interact(1, 1, 2))).toBeUndefined();
   expect(handler.diagram.fields.length).toBe(2);
@@ -862,8 +871,6 @@ test("DiagramInteractionCommand", () => {
 });
 
 test("useDiagramButton", () => {
-  const { app } = getRootStore();
-
   const CustomButton = (props: { title: string }) => {
     const btnRef = React.useRef<HTMLButtonElement>(null);
 
