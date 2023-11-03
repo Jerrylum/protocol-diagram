@@ -48,6 +48,7 @@ test("ObserverInput test", () => {
   inputField = document.querySelector("#test") as HTMLInputElement;
 
   act(() => {
+    fireEvent.keyDown(inputField, { key: "e", code: "e" });
     fireEvent.input(inputField, { target: { value: "23" } });
   });
   expect(inputField.value).toBe("12345");

@@ -12,7 +12,7 @@ test("Connector", () => {
   const rows = convertFieldsToRow(32, list, true);
   const dividers = spliceDividers(32, rows);
   const segments = mergeRowsAndDividers(rows, dividers);
-  list.forEach((f) => displayNameAtTheCentralSegment(f, segments));
+  list.forEach(f => displayNameAtTheCentralSegment(f, segments));
 
   const matrix = new Matrix(segments);
   matrix.process();
@@ -31,7 +31,7 @@ test("Connector", () => {
   const rows2 = convertFieldsToRow(32, list, false);
   const dividers2 = spliceDividers(32, rows2);
   const segments2 = mergeRowsAndDividers(rows2, dividers2);
-  list.forEach((f) => displayNameAtTheCentralSegment(f, segments2));
+  list.forEach(f => displayNameAtTheCentralSegment(f, segments2));
 
   const matrix2 = new Matrix(segments2);
   matrix2.process();
@@ -48,7 +48,7 @@ test("DividerSegment", () => {
   const rows = convertFieldsToRow(32, list, true);
   const dividers = spliceDividers(32, rows);
   const segments = mergeRowsAndDividers(rows, dividers);
-  list.forEach((f) => displayNameAtTheCentralSegment(f, segments));
+  list.forEach(f => displayNameAtTheCentralSegment(f, segments));
 
   const matrix = new Matrix(segments);
   matrix.process();
@@ -75,6 +75,11 @@ test("Divider", () => {
   d.addSplice(rs2, rs);
   expect(list.toString()).toStrictEqual(d.segments.toString()); // unchanged
 
+  expect(d.count).toBe(1);
+  expect(d.used).toBe(6);
+  expect(d.get(0)).toBe(d.segments[0]);
+  expect(d.get(1)).toBe(null);
+
   ////////////////
 
   const f = new Field("test3", 38);
@@ -86,6 +91,9 @@ test("Divider", () => {
   d2.addSplice(rs4, rs3);
   list2.push(new DividerSegment(null, 0, 6));
   expect(list2.toString()).toStrictEqual(d2.segments.toString());
+
+  expect(d2.count).toBe(1);
+  expect(d2.used).toBe(6);
 
   ////////////////
 
@@ -142,4 +150,3 @@ test("Row", () => {
   list2.push(new RowTail(8, 24, false));
   expect(r2.segments.toString()).toStrictEqual(list2.toString());
 });
-
