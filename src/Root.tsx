@@ -95,7 +95,7 @@ const Root = observer((props: { enableCanvas?: boolean }) => {
   const { app, modals } = getRootStore();
 
   React.useEffect(() => {
-    const searchParams = new URLSearchParams(document.location.search);
+    const searchParams = new URLSearchParams(window.location.search);
     const result = searchParams.get("diagram");
     if (result === null) return;
     handleDiagramParam(result);
@@ -179,3 +179,4 @@ const Root = observer((props: { enableCanvas?: boolean }) => {
 });
 
 export default Root;
+
