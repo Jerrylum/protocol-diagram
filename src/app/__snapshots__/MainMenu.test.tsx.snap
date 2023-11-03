@@ -214,3 +214,751 @@ exports[`HotkeyTypography in MacOS 1`] = `
   </p>
 </div>
 `;
+
+exports[`render MainMenu 1`] = `
+<body
+  style="padding-right: 1024px; overflow: hidden;"
+>
+  <div
+    aria-hidden="true"
+  >
+    <div>
+      <button
+        class="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium css-1vrbsoc-MuiButtonBase-root-MuiButton-root"
+        tabindex="0"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-i4bv87-MuiSvgIcon-root"
+          data-testid="MenuIcon"
+          focusable="false"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"
+          />
+        </svg>
+        <span
+          class="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+        />
+      </button>
+    </div>
+  </div>
+  <div
+    class="MuiMenu-root MuiPopover-root MuiModal-root css-112dft7-MuiModal-root-MuiPopover-root-MuiMenu-root"
+    role="presentation"
+  >
+    <div
+      aria-hidden="true"
+      class="MuiBackdrop-root MuiBackdrop-invisible MuiModal-backdrop css-g3hgs1-MuiBackdrop-root-MuiModal-backdrop"
+      style="opacity: 1; webkit-transition: opacity 225ms cubic-bezier(0.4, 0, 0.2, 1) 0ms; transition: opacity 225ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;"
+    />
+    <div
+      data-testid="sentinelStart"
+      tabindex="0"
+    />
+    <div
+      class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation8 MuiMenu-paper MuiPopover-paper MuiMenu-paper css-3dzjca-MuiPaper-root-MuiPopover-paper-MuiMenu-paper"
+      style="opacity: 1; transform: scale(1, 1); transition: opacity 0ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,transform 0ms cubic-bezier(0.4, 0, 0.2, 1) 0ms; top: 16px; left: 16px; transform-origin: -16px -16px;"
+      tabindex="-1"
+    >
+      <ul
+        class="MuiList-root MuiList-padding MuiMenu-list css-6hp17o-MuiList-root-MuiMenu-list"
+        role="menu"
+        tabindex="-1"
+      >
+        <li
+          class="MuiButtonBase-root MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters css-g6xhbl-MuiButtonBase-root-MuiMenuItem-root"
+          role="menuitem"
+          tabindex="0"
+        >
+          <div
+            class="MuiListItemText-root MuiListItemText-dense css-128xifc-MuiListItemText-root"
+          >
+            <span
+              class="MuiTypography-root MuiTypography-body2 MuiListItemText-primary css-et1ao3-MuiTypography-root"
+            >
+              New
+            </span>
+          </div>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            ⌘
+          </p>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            P
+          </p>
+          <span
+            class="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+          />
+        </li>
+        <hr
+          class="MuiDivider-root MuiDivider-fullWidth css-9mgopn-MuiDivider-root"
+        />
+        <li
+          class="MuiButtonBase-root MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters css-g6xhbl-MuiButtonBase-root-MuiMenuItem-root"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="MuiListItemText-root MuiListItemText-dense css-128xifc-MuiListItemText-root"
+          >
+            <span
+              class="MuiTypography-root MuiTypography-body2 MuiListItemText-primary css-et1ao3-MuiTypography-root"
+            >
+              Open File
+            </span>
+          </div>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            ⌘
+          </p>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            O
+          </p>
+          <span
+            class="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+          />
+        </li>
+        <hr
+          class="MuiDivider-root MuiDivider-fullWidth css-9mgopn-MuiDivider-root"
+        />
+        <li
+          class="MuiButtonBase-root MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters css-g6xhbl-MuiButtonBase-root-MuiMenuItem-root"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="MuiListItemText-root MuiListItemText-dense css-128xifc-MuiListItemText-root"
+          >
+            <span
+              class="MuiTypography-root MuiTypography-body2 MuiListItemText-primary css-et1ao3-MuiTypography-root"
+            >
+              Save
+            </span>
+          </div>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            ⌘
+          </p>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            S
+          </p>
+          <span
+            class="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+          />
+        </li>
+        <li
+          class="MuiButtonBase-root MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters css-g6xhbl-MuiButtonBase-root-MuiMenuItem-root"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="MuiListItemText-root MuiListItemText-dense css-128xifc-MuiListItemText-root"
+          >
+            <span
+              class="MuiTypography-root MuiTypography-body2 MuiListItemText-primary css-et1ao3-MuiTypography-root"
+            >
+              Save As
+            </span>
+          </div>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            ⇧
+          </p>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            ⌘
+          </p>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            S
+          </p>
+          <span
+            class="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+          />
+        </li>
+        <hr
+          class="MuiDivider-root MuiDivider-fullWidth css-9mgopn-MuiDivider-root"
+        />
+        <li
+          class="MuiButtonBase-root MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters css-g6xhbl-MuiButtonBase-root-MuiMenuItem-root"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="MuiListItemText-root MuiListItemText-dense css-128xifc-MuiListItemText-root"
+          >
+            <span
+              class="MuiTypography-root MuiTypography-body2 MuiListItemText-primary css-et1ao3-MuiTypography-root"
+            >
+              Download
+            </span>
+          </div>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            ⌘
+          </p>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            D
+          </p>
+          <span
+            class="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+          />
+        </li>
+        <li
+          class="MuiButtonBase-root MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters css-g6xhbl-MuiButtonBase-root-MuiMenuItem-root"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="MuiListItemText-root MuiListItemText-dense css-128xifc-MuiListItemText-root"
+          >
+            <span
+              class="MuiTypography-root MuiTypography-body2 MuiListItemText-primary css-et1ao3-MuiTypography-root"
+            >
+              Download As
+            </span>
+          </div>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            ⇧
+          </p>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            ⌘
+          </p>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            D
+          </p>
+          <span
+            class="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+          />
+        </li>
+      </ul>
+    </div>
+    <div
+      data-testid="sentinelEnd"
+      tabindex="0"
+    />
+  </div>
+</body>
+`;
+
+exports[`render MainMenu 2`] = `
+<body
+  style=""
+>
+  <div>
+    <div>
+      <button
+        class="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium css-1vrbsoc-MuiButtonBase-root-MuiButton-root"
+        tabindex="0"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-i4bv87-MuiSvgIcon-root"
+          data-testid="MenuIcon"
+          focusable="false"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"
+          />
+        </svg>
+        <span
+          class="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+        />
+      </button>
+    </div>
+  </div>
+  <div
+    aria-hidden="true"
+    class="MuiMenu-root MuiPopover-root MuiModal-root css-112dft7-MuiModal-root-MuiPopover-root-MuiMenu-root"
+    role="presentation"
+  >
+    <div
+      aria-hidden="true"
+      class="MuiBackdrop-root MuiBackdrop-invisible MuiModal-backdrop css-g3hgs1-MuiBackdrop-root-MuiModal-backdrop"
+      style="opacity: 0; webkit-transition: opacity 195ms cubic-bezier(0.4, 0, 0.2, 1) 0ms; transition: opacity 195ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;"
+    />
+    <div
+      data-testid="sentinelStart"
+      tabindex="-1"
+    />
+    <div
+      class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation8 MuiMenu-paper MuiPopover-paper MuiMenu-paper css-3dzjca-MuiPaper-root-MuiPopover-paper-MuiMenu-paper"
+      style="opacity: 0; transform: scale(0.75, 0.5625); transition: opacity 0ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,transform 0ms cubic-bezier(0.4, 0, 0.2, 1) 0ms; top: 16px; left: 16px; transform-origin: -16px -16px;"
+      tabindex="-1"
+    >
+      <ul
+        class="MuiList-root MuiList-padding MuiMenu-list css-6hp17o-MuiList-root-MuiMenu-list"
+        role="menu"
+        tabindex="-1"
+      >
+        <li
+          class="MuiButtonBase-root MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters css-g6xhbl-MuiButtonBase-root-MuiMenuItem-root"
+          role="menuitem"
+          tabindex="0"
+        >
+          <div
+            class="MuiListItemText-root MuiListItemText-dense css-128xifc-MuiListItemText-root"
+          >
+            <span
+              class="MuiTypography-root MuiTypography-body2 MuiListItemText-primary css-et1ao3-MuiTypography-root"
+            >
+              New
+            </span>
+          </div>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            ⌘
+          </p>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            P
+          </p>
+          <span
+            class="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+          />
+        </li>
+        <hr
+          class="MuiDivider-root MuiDivider-fullWidth css-9mgopn-MuiDivider-root"
+        />
+        <li
+          class="MuiButtonBase-root MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters css-g6xhbl-MuiButtonBase-root-MuiMenuItem-root"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="MuiListItemText-root MuiListItemText-dense css-128xifc-MuiListItemText-root"
+          >
+            <span
+              class="MuiTypography-root MuiTypography-body2 MuiListItemText-primary css-et1ao3-MuiTypography-root"
+            >
+              Open File
+            </span>
+          </div>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            ⌘
+          </p>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            O
+          </p>
+          <span
+            class="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+          />
+        </li>
+        <hr
+          class="MuiDivider-root MuiDivider-fullWidth css-9mgopn-MuiDivider-root"
+        />
+        <li
+          class="MuiButtonBase-root MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters css-g6xhbl-MuiButtonBase-root-MuiMenuItem-root"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="MuiListItemText-root MuiListItemText-dense css-128xifc-MuiListItemText-root"
+          >
+            <span
+              class="MuiTypography-root MuiTypography-body2 MuiListItemText-primary css-et1ao3-MuiTypography-root"
+            >
+              Save
+            </span>
+          </div>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            ⌘
+          </p>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            S
+          </p>
+          <span
+            class="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+          />
+        </li>
+        <li
+          class="MuiButtonBase-root MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters css-g6xhbl-MuiButtonBase-root-MuiMenuItem-root"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="MuiListItemText-root MuiListItemText-dense css-128xifc-MuiListItemText-root"
+          >
+            <span
+              class="MuiTypography-root MuiTypography-body2 MuiListItemText-primary css-et1ao3-MuiTypography-root"
+            >
+              Save As
+            </span>
+          </div>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            ⇧
+          </p>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            ⌘
+          </p>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            S
+          </p>
+          <span
+            class="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+          />
+        </li>
+        <hr
+          class="MuiDivider-root MuiDivider-fullWidth css-9mgopn-MuiDivider-root"
+        />
+        <li
+          class="MuiButtonBase-root MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters css-g6xhbl-MuiButtonBase-root-MuiMenuItem-root"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="MuiListItemText-root MuiListItemText-dense css-128xifc-MuiListItemText-root"
+          >
+            <span
+              class="MuiTypography-root MuiTypography-body2 MuiListItemText-primary css-et1ao3-MuiTypography-root"
+            >
+              Download
+            </span>
+          </div>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            ⌘
+          </p>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            D
+          </p>
+          <span
+            class="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+          />
+        </li>
+        <li
+          class="MuiButtonBase-root MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters css-g6xhbl-MuiButtonBase-root-MuiMenuItem-root"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="MuiListItemText-root MuiListItemText-dense css-128xifc-MuiListItemText-root"
+          >
+            <span
+              class="MuiTypography-root MuiTypography-body2 MuiListItemText-primary css-et1ao3-MuiTypography-root"
+            >
+              Download As
+            </span>
+          </div>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            ⇧
+          </p>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            ⌘
+          </p>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            D
+          </p>
+          <span
+            class="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+          />
+        </li>
+      </ul>
+    </div>
+    <div
+      data-testid="sentinelEnd"
+      tabindex="-1"
+    />
+  </div>
+</body>
+`;
+
+exports[`render MainMenu 3`] = `
+<body
+  style=""
+>
+  <div>
+    <div>
+      <button
+        class="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium css-1vrbsoc-MuiButtonBase-root-MuiButton-root"
+        tabindex="0"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-i4bv87-MuiSvgIcon-root"
+          data-testid="MenuIcon"
+          focusable="false"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"
+          />
+        </svg>
+        <span
+          class="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+        />
+      </button>
+    </div>
+  </div>
+  <div
+    aria-hidden="true"
+    class="MuiMenu-root MuiPopover-root MuiModal-root css-112dft7-MuiModal-root-MuiPopover-root-MuiMenu-root"
+    role="presentation"
+  >
+    <div
+      aria-hidden="true"
+      class="MuiBackdrop-root MuiBackdrop-invisible MuiModal-backdrop css-g3hgs1-MuiBackdrop-root-MuiModal-backdrop"
+      style="opacity: 0; webkit-transition: opacity 195ms cubic-bezier(0.4, 0, 0.2, 1) 0ms; transition: opacity 195ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;"
+    />
+    <div
+      data-testid="sentinelStart"
+      tabindex="-1"
+    />
+    <div
+      class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation8 MuiMenu-paper MuiPopover-paper MuiMenu-paper css-3dzjca-MuiPaper-root-MuiPopover-paper-MuiMenu-paper"
+      style="opacity: 0; transform: scale(0.75, 0.5625); transition: opacity 0ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,transform 0ms cubic-bezier(0.4, 0, 0.2, 1) 0ms; top: 16px; left: 16px; transform-origin: -16px -16px;"
+      tabindex="-1"
+    >
+      <ul
+        class="MuiList-root MuiList-padding MuiMenu-list css-6hp17o-MuiList-root-MuiMenu-list"
+        role="menu"
+        tabindex="-1"
+      >
+        <li
+          class="MuiButtonBase-root MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters css-g6xhbl-MuiButtonBase-root-MuiMenuItem-root"
+          role="menuitem"
+          tabindex="0"
+        >
+          <div
+            class="MuiListItemText-root MuiListItemText-dense css-128xifc-MuiListItemText-root"
+          >
+            <span
+              class="MuiTypography-root MuiTypography-body2 MuiListItemText-primary css-et1ao3-MuiTypography-root"
+            >
+              New
+            </span>
+          </div>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            ⌘
+          </p>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            P
+          </p>
+          <span
+            class="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+          />
+        </li>
+        <hr
+          class="MuiDivider-root MuiDivider-fullWidth css-9mgopn-MuiDivider-root"
+        />
+        <li
+          class="MuiButtonBase-root MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters css-g6xhbl-MuiButtonBase-root-MuiMenuItem-root"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="MuiListItemText-root MuiListItemText-dense css-128xifc-MuiListItemText-root"
+          >
+            <span
+              class="MuiTypography-root MuiTypography-body2 MuiListItemText-primary css-et1ao3-MuiTypography-root"
+            >
+              Open File
+            </span>
+          </div>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            ⌘
+          </p>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            O
+          </p>
+          <span
+            class="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+          />
+        </li>
+        <hr
+          class="MuiDivider-root MuiDivider-fullWidth css-9mgopn-MuiDivider-root"
+        />
+        <li
+          class="MuiButtonBase-root MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters css-g6xhbl-MuiButtonBase-root-MuiMenuItem-root"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="MuiListItemText-root MuiListItemText-dense css-128xifc-MuiListItemText-root"
+          >
+            <span
+              class="MuiTypography-root MuiTypography-body2 MuiListItemText-primary css-et1ao3-MuiTypography-root"
+            >
+              Save
+            </span>
+          </div>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            ⌘
+          </p>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            S
+          </p>
+          <span
+            class="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+          />
+        </li>
+        <li
+          class="MuiButtonBase-root MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters css-g6xhbl-MuiButtonBase-root-MuiMenuItem-root"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="MuiListItemText-root MuiListItemText-dense css-128xifc-MuiListItemText-root"
+          >
+            <span
+              class="MuiTypography-root MuiTypography-body2 MuiListItemText-primary css-et1ao3-MuiTypography-root"
+            >
+              Save As
+            </span>
+          </div>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            ⇧
+          </p>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            ⌘
+          </p>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            S
+          </p>
+          <span
+            class="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+          />
+        </li>
+        <hr
+          class="MuiDivider-root MuiDivider-fullWidth css-9mgopn-MuiDivider-root"
+        />
+        <li
+          class="MuiButtonBase-root MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters css-g6xhbl-MuiButtonBase-root-MuiMenuItem-root"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="MuiListItemText-root MuiListItemText-dense css-128xifc-MuiListItemText-root"
+          >
+            <span
+              class="MuiTypography-root MuiTypography-body2 MuiListItemText-primary css-et1ao3-MuiTypography-root"
+            >
+              Download
+            </span>
+          </div>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            ⌘
+          </p>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            D
+          </p>
+          <span
+            class="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+          />
+        </li>
+        <li
+          class="MuiButtonBase-root MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters css-g6xhbl-MuiButtonBase-root-MuiMenuItem-root"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="MuiListItemText-root MuiListItemText-dense css-128xifc-MuiListItemText-root"
+          >
+            <span
+              class="MuiTypography-root MuiTypography-body2 MuiListItemText-primary css-et1ao3-MuiTypography-root"
+            >
+              Download As
+            </span>
+          </div>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            ⇧
+          </p>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            ⌘
+          </p>
+          <p
+            class="MuiTypography-root MuiTypography-body2 css-jsrjbk-MuiTypography-root"
+          >
+            D
+          </p>
+          <span
+            class="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+          />
+        </li>
+      </ul>
+    </div>
+    <div
+      data-testid="sentinelEnd"
+      tabindex="-1"
+    />
+  </div>
+</body>
+`;
