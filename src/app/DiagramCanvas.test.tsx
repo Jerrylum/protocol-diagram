@@ -7,7 +7,6 @@ import {
   DiagramCanvasController,
   DiagramInput,
   DiagramInsertFieldButton,
-  useDiagramButton,
   ResizeFieldInteraction1,
   DiagramInteractionHandler,
   InteractionEvent,
@@ -27,9 +26,7 @@ import { getRootStore } from "../core/Root";
 import { act } from "react-dom/test-utils";
 import React from "react";
 import { HandleResult } from "../command/HandleResult";
-import { satisfies } from "semver";
 import { buildParameters } from "../token/Tokens";
-import exp from "constants";
 
 test("isKonvaTouchEvent", () => {
   global.TouchEvent = jest.fn();
@@ -503,9 +500,6 @@ test("ResizeFieldInteraction1", () => {
   // not connector
   expect(ResizeFieldInteraction1.onMouseDown(handler, ...interact(1, 1, 0))).toBeUndefined();
 
-  // not connector with the correct shape
-  expect(ResizeFieldInteraction1.onMouseDown(handler, ...interact(20, 3, 0))).toBeUndefined();
-
   // no left field
   expect(ResizeFieldInteraction1.onMouseDown(handler, ...interact(0, 1, 0))).toBeUndefined();
 
@@ -774,7 +768,6 @@ test("DragAndDropFieldInteraction", () => {
   ).toBe(true);
 
   // interaction functions
-
   const interaction = DragAndDropFieldInteraction.onStartDrag(handler, ...interact(10, 1, 0))!;
 
   // onMouseDown

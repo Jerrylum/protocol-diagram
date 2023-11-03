@@ -136,9 +136,6 @@ export class ResizeFieldInteraction1 extends Interaction {
     const element = matrix.get(posInMatrix.x, posInMatrix.y);
     if (element instanceof Connector === false) return undefined;
 
-    const conn = element as Connector;
-    if (conn.value !== (Connector.TOP | Connector.BOTTOM)) return undefined;
-
     const index = matrix.index(posInMatrix.x, posInMatrix.y);
 
     const findField = (index: number, direction: number): Field | undefined => {
@@ -1038,9 +1035,6 @@ export const getInsertPositions = (matrix: Matrix, includeBeginning: boolean, in
     for (let x = 0; x < matrix.width; x++) {
       const element = matrix.get(x, y);
       if (element instanceof Connector === false) continue;
-
-      const conn = element as Connector;
-      if (conn.value !== (Connector.TOP | Connector.BOTTOM)) continue;
 
       const index = matrix.index(x, y);
 
