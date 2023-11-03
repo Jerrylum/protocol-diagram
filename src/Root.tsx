@@ -20,6 +20,7 @@ import { reaction } from "mobx";
 import { APP_VERSION_STRING } from "./Version";
 import { onDropFile, onOpen, onSave, onSaveAs, onNew, onDownload, onDownloadAs } from "./core/InputOutput";
 import { DragDropBackdrop, useDragDropFile } from "./app/DragDropBackdrop";
+import { MainMenu } from "./app/MainMenu";
 
 (window as any)["checkForUpdates"] = checkForUpdates;
 
@@ -169,6 +170,7 @@ const Root = observer((props: { enableCanvas?: boolean }) => {
       <NoticeProvider />
       <DiagramCanvas enableCanvas={props.enableCanvas} />
       <BottomPanel />
+      <MainMenu />
       <HelpModal />
       <ConfirmationModal />
       {isDraggingFile && <DragDropBackdrop {...{ onDragEnter, onDragLeave, onDragOver, onDrop }} />}
