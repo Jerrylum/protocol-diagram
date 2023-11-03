@@ -16,7 +16,8 @@ import {
   InsertFieldInteraction,
   RenameFieldInteraction,
   DragAndDropFieldInteraction,
-  DeleteFieldInteraction
+  DeleteFieldInteraction,
+  useDiagramButton
 } from "./DiagramCanvas";
 import { Vector } from "../core/Vector";
 import { Diagram } from "../diagram/Diagram";
@@ -859,3 +860,56 @@ test("DiagramInteractionCommand", () => {
   new DiagramInteractionCommand(HandleResult.HANDLED).execute();
   new DiagramInteractionCommand(HandleResult.HANDLED).handle();
 });
+
+test("useDiagramButton", () => {
+  const { app } = getRootStore();
+
+  const CustomButton = (props: { title: string }) => {
+    const btnRef = React.useRef<HTMLButtonElement>(null);
+
+    useDiagramButton(btnRef);
+
+    return (
+      <button id="test-diagram-button" ref={btnRef}>
+        {props.title}
+      </button>
+    );
+  };
+
+  const result = render(<CustomButton title="Test1" />);
+
+  result.rerender(<CustomButton title="Test2" />); // force rerender
+
+  const btn = result.container.querySelector("#test-diagram-button") as HTMLButtonElement;
+
+  act(() => {
+    // normal mouse move
+    fireEvent.mouseMove(document, { clientX: 0, clientY: 0 });
+
+    // trigger prevent default
+    // fireEvent.wheel(document, { deltaY: 1, ctrlKey: true });
+    btn.dispatchEvent(new WheelEvent("wheel", { deltaY: 1, ctrlKey: true }));
+  });
+
+  result.unmount();
+
+  ///
+
+  const CustomButton2 = () => {
+    const btnRef = React.useRef<HTMLButtonElement>(null);
+
+    useDiagramButton(btnRef);
+
+    return <button />;
+  };
+
+  const result2 = render(<CustomButton2 />);
+
+  act(() => {
+    // trigger null check
+    fireEvent.mouseMove(document, { clientX: 0, clientY: 0 });
+  });
+
+  result2.unmount();
+});
+
