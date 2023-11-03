@@ -14,7 +14,7 @@ test("getControllingClientsCount", async () => {
   getControllingClientsCount();
 });
 
-class ServiceWorkerContainerMock implements ServiceWorkerContainer {
+export class ServiceWorkerContainerMock implements ServiceWorkerContainer {
   controller: ServiceWorker | null = null;
 
   oncontrollerchange: ((this: ServiceWorkerContainer, ev: Event) => any) | null = null;
@@ -52,7 +52,7 @@ class ServiceWorkerContainerMock implements ServiceWorkerContainer {
   }
 }
 
-class ServiceWorkerRegistrationMock implements ServiceWorkerRegistration {
+export class ServiceWorkerRegistrationMock implements ServiceWorkerRegistration {
   active: ServiceWorker | null = null;
   installing: ServiceWorker | null = null;
   navigationPreload: NavigationPreloadManager = {} as NavigationPreloadManager;
@@ -98,7 +98,7 @@ class ServiceWorkerRegistrationMock implements ServiceWorkerRegistration {
   }
 }
 
-class ServiceWorkerMock implements ServiceWorker {
+export class ServiceWorkerMock implements ServiceWorker {
   state: ServiceWorkerState = "activated";
   scriptURL: string = "";
 
@@ -123,7 +123,7 @@ class ServiceWorkerMock implements ServiceWorker {
   }
 }
 
-async function resetServiceWorker() {
+export async function resetServiceWorker() {
   const swc = new ServiceWorkerContainerMock();
   const swr = new ServiceWorkerRegistrationMock();
 
@@ -151,7 +151,7 @@ async function resetServiceWorker() {
   };
 }
 
-function setupServiceWorkerEnv() {
+export function setupServiceWorkerEnv() {
   delete (window as any).location;
   (window as any).location = new URL("https://www.example.com");
 
@@ -168,7 +168,7 @@ function setupServiceWorkerEnv() {
   return { swc, swr };
 }
 
-async function registerServiceWorker() {
+export async function registerServiceWorker() {
   const { swc, swr } = setupServiceWorkerEnv();
 
   await register();
