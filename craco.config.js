@@ -21,6 +21,12 @@ module.exports = async env => {
         return webpackConfig;
       }
     },
+    jest: {
+      configure: jestConfig => {
+        jestConfig.coveragePathIgnorePatterns = ["src/index.tsx", "src/service-worker.ts"];
+        return jestConfig;
+      }
+    },
     plugins: [
       { plugin: require("./craco-copy-webpack-plugin.js") },
       { plugin: require("./craco-fallback-util-plugin.js") },
