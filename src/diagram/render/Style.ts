@@ -39,8 +39,8 @@ export abstract class Style {
 
   build(e: Connector | DividerSegment | RowTail | NextLine | RowSegment): string {
     if (e instanceof Segment) {
-      const name = e.displayName ? e.represent?.name ?? "" : "";
-      return outputCenteredString(name, " ", e.length);
+      const name = e.displayName ? e.represent?.name : undefined;
+      return outputCenteredString(name ?? "", " ", e.length);
     } else if (e instanceof NextLine) {
       return "\n";
     } else {
@@ -191,3 +191,4 @@ export class UTF8CornerStyle extends UTF8Style {
     return super.build(e);
   }
 }
+

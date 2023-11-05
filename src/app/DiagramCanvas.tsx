@@ -136,9 +136,6 @@ export class ResizeFieldInteraction1 extends Interaction {
     const element = matrix.get(posInMatrix.x, posInMatrix.y);
     if (element instanceof Connector === false) return undefined;
 
-    const conn = element as Connector;
-    if (conn.value !== (Connector.TOP | Connector.BOTTOM)) return undefined;
-
     const index = matrix.index(posInMatrix.x, posInMatrix.y);
 
     const findField = (index: number, direction: number): Field | undefined => {
@@ -307,7 +304,6 @@ export class RenameFieldInteraction extends Interaction {
     const currClientPos = new Vector(event.clientX, event.clientY);
 
     if (this.clickSequence === 0) {
-      console.log("RenameFieldInteraction.onMouseMove", currClientPos.distance(this.originClientPos));
       if (currClientPos.distance(this.originClientPos) > 16)
         return DragAndDropFieldInteraction.onStartDrag(this.handler, this.originMatrixPos, event);
     }
@@ -393,6 +389,8 @@ export class DeleteFieldInteraction extends Interaction {
 
     if (element instanceof RowSegment || element instanceof DividerSegment) {
       if (this.field.uid !== element.represent?.uid) return undefined;
+    } else {
+      return undefined;
     }
 
     const diagram = this.handler.diagram;
@@ -488,8 +486,6 @@ export class InsertFieldInteraction extends Interaction {
 }
 
 export class DragAndDropFieldInteraction extends Interaction {
-  public lastDragTime: number = 0;
-
   private constructor(handler: DiagramInteractionHandler, readonly field: Field, readonly originIdx: number) {
     super(handler);
   }
@@ -499,10 +495,6 @@ export class DragAndDropFieldInteraction extends Interaction {
   }
 
   onMouseMove(posInMatrix: Vector, event: InteractionEvent): Interaction | undefined {
-    // To prevent the field from being moved too fast
-    if (Date.now() - this.lastDragTime < 100) return this;
-    this.lastDragTime = Date.now();
-
     const diagram = this.handler.diagram;
     const matrix = diagram.renderMatrix;
 
@@ -520,16 +512,14 @@ export class DragAndDropFieldInteraction extends Interaction {
     } else {
       const insertPositions = getInsertPositions(matrix, true, true);
 
-      const find = getClosestPositionWithTheSameY(posInMatrix, insertPositions);
-      if (find === null) return this;
+      const insertIdx = insertPositions.findIndex(info => info.pos.x === posInMatrix.x && info.pos.y === posInMatrix.y);
+      /*   Field:  0 1 2 3
+                   A B C D
+                  ^ ^ ^ ^ ^
+      Insert Pos: 0 1 2 3 4*/
+      if (insertIdx === -1 || insertIdx === targetFieldIdx || insertIdx === targetFieldIdx + 1) return this;
 
-      const destFieldIdx = diagram.fields.findIndex(field => field.uid === find.fieldUid);
-
-      if (destFieldIdx < targetFieldIdx && posInMatrix.x <= find.pos.x) {
-        diagram.moveField(targetFieldIdx, destFieldIdx);
-      } else if (targetFieldIdx <= destFieldIdx && find.pos.x < posInMatrix.x) {
-        diagram.moveField(targetFieldIdx, destFieldIdx + 1); // Add 1 to destFieldIdx because the field is removed from the array.
-      }
+      diagram.moveField(targetFieldIdx, targetFieldIdx < insertIdx ? insertIdx - 1 : insertIdx);
     }
 
     return this;
@@ -558,7 +548,7 @@ export class DragAndDropFieldInteraction extends Interaction {
     posInMatrix: Vector,
     event: InteractionEvent
   ): DragAndDropFieldInteraction | undefined {
-    if (event.button !== 0) return undefined; // handle right click only
+    if (event.button !== 0) return undefined; // handle left click only
 
     const matrix = handler.diagram.renderMatrix;
 
@@ -571,6 +561,8 @@ export class DragAndDropFieldInteraction extends Interaction {
         return new DragAndDropFieldInteraction(handler, field, fieldIdx);
       }
     }
+
+    return undefined;
   }
 }
 
@@ -624,8 +616,8 @@ export class DiagramCanvasController implements DiagramInteractionHandler {
   commitChange(result: HandleResult): void {
     const { app, logger } = getRootStore();
     if (result === HandleResult.NOT_HANDLED || result.message === null) return;
-    if (result.success) logger.info(result.message ?? "");
-    else logger.error(result.message ?? "");
+    if (result.success) logger.info(result.message);
+    else logger.error(result.message);
 
     app.operate(new DiagramInteractionCommand(result));
   }
@@ -760,6 +752,9 @@ export class DiagramCanvasController implements DiagramInteractionHandler {
     const posInPx = this.getUnboundedPxFromNativeEvent(evt);
     if (posWithoutOffsetInPx === undefined || posInPx === undefined) return;
     const posInMatrix = this.getPosInMatrix(posInPx);
+    const { app } = getRootStore();
+    app.diagram.toString();
+    const matrix = app.diagram.renderMatrix;
 
     this.interaction = this.interaction?.onMouseMove(posInMatrix, evt);
 
@@ -819,14 +814,6 @@ export class DiagramCanvasController implements DiagramInteractionHandler {
     return this.getUnboundedPx(getClientXY(event), useOffset, useScale);
   }
 
-  getUnboundedPxFromEvent(
-    event: Konva.KonvaEventObject<DragEvent | MouseEvent | TouchEvent>,
-    useOffset = true,
-    useScale = true
-  ): Vector | undefined {
-    return this.getUnboundedPxFromNativeEvent(event.evt, useOffset, useScale);
-  }
-
   toUnboundedPx(posInMatrix: Vector): Vector {
     const { app } = getRootStore();
     const diagram = app.diagram;
@@ -879,7 +866,7 @@ export const DiagramTextLineElement = observer((props: { line: string; lineNumbe
   );
 });
 
-export const DiagramCanvas = observer(() => {
+export const DiagramCanvas = observer((props: { enableCanvas?: boolean }) => {
   const { app } = getRootStore();
 
   const controller = useBetterMemo(() => new DiagramCanvasController(), []);
@@ -893,7 +880,7 @@ export const DiagramCanvas = observer(() => {
   const canvasSize = controller.canvasSize;
 
   const diagramLines = diagramText.split("\n");
-  const diagramLineLength = diagramLines[0].length ?? 0;
+  const diagramLineLength = diagramLines[0].length;
 
   const diagramSize = new Vector(diagramLineLength * 12, diagramLines.length * 16);
   controller.diagramSize = diagramSize;
@@ -920,8 +907,7 @@ export const DiagramCanvas = observer(() => {
   useEventListener(document, "mouseup", evt => {
     const target = evt.target as HTMLElement;
 
-    const rect = stageRef.current?.container().getBoundingClientRect();
-    if (rect === undefined) return;
+    const rect = stageRef.current!.container().getBoundingClientRect();
 
     const { x: clientX, y: clientY } = getClientXY(evt);
 
@@ -946,11 +932,19 @@ export const DiagramCanvas = observer(() => {
         offset={diagramEditor.offset.subtract(controller.viewOffset)}
         onContextMenu={e => e.evt.preventDefault()}>
         <Layer>
-          {diagramLines.map((line, index) => (
-            <DiagramTextLineElement key={index} line={line} lineNumber={index} />
-          ))}
+          {props.enableCanvas !== false &&
+            diagramLines.map((line, index) => <DiagramTextLineElement key={index} line={line} lineNumber={index} />)}
         </Layer>
       </Stage>
+
+      {getInsertPositions(app.diagram.renderMatrix, true, false).map(info => (
+        <DiagramInsertFieldButton
+          key={info.fieldUid ?? "null"}
+          controller={controller}
+          fieldUid={info.fieldUid}
+          posInMatrix={info.pos.add(new Vector(0, 1))}
+        />
+      ))}
 
       <DiagramAddFieldButton controller={controller} />
 
@@ -1023,20 +1017,11 @@ export const DiagramCanvas = observer(() => {
           isValidValue={value => [value !== "", value !== ""]}
         />
       )}
-
-      {getInsertPositions(app.diagram.renderMatrix, true, false).map(info => (
-        <DiagramInsertFieldButton
-          key={info.fieldUid ?? "null"}
-          controller={controller}
-          fieldUid={info.fieldUid}
-          posInMatrix={info.pos.add(new Vector(0, 1))}
-        />
-      ))}
     </Box>
   );
 });
 
-const findField = (matrix: Matrix, index: number, direction: number): Field | undefined => {
+export const findField = (matrix: Matrix, index: number, direction: number): Field | undefined => {
   let searchIndex = index;
   while (true) {
     const searchElement = matrix.elements[(searchIndex += direction)];
@@ -1046,41 +1031,20 @@ const findField = (matrix: Matrix, index: number, direction: number): Field | un
   }
 };
 
-const getClosestPositionWithTheSameY = (target: Vector, positions: { fieldUid: number | null; pos: Vector }[]) => {
-  type Mapping = { fieldUid: number | null; pos: Vector };
-
-  let closet: [Mapping, number] | null = null;
-
-  for (let i = 0; i < positions.length; i++) {
-    const check = positions[i];
-    if (check.pos.x === target.x && check.pos.y === target.y) return check;
-
-    const distance = Math.abs(check.pos.x - target.x);
-    if ((closet === null || distance < closet[1]) && check.pos.y === target.y) closet = [check, distance];
-  }
-
-  if (closet === null) return null;
-  return closet[0];
-};
-
-const getInsertPositions = (matrix: Matrix, includeBeginning: boolean, includeEnd: boolean) => {
+export const getInsertPositions = (matrix: Matrix, includeBeginning: boolean, includeEnd: boolean) => {
   const insertPos: { fieldUid: number | null; pos: Vector }[] = [];
   for (let y = 1; y < matrix.height; y += 2) {
     for (let x = 0; x < matrix.width; x++) {
       const element = matrix.get(x, y);
       if (element instanceof Connector === false) continue;
 
-      const conn = element as Connector;
-      if (conn.value !== (Connector.TOP | Connector.BOTTOM)) continue;
-
       const index = matrix.index(x, y);
 
       const leftField = findField(matrix, index, -1);
+      const rightField = findField(matrix, index, 1);
       if (leftField === undefined) {
-        if (includeBeginning) insertPos.push({ fieldUid: null, pos: new Vector(x, y) });
+        if (rightField !== undefined && includeBeginning) insertPos.push({ fieldUid: null, pos: new Vector(x, y) });
       } else {
-        const rightField = findField(matrix, index, 1);
-
         if (leftField.uid === rightField?.uid) continue;
 
         if (rightField === undefined && includeEnd === false) continue;
@@ -1099,17 +1063,15 @@ type DiagramInputProps = StylelessObserverInputProps &
     label?: string;
   };
 
-const DiagramInput = observer(
+export const DiagramInput = observer(
   forwardRef<HTMLInputElement, DiagramInputProps>((props: DiagramInputProps, ref) => {
     const inputRef = React.useRef<HTMLInputElement>(null);
     const { getRootProps } = useStylelessObserverInput(props);
     const { clientXY, label, ...rest } = getRootProps();
 
     React.useEffect(() => {
-      if (inputRef.current === null) return;
-
-      inputRef.current.focus();
-      inputRef.current.setSelectionRange(0, inputRef.current.value.length);
+      inputRef.current?.focus();
+      inputRef.current?.setSelectionRange(0, inputRef.current.value.length);
     }, [inputRef.current]);
 
     React.useImperativeHandle(ref, () => inputRef.current!);
@@ -1154,7 +1116,7 @@ const DiagramInput = observer(
   })
 );
 
-const DiagramAddFieldButton = observer((props: { controller: DiagramCanvasController }) => {
+export const DiagramAddFieldButton = observer((props: { controller: DiagramCanvasController }) => {
   const { app } = getRootStore();
   const diagram = app.diagram;
   const matrix = diagram.renderMatrix;
@@ -1211,7 +1173,7 @@ const DiagramAddFieldButton = observer((props: { controller: DiagramCanvasContro
   );
 });
 
-const DiagramInsertFieldButton = observer(
+export const DiagramInsertFieldButton = observer(
   (props: { controller: DiagramCanvasController; fieldUid: number | null; posInMatrix: Vector }) => {
     const { app } = getRootStore();
     const diagram = app.diagram;
@@ -1264,7 +1226,7 @@ const DiagramInsertFieldButton = observer(
   }
 );
 
-const useDiagramButton = (buttonRef: React.RefObject<HTMLButtonElement>) => {
+export const useDiagramButton = (buttonRef: React.RefObject<HTMLButtonElement>) => {
   useEventListener(document, "mousemove", evt => {
     const button = buttonRef.current;
     if (button === null) return;

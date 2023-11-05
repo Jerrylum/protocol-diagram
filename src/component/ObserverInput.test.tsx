@@ -36,17 +36,19 @@ test("ObserverInput test", () => {
     fireEvent.input(inputField, { target: { value: "123" } });
     fireEvent.keyDown(inputField, { key: "Enter", code: "Enter" });
   });
-  testValue.value = "1234567";
-  result.rerender(components);
+  act(() => {
+    testValue.value = "1234567";
+  });
   expect(testValue.value).toBe("1234567");
   expect(inputField.value).toBe("1234567");
 
-  testValue.value = "12345";
   result.unmount();
+  testValue.value = "12345";
   result = render(components);
   inputField = document.querySelector("#test") as HTMLInputElement;
 
   act(() => {
+    fireEvent.keyDown(inputField, { key: "e", code: "e" });
     fireEvent.input(inputField, { target: { value: "23" } });
   });
   expect(inputField.value).toBe("12345");
@@ -65,7 +67,6 @@ test("ObserverInput test", () => {
     fireEvent.input(inputField, { target: { value: "123" } });
     fireEvent.keyDown(inputField, { key: "Enter", code: "Enter" });
   });
-  result.rerender(components);
   expect(testValue.value).toBe("12345");
   expect(inputField.value).toBe("12345");
 
@@ -73,7 +74,6 @@ test("ObserverInput test", () => {
     fireEvent.input(inputField, { target: { value: "123456" } });
     fireEvent.keyDown(inputField, { key: "Enter", code: "Enter" });
   });
-  result.rerender(components);
   expect(testValue.value).toBe("123456");
   expect(inputField.value).toBe("123456");
 
@@ -81,7 +81,6 @@ test("ObserverInput test", () => {
     fireEvent.input(inputField, { target: { value: "1234" } });
     fireEvent.keyDown(inputField, { key: "Escape", code: "Escape" });
   });
-  result.rerender(components);
   expect(testValue.value).toBe("123456");
   expect(inputField.value).toBe("123456");
 
@@ -89,7 +88,6 @@ test("ObserverInput test", () => {
     fireEvent.input(inputField, { target: { value: "123456" } });
     fireEvent.keyDown(inputField, { key: "ArrowDown", code: "ArrowDown" });
   });
-  result.rerender(components);
   expect(testValue.value).toBe("123455");
   expect(inputField.value).toBe("123455");
 
@@ -97,7 +95,6 @@ test("ObserverInput test", () => {
     fireEvent.input(inputField, { target: { value: "123456" } });
     fireEvent.keyDown(inputField, { key: "ArrowUp", code: "ArrowUp" });
   });
-  result.rerender(components);
   expect(testValue.value).toBe("123457");
   expect(inputField.value).toBe("123457");
 
@@ -106,7 +103,6 @@ test("ObserverInput test", () => {
     fireEvent.input(inputField, { target: { value: "123456" } });
     fireEvent.blur(inputField, { target: { value: "123456" } });
   });
-  result.rerender(components);
   expect(testValue.value).toBe("123456");
   expect(inputField.value).toBe("123456");
 

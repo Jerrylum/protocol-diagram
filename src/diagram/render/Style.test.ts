@@ -18,7 +18,7 @@ class UnknownElement extends Element {
   }
 }
 
-test("Style ", () => {
+test("Style constructor", () => {
   const elements: Element[] = [];
   elements.push(new UnknownElement());
   const actual = new UTF8Style(elements).output();

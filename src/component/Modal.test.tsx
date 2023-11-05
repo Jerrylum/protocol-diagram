@@ -22,16 +22,12 @@ test("Render TestModal", () => {
     modals.open(TestModalSymbol);
   });
 
-  result.rerender(components);
-
   const container2 = document.querySelector(".modal-container");
   expect(container2).toBeInTheDocument();
 
   act(() => {
     modals.close();
   });
-
-  result.rerender(components);
 
   const container3 = document.querySelector(".modal-container");
   expect(container3).not.toBeInTheDocument();
@@ -74,7 +70,6 @@ test("Render Modal", () => {
     modals.open(TestModalSymbol);
   });
 
-  result.rerender(components);
   expect(result.container).toMatchSnapshot();
 
   const container2 = document.querySelector(".modal-container");
@@ -92,8 +87,6 @@ test("Render Modal", () => {
   act(() => {
     modals.open(TestModalSymbol);
   });
-
-  result.rerender(components);
 
   expect(onOpen).toBeCalledTimes(2);
   expect(onClose).toBeCalledTimes(1);

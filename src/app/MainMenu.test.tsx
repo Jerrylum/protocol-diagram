@@ -1,6 +1,5 @@
-import { act, render } from "@testing-library/react";
-import { isMacOS } from "../core/Util";
-import { HotkeyTypography } from "./MainMenu";
+import { act, fireEvent, getByRole, getRoles, render } from "@testing-library/react";
+import { HotkeyTypography, MainMenu } from "./MainMenu";
 
 test("HotkeyTypography", () => {
   const components = (
@@ -63,3 +62,34 @@ test("HotkeyTypography in MacOS", () => {
   expect(result.container).toMatchSnapshot();
 });
 
+test("render MainMenu", () => {
+  Object.defineProperty(window.navigator, "userAgent", { value: "Mac", configurable: true });
+
+  const components = (
+    <div>
+      <MainMenu />
+    </div>
+  );
+
+  const result = render(components);
+  const menuBtn = result.container.querySelector("button")!;
+
+  act(() => {
+    fireEvent.click(menuBtn);
+  });
+  expect(document.body).toMatchSnapshot();
+
+  const muiBackdrop = document.body.querySelector(".MuiBackdrop-root")!;
+
+  act(() => {
+    fireEvent.click(muiBackdrop);
+  });
+  expect(document.body).toMatchSnapshot();
+
+  const menuItem1 = document.body.querySelector("li")!;
+
+  act(() => {
+    fireEvent.click(menuItem1);
+  });
+  expect(document.body).toMatchSnapshot();
+});

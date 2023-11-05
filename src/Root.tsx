@@ -54,8 +54,8 @@ export async function handleUndo() {
 
   const result = new UndoCommand().handle([]);
 
-  if (result.message) logger.info(result.message);
-  else if (result.message) logger.error(result.message);
+  if (result.success) logger.info(result.message!);
+  else logger.error(result.message!);
 }
 
 export async function handleRedo() {
@@ -63,8 +63,8 @@ export async function handleRedo() {
 
   const result = new RedoCommand().handle([]);
 
-  if (result.message) logger.info(result.message);
-  else if (result.message) logger.error(result.message);
+  if (result.success) logger.info(result.message!);
+  else logger.error(result.message!);
 }
 
 export async function handleDiagramParam(encodedDiagramParam: string) {
@@ -91,11 +91,11 @@ export async function handleDiagramParam(encodedDiagramParam: string) {
   }
 }
 
-const Root = observer(() => {
+const Root = observer((props: { enableCanvas?: boolean }) => {
   const { app, modals } = getRootStore();
 
   React.useEffect(() => {
-    const searchParams = new URLSearchParams(document.location.search);
+    const searchParams = new URLSearchParams(window.location.search);
     const result = searchParams.get("diagram");
     if (result === null) return;
     handleDiagramParam(result);
@@ -168,7 +168,7 @@ const Root = observer(() => {
   return (
     <Box id="root-container" {...{ onDragEnter, onDragOver, onDrop }}>
       <NoticeProvider />
-      <DiagramCanvas />
+      <DiagramCanvas enableCanvas={props.enableCanvas} />
       <BottomPanel />
       <MainMenu />
       <HelpModal />

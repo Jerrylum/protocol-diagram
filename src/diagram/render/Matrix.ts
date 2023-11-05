@@ -47,7 +47,7 @@ export class Matrix implements MatrixLike {
       for (let x = 0; x < this.width; x++) {
         const e = this.get(x, y);
         if (last !== e) {
-          if (e !== null) e.process(this, x, y);
+          e?.process(this, x, y);
           last = e;
         }
       }

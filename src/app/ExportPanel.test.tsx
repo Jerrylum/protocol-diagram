@@ -34,7 +34,7 @@ test("Render ExportPanel", () => {
   act(() => {
     fireEvent.click(button!);
   });
-  result.rerender(components);
+  
   expect(result.baseElement).toMatchSnapshot();
   const exportTextli = result.baseElement.querySelectorAll("li")[0];
   const { app } = getRootStore();
@@ -42,33 +42,33 @@ test("Render ExportPanel", () => {
   act(() => {
     fireEvent.click(exportTextli);
   });
-  result.rerender(components);
+  
   expect(navigator.clipboard.readText()).toBe(app.diagram.toString());
 
   // Test export as svg
   act(() => {
     fireEvent.click(button!);
   });
-  result.rerender(components);
+  
   expect(result.baseElement).toMatchSnapshot();
   const exportSvgli = result.baseElement.querySelectorAll("li")[1];
   act(() => {
     fireEvent.click(exportSvgli);
   });
-  result.rerender(components);
+  
   expect(navigator.clipboard.readText()).toBe(app.diagram.toSvgString());
 
   // Test export as url
   act(() => {
     fireEvent.click(button!);
   });
-  result.rerender(components);
+  
   expect(result.baseElement).toMatchSnapshot();
   const exportUrlli = result.baseElement.querySelectorAll("li")[2];
   act(() => {
     fireEvent.click(exportUrlli);
   });
-  result.rerender(components);
+  
   const encodedJsonDiagram = window.btoa(unescape(encodeURIComponent(app.diagram.toJson())));
   const base64String = encodedJsonDiagram.replaceAll("+", "-").replaceAll("/", "_");
   const origin = window.location.origin;

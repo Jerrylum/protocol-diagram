@@ -11,14 +11,13 @@ import {
 
 const logger = Logger("Service Worker Registration");
 
-const isLocalhost = Boolean(
-  window.location.hostname === "localhost" ||
-    // [::1] is the IPv6 localhost address.
+const isLocalhost = () => {
+  return (
+    window.location.hostname === "localhost" ||
     window.location.hostname === "[::1]" ||
-    // 127.0.0.0/8 are considered localhost for IPv4.
     window.location.hostname.match(/^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/)
-);
-
+  );
+};
 let wb: Workbox | undefined = undefined;
 
 let isUsingServiceWorker = false;
@@ -78,9 +77,9 @@ export async function isInstalling(): Promise<boolean> {
   return reg?.installing !== null;
 }
 
-export function register() {
+export async function register() {
   // if (process.env.NODE_ENV !== "production") return; // TEST: disable this line to test service worker in development
-  if (isLocalhost) return unregister(); // TEST: disable this line to test service worker in localhost
+  if (isLocalhost()) return unregister(); // TEST: disable this line to test service worker in localhost
   if ("serviceWorker" in navigator === false) return;
 
   const publicUrl = new URL(process.env.PUBLIC_URL, window.location.href);
@@ -124,8 +123,6 @@ export function register() {
 
   wb.register().catch(error => logger.error("Error during service worker registration:", error));
 
-  reportVersions();
-
   /*
   Note:
   
@@ -155,15 +152,15 @@ export function register() {
       window.location.reload();
     }
   });
+
+  await reportVersions();
 }
 
-export function unregister() {
+export async function unregister() {
   if ("serviceWorker" in navigator === false) return;
 
   isUsingServiceWorker = false;
 
-  navigator.serviceWorker.ready
-    .then(registration => registration.unregister())
-    .catch(error => logger.error(error.message));
+  const registrations = await navigator.serviceWorker.ready;
+  return Promise.resolve(registrations.unregister()).catch(error => logger.error(error.message));
 }
-

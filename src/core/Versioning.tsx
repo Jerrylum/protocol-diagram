@@ -1,4 +1,4 @@
-import { when, runInAction } from "mobx";
+import { when } from "mobx";
 import { SemVer } from "semver";
 import { Logger } from "./Logger";
 import * as SWR from "./ServiceWorkerRegistration";
@@ -35,21 +35,13 @@ export async function fetchLatestVersionViaAPI(): Promise<SemVer | undefined> {
 }
 
 export async function refreshLatestVersion() {
-  return new Promise<void>((resolve, reject) => {
-    runInAction(async () => {
-      const { app } = getRootStore();
+  const { app } = getRootStore();
 
-      // Reset to null to indicate that we are fetching the latest version
-      app.latestVersion = null;
-      // Fetch the latest version, can be undefined indicating that the latest version is not available
-      const version = (await SWR.getWaitingSWVersion()) || (await fetchLatestVersionViaAPI());
-
-      runInAction(() => {
-        app.latestVersion = version;
-        resolve();
-      });
-    });
-  });
+  // Reset to null to indicate that we are fetching the latest version
+  app.latestVersion = null;
+  // Fetch the latest version, can be undefined indicating that the latest version is not available
+  const version = (await SWR.getWaitingSWVersion()) || (await fetchLatestVersionViaAPI());
+  app.latestVersion = version;
 }
 
 export async function checkForUpdates() {
@@ -73,9 +65,7 @@ export async function checkForUpdates() {
   }
 }
 
-const PromptUpdateMessage = "PROMPT_UPDATE";
-const CloseUpdatePromptMessage = "CLOSE_UPDATE_PROMPT";
-const versioningBroadcastChannel: BroadcastChannel | undefined = (function () {
+export function getVersioningBroadcastChannel() {
   if (typeof window !== "undefined" && "BroadcastChannel" in window) {
     const channel = new BroadcastChannel("versioning");
     channel.onmessage = event => {
@@ -86,7 +76,11 @@ const versioningBroadcastChannel: BroadcastChannel | undefined = (function () {
   } else {
     return undefined;
   }
-})();
+}
+
+const PromptUpdateMessage = "PROMPT_UPDATE";
+const CloseUpdatePromptMessage = "CLOSE_UPDATE_PROMPT";
+const versioningBroadcastChannel: BroadcastChannel | undefined = getVersioningBroadcastChannel();
 
 let isPromptingUpdate = false;
 
@@ -123,7 +117,7 @@ async function doPromptUpdate() {
 
   if (!app.latestVersion) await when(() => !!app.latestVersion);
 
-  const version = app.latestVersion!.version ?? "";
+  const version = app.latestVersion!.version;
 
   function getDescription(clientsCount: number): React.ReactNode {
     return (

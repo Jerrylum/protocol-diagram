@@ -1,4 +1,4 @@
-import { Box, Button, Divider, ListItemText, Menu, MenuItem, Typography } from "@mui/material";
+import { Button, Divider, ListItemText, Menu, MenuItem, Typography } from "@mui/material";
 import { observer } from "mobx-react-lite";
 import MenuIcon from "@mui/icons-material/Menu";
 import React from "react";

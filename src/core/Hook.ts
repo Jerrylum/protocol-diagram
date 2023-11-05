@@ -92,15 +92,15 @@ export function useCustomHotkeys<T extends HTMLElement>(
 
       const isMacMetaHotkey = isMacOS(navigator.userAgent) && kvEvt.metaKey;
 
-      if (kvEvt.type === "keyup") {
-        timeRef.current = null;
-      } else if (kvEvt.type === "keydown") {
+      if (kvEvt.type === "keydown") {
         if (timeRef.current === null || Date.now() - timeRef.current > (isMacMetaHotkey ? 200 : 800)) {
           runInAction(func);
           timeRef.current = Date.now();
         } else if (isMacMetaHotkey === false) {
           timeRef.current = Date.now();
         }
+      } else {
+        timeRef.current = null;
       }
     };
   }
