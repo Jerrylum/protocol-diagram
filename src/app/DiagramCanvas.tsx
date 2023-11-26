@@ -937,9 +937,9 @@ export const DiagramCanvas = observer((props: { enableCanvas?: boolean }) => {
         </Layer>
       </Stage>
 
-      {getInsertPositions(app.diagram.renderMatrix, true, false).map(info => (
+      {getInsertPositions(app.diagram.renderMatrix, true, false).map((info, idx) => (
         <DiagramInsertFieldButton
-          key={info.fieldUid ?? "null"}
+          key={info.fieldUid + " " + idx}
           controller={controller}
           fieldUid={info.fieldUid}
           posInMatrix={info.pos.add(new Vector(0, 1))}
