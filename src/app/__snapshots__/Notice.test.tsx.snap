@@ -21,7 +21,7 @@ exports[`Render NoticeProvider 1`] = `
           >
             <div
               aria-describedby="notistack-snackbar"
-              class="go1888806478 notistack-MuiContent notistack-MuiContent-success go167266335 go1725278324  css-6ods1o go3162094071"
+              class="go1888806478 notistack-MuiContent notistack-MuiContent-success go167266335 go1725278324  css-10pfvrd go3162094071"
               role="alert"
               style="webkit-transform: none; transform: none; webkit-transition: -webkit-transform 225ms cubic-bezier(0.0, 0, 0.2, 1) 0ms; transition: transform 225ms cubic-bezier(0.0, 0, 0.2, 1) 0ms;"
             >
@@ -58,7 +58,7 @@ exports[`Render NoticeProvider 1`] = `
           >
             <div
               aria-describedby="notistack-snackbar"
-              class="go1888806478 notistack-MuiContent notistack-MuiContent-success go167266335 go1725278324  css-6ods1o go3162094071"
+              class="go1888806478 notistack-MuiContent notistack-MuiContent-success go167266335 go1725278324  css-10pfvrd go3162094071"
               role="alert"
               style="webkit-transform: none; transform: none; webkit-transition: -webkit-transform 225ms cubic-bezier(0.0, 0, 0.2, 1) 0ms; transition: transform 225ms cubic-bezier(0.0, 0, 0.2, 1) 0ms;"
             >
