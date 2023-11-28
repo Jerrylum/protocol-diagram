@@ -866,8 +866,9 @@ test("DragAndDropFieldInteraction", () => {
 });
 
 test("DiagramInteractionCommand", () => {
-  new DiagramInteractionCommand(HandleResult.HANDLED).execute();
-  new DiagramInteractionCommand(HandleResult.HANDLED).handle();
+  const diagram = new Diagram();
+  new DiagramInteractionCommand(diagram, HandleResult.HANDLED).execute();
+  new DiagramInteractionCommand(diagram, HandleResult.HANDLED).handle();
 });
 
 test("useDiagramButton", () => {
