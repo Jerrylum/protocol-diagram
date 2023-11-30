@@ -14,7 +14,7 @@ import { Connector, DividerSegment, RowSegment, RowTail } from "../diagram/rende
 import { CancellableCommand, Command } from "../command/Commands";
 import { Matrix } from "../diagram/render/Matrix";
 import { Field } from "../diagram/Field";
-import { Diagram } from "../diagram/Diagram";
+import { Diagram, Memento } from "../diagram/Diagram";
 import { HandleResult, success } from "../command/HandleResult";
 import { StylelessObserverInputProps, useStylelessObserverInput } from "../component/ObserverInput";
 
@@ -573,13 +573,16 @@ export interface DiagramInteractionHandler {
 
 export class DiagramInteractionCommand extends Command implements CancellableCommand {
   readonly discriminator = "DiagramModifier";
+  private memento: Memento;
 
-  constructor(private result: HandleResult) {
+  constructor(private diagram: Diagram, private result: HandleResult) {
     super("interaction", null, "an interaction in the user interface");
+
+    this.memento = diagram.createMemento();
   }
 
   execute(): void {
-    // noop
+    this.diagram.restoreFromMemento(this.memento);
   }
 
   handle(): HandleResult {
@@ -619,7 +622,7 @@ export class DiagramCanvasController implements DiagramInteractionHandler {
     if (result.success) logger.info(result.message);
     else logger.error(result.message);
 
-    app.operate(new DiagramInteractionCommand(result));
+    app.operate(new DiagramInteractionCommand(this.diagram, result));
   }
 
   private updateCanvasSize() {

@@ -4,10 +4,12 @@ import { Logger } from "../core/Logger";
 
 const StyledMaterialDesignContent = styled(MaterialDesignContent)(() => ({
   "&.notistack-MuiContent-success": {
-    maxWidth: "16rem"
+    maxWidth: "16rem",
+    fontFamily: "Roboto, Helvetica, Arial, sans-serif"
   },
   "&.notistack-MuiContent-error": {
-    maxWidth: "16rem"
+    maxWidth: "16rem",
+    fontFamily: "Roboto, Helvetica, Arial, sans-serif"
   }
 }));
 

@@ -157,7 +157,6 @@ const Root = observer((props: { enableCanvas?: boolean }) => {
   useCustomHotkeys("Mod+D", onDownload, ENABLE_ON_ALL_INPUT_FIELDS);
   useCustomHotkeys("Shift+Mod+D", onDownloadAs, ENABLE_ON_ALL_INPUT_FIELDS);
 
-  useCustomHotkeys("Shift+Mod+S", onSaveAs, ENABLE_ON_ALL_INPUT_FIELDS);
   useCustomHotkeys("Mod+Add,Mod+Equal", () => (app.diagramEditor.scale += 0.5), ENABLE_ON_ALL_INPUT_FIELDS);
   useCustomHotkeys("Mod+Subtract,Mod+Minus", () => (app.diagramEditor.scale -= 0.5), ENABLE_ON_ALL_INPUT_FIELDS);
   useCustomHotkeys("Mod+0", () => app.diagramEditor.resetOffsetAndScale(), ENABLE_ON_ALL_INPUT_FIELDS);
